@@ -41,9 +41,9 @@ export const Hero = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-5xl md:text-7xl font-serif font-bold text-primary-foreground mb-6 leading-tight"
           >
-            Upptäck världens{" "}
-            <span className="text-sunset">vackraste</span>{" "}
-            destinationer
+            Drömmer ni om en{" "}
+            <span className="text-primary">oförglömlig</span>{" "}
+            studentresa?
           </motion.h1>
 
           <motion.p
@@ -52,8 +52,7 @@ export const Hero = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-xl md:text-2xl text-primary-foreground/90 mb-10 max-w-2xl mx-auto leading-relaxed"
           >
-            Skräddarsydda resor med personlig service. Från exotiska stränder till 
-            historiska städer – vi gör din drömresa till verklighet.
+            Ert livs äventyr väntar runt hörnet, boka din resa redan idag.
           </motion.p>
 
           <motion.div
@@ -62,22 +61,21 @@ export const Hero = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
           >
+            <Link to="/book">
+              <Button
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[180px] px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Boka direkt
+              </Button>
+            </Link>
             <Link to="/destinations">
               <Button
                 size="lg"
-                className="bg-sunset hover:bg-sunset/90 text-accent-foreground px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group"
-              >
-                Utforska destinationer
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-            <Link to="/auth">
-              <Button
-                size="lg"
                 variant="outline"
-                className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 px-8 py-6 text-lg font-semibold backdrop-blur-sm"
+                className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 min-w-[180px] px-8 py-6 text-lg font-semibold backdrop-blur-sm"
               >
-                Skapa konto
+                Se våra resor
               </Button>
             </Link>
           </motion.div>
