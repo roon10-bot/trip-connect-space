@@ -14,6 +14,144 @@ export type Database = {
   }
   public: {
     Tables: {
+      booking_accommodations: {
+        Row: {
+          address: string | null
+          amenities: string[] | null
+          booking_id: string
+          check_in_time: string | null
+          check_out_time: string | null
+          created_at: string
+          hotel_name: string
+          id: string
+          notes: string | null
+          room_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          amenities?: string[] | null
+          booking_id: string
+          check_in_time?: string | null
+          check_out_time?: string | null
+          created_at?: string
+          hotel_name: string
+          id?: string
+          notes?: string | null
+          room_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          amenities?: string[] | null
+          booking_id?: string
+          check_in_time?: string | null
+          check_out_time?: string | null
+          created_at?: string
+          hotel_name?: string
+          id?: string
+          notes?: string | null
+          room_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_accommodations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_attachments: {
+        Row: {
+          booking_id: string
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          uploaded_by: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          uploaded_by: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_attachments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_flights: {
+        Row: {
+          airline: string | null
+          arrival_city: string
+          arrival_time: string
+          booking_id: string
+          created_at: string
+          departure_city: string
+          departure_time: string
+          flight_number: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          airline?: string | null
+          arrival_city: string
+          arrival_time: string
+          booking_id: string
+          created_at?: string
+          departure_city: string
+          departure_time: string
+          flight_number?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          airline?: string | null
+          arrival_city?: string
+          arrival_time?: string
+          booking_id?: string
+          created_at?: string
+          departure_city?: string
+          departure_time?: string
+          flight_number?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_flights_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           check_in: string
