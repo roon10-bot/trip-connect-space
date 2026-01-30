@@ -68,12 +68,11 @@ export const Hero = () => {
       </div>
 
       {/* Booking Widget - positioned to overlap hero bottom */}
-      <div className="relative z-20 container mx-auto px-4">
+      <div className="absolute bottom-0 left-0 right-0 z-20 container mx-auto px-4 translate-y-1/2">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="translate-y-1/2"
         >
           <BookingWidget />
         </motion.div>
