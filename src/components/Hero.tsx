@@ -39,18 +39,16 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl md:text-7xl font-serif font-bold text-primary-foreground mb-6 leading-tight"
+            className="text-3xl md:text-5xl font-serif font-bold text-primary-foreground mb-4 leading-tight whitespace-nowrap"
           >
-            Drömmer ni om en{" "}
-            <span className="text-primary">oförglömlig</span>{" "}
-            studentresa?
+            Drömmer ni om en <span className="text-primary">oförglömlig</span> studentresa?
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-xl md:text-2xl text-primary-foreground/90 mb-10 max-w-2xl mx-auto leading-relaxed"
+            className="text-base md:text-lg text-primary-foreground/90 mb-8 max-w-xl mx-auto leading-relaxed"
           >
             Ert livs äventyr väntar runt hörnet, boka din resa redan idag.
           </motion.p>
