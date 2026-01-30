@@ -58,8 +58,7 @@ export const Hero = () => {
             <Link to="/destinations">
               <Button
                 size="lg"
-                variant="outline"
-                className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 min-w-[180px] px-8 py-6 text-lg font-semibold backdrop-blur-sm"
+                className="bg-white/90 hover:bg-white text-accent min-w-[180px] px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Se våra resor
               </Button>
