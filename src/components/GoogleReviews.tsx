@@ -1,5 +1,12 @@
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const reviews = [
   {
@@ -89,45 +96,58 @@ export const GoogleReviews = () => {
           <p className="text-muted-foreground">Baserat på {reviews.length} recensioner</p>
         </motion.div>
 
-        {/* Reviews grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {reviews.map((review, index) => (
-            <motion.div
-              key={review.name}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="bg-card rounded-xl p-6 shadow-elegant border border-border"
-            >
-              <div className="flex items-start gap-4 mb-4">
-                <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-semibold">
-                  {review.avatar}
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-medium text-foreground">{review.name}</h4>
-                  <p className="text-sm text-muted-foreground">{review.date}</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-0.5 mb-3">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    className={`w-4 h-4 ${
-                      star <= review.rating
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "fill-muted text-muted"
-                    }`}
-                  />
-                ))}
-              </div>
-              
-              <p className="text-foreground/80 text-sm leading-relaxed">
-                {review.text}
-              </p>
-            </motion.div>
-          ))}
+        {/* Reviews carousel */}
+        <div className="max-w-6xl mx-auto px-12">
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-4">
+              {reviews.map((review, index) => (
+                <CarouselItem key={review.name} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    className="bg-card rounded-xl p-6 shadow-elegant border border-border h-full"
+                  >
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-semibold">
+                        {review.avatar}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-foreground">{review.name}</h4>
+                        <p className="text-sm text-muted-foreground">{review.date}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-0.5 mb-3">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-4 h-4 ${
+                            star <= review.rating
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "fill-muted text-muted"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    
+                    <p className="text-foreground/80 text-sm leading-relaxed">
+                      {review.text}
+                    </p>
+                  </motion.div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="bg-transparent border-none hover:bg-foreground/10 text-foreground/50 hover:text-foreground transition-colors" />
+            <CarouselNext className="bg-transparent border-none hover:bg-foreground/10 text-foreground/50 hover:text-foreground transition-colors" />
+          </Carousel>
         </div>
       </div>
     </section>
