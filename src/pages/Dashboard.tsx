@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BookingDetailsDialog } from "@/components/BookingDetailsDialog";
+import { toast } from "sonner";
 import {
   Plane,
   Calendar,
@@ -21,18 +23,35 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  ChevronRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  // Handle payment callback
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    if (paymentStatus === "success") {
+      toast.success("Betalningen genomfördes! Din resa är nu bekräftad.");
+      // Clean up URL
+      window.history.replaceState({}, "", "/dashboard");
+    } else if (paymentStatus === "cancelled") {
+      toast.info("Betalningen avbröts. Du kan betala när du är redo.");
+      window.history.replaceState({}, "", "/dashboard");
+    }
+  }, [searchParams]);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -226,14 +245,20 @@ const Dashboard = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * index }}
                 >
-                  <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card 
+                    className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
+                    onClick={() => {
+                      setSelectedBooking(booking);
+                      setDetailsOpen(true);
+                    }}
+                  >
                     <CardContent className="p-0">
                       <div className="flex flex-col md:flex-row">
                         <div className="md:w-48 h-48 md:h-auto">
                           <img
                             src={booking.destinations?.image_url || ""}
                             alt={booking.destinations?.name || ""}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         </div>
                         <div className="flex-1 p-6">
@@ -263,7 +288,7 @@ const Dashboard = () => {
                                 </div>
                               </div>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right flex flex-col items-end">
                               <div className="flex items-center gap-2 text-2xl font-bold text-foreground">
                                 <CreditCard className="w-5 h-5 text-sunset" />
                                 {Number(booking.total_price).toLocaleString("sv-SE")} kr
@@ -271,6 +296,10 @@ const Dashboard = () => {
                               <p className="text-sm text-muted-foreground mt-1">
                                 Bokad {format(new Date(booking.created_at), "d MMM yyyy", { locale: sv })}
                               </p>
+                              <div className="flex items-center gap-1 text-sm text-ocean mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span>Visa detaljer</span>
+                                <ChevronRight className="w-4 h-4" />
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -302,6 +331,12 @@ const Dashboard = () => {
       </main>
 
       <Footer />
+
+      <BookingDetailsDialog
+        booking={selectedBooking}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+      />
     </div>
   );
 };
