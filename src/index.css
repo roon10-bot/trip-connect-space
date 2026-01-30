@@ -1,126 +1,171 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+/* Custom fonts - Tropika and Glacial Indifference */
+@font-face {
+  font-family: 'Tropika';
+  src: local('Tropika');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Glacial Indifference';
+  src: local('Glacial Indifference');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Glacial Indifference';
+  src: local('Glacial Indifference');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Travel Agency Design System - Warm & Elegant */
+/* Studentresor Design System */
 
 @layer base {
   :root {
-    /* Sand/Cream backgrounds */
-    --background: 40 33% 98%;
-    --foreground: 220 20% 15%;
+    /* Primary: #F8F8F8 off-white background */
+    --background: 0 0% 97%;
+    --foreground: 0 3% 13%;
 
-    /* Cards with warm cream tones */
-    --card: 40 40% 99%;
-    --card-foreground: 220 20% 15%;
+    /* Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 0 3% 13%;
 
-    --popover: 40 40% 99%;
-    --popover-foreground: 220 20% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 3% 13%;
 
-    /* Ocean blue primary */
-    --primary: 205 75% 40%;
+    /* Primary: #00D7FD bright cyan */
+    --primary: 189 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    /* Warm sand secondary */
-    --secondary: 35 30% 92%;
-    --secondary-foreground: 220 20% 20%;
+    /* Secondary: #ADDBE5 light blue */
+    --secondary: 195 49% 79%;
+    --secondary-foreground: 203 81% 25%;
 
-    --muted: 35 20% 94%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 195 30% 92%;
+    --muted-foreground: 203 40% 40%;
 
-    /* Sunset orange accent */
-    --accent: 25 90% 55%;
+    /* Accent: #0C4D73 dark blue */
+    --accent: 203 81% 25%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 35 25% 88%;
-    --input: 35 25% 88%;
-    --ring: 205 75% 40%;
+    --border: 195 25% 88%;
+    --input: 195 25% 88%;
+    --ring: 189 100% 50%;
 
     --radius: 0.75rem;
 
-    /* Custom travel colors */
-    --ocean: 205 75% 40%;
-    --ocean-light: 205 60% 92%;
-    --sand: 35 40% 92%;
-    --sand-dark: 35 30% 75%;
-    --sunset: 25 90% 55%;
-    --sunset-light: 25 80% 92%;
-    --palm: 150 40% 35%;
-    --palm-light: 150 30% 92%;
+    /* Custom Studentresor colors */
+    /* #00D7FD - Bright cyan */
+    --cyan: 189 100% 50%;
+    --cyan-light: 189 80% 92%;
+    
+    /* #0C4D73 - Dark blue */
+    --ocean: 203 81% 25%;
+    --ocean-light: 203 60% 92%;
+    
+    /* #ADDBE5 - Light blue */
+    --sky: 195 49% 79%;
+    --sky-light: 195 40% 94%;
+    
+    /* #222020 - Dark gray */
+    --charcoal: 0 5% 13%;
+    --charcoal-light: 0 3% 30%;
+
+    /* Legacy colors for compatibility */
+    --sand: 0 0% 97%;
+    --sand-dark: 0 0% 90%;
+    --sunset: 189 100% 50%;
+    --sunset-light: 189 80% 92%;
+    --palm: 203 81% 25%;
+    --palm-light: 203 60% 92%;
 
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(205 75% 40%) 0%, hsl(205 60% 55%) 50%, hsl(25 90% 55%) 100%);
-    --gradient-sunset: linear-gradient(180deg, hsl(25 80% 55%) 0%, hsl(15 85% 50%) 100%);
-    --gradient-ocean: linear-gradient(180deg, hsl(205 75% 40%) 0%, hsl(205 60% 55%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(40 40% 99%) 0%, hsl(35 30% 96%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(203 81% 25%) 0%, hsl(189 100% 50%) 100%);
+    --gradient-sunset: linear-gradient(180deg, hsl(189 100% 50%) 0%, hsl(203 81% 25%) 100%);
+    --gradient-ocean: linear-gradient(180deg, hsl(203 81% 25%) 0%, hsl(195 49% 79%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 97%) 100%);
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px -2px hsl(220 20% 15% / 0.08);
-    --shadow-md: 0 8px 24px -6px hsl(220 20% 15% / 0.12);
-    --shadow-lg: 0 16px 48px -12px hsl(220 20% 15% / 0.18);
-    --shadow-glow: 0 0 40px -10px hsl(205 75% 40% / 0.3);
+    --shadow-sm: 0 2px 8px -2px hsl(0 5% 13% / 0.08);
+    --shadow-md: 0 8px 24px -6px hsl(0 5% 13% / 0.12);
+    --shadow-lg: 0 16px 48px -12px hsl(0 5% 13% / 0.18);
+    --shadow-glow: 0 0 40px -10px hsl(189 100% 50% / 0.3);
 
-    --sidebar-background: 40 33% 98%;
-    --sidebar-foreground: 220 20% 25%;
-    --sidebar-primary: 205 75% 40%;
+    --sidebar-background: 0 0% 97%;
+    --sidebar-foreground: 0 5% 20%;
+    --sidebar-primary: 189 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 35 30% 94%;
-    --sidebar-accent-foreground: 220 20% 20%;
-    --sidebar-border: 35 25% 88%;
-    --sidebar-ring: 205 75% 40%;
+    --sidebar-accent: 195 49% 90%;
+    --sidebar-accent-foreground: 203 81% 25%;
+    --sidebar-border: 195 25% 88%;
+    --sidebar-ring: 189 100% 50%;
   }
 
   .dark {
-    --background: 220 25% 8%;
-    --foreground: 35 20% 95%;
+    --background: 0 5% 8%;
+    --foreground: 0 0% 97%;
 
-    --card: 220 20% 12%;
-    --card-foreground: 35 20% 95%;
+    --card: 0 3% 12%;
+    --card-foreground: 0 0% 97%;
 
-    --popover: 220 20% 12%;
-    --popover-foreground: 35 20% 95%;
+    --popover: 0 3% 12%;
+    --popover-foreground: 0 0% 97%;
 
-    --primary: 205 65% 55%;
-    --primary-foreground: 220 25% 8%;
+    --primary: 189 100% 50%;
+    --primary-foreground: 0 5% 8%;
 
-    --secondary: 220 15% 18%;
-    --secondary-foreground: 35 20% 90%;
+    --secondary: 203 50% 20%;
+    --secondary-foreground: 195 49% 85%;
 
-    --muted: 220 15% 18%;
-    --muted-foreground: 35 15% 60%;
+    --muted: 0 3% 18%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 25 85% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 195 49% 79%;
+    --accent-foreground: 0 5% 8%;
 
     --destructive: 0 65% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 20%;
-    --input: 220 15% 20%;
-    --ring: 205 65% 55%;
+    --border: 0 3% 20%;
+    --input: 0 3% 20%;
+    --ring: 189 100% 50%;
 
-    --ocean: 205 65% 55%;
-    --ocean-light: 205 40% 20%;
-    --sand: 35 20% 18%;
-    --sand-dark: 35 15% 30%;
-    --sunset: 25 85% 55%;
-    --sunset-light: 25 50% 20%;
-    --palm: 150 35% 45%;
-    --palm-light: 150 20% 18%;
+    --cyan: 189 100% 55%;
+    --cyan-light: 189 50% 20%;
+    --ocean: 203 70% 40%;
+    --ocean-light: 203 40% 20%;
+    --sky: 195 40% 30%;
+    --sky-light: 195 30% 18%;
+    --charcoal: 0 0% 90%;
+    --charcoal-light: 0 0% 70%;
 
-    --sidebar-background: 220 20% 10%;
-    --sidebar-foreground: 35 20% 90%;
-    --sidebar-primary: 205 65% 55%;
-    --sidebar-primary-foreground: 220 25% 8%;
-    --sidebar-accent: 220 15% 15%;
-    --sidebar-accent-foreground: 35 20% 90%;
-    --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 205 65% 55%;
+    --sand: 0 3% 15%;
+    --sand-dark: 0 3% 25%;
+    --sunset: 189 100% 55%;
+    --sunset-light: 189 50% 20%;
+    --palm: 203 70% 40%;
+    --palm-light: 203 40% 20%;
+
+    --sidebar-background: 0 3% 10%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 189 100% 55%;
+    --sidebar-primary-foreground: 0 5% 8%;
+    --sidebar-accent: 0 3% 15%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 3% 18%;
+    --sidebar-ring: 189 100% 55%;
   }
 }
 
