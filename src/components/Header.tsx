@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Plane, Menu, X, LogOut, User as UserIcon } from "lucide-react";
+import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
+import studentresorLogo from "@/assets/studentresor-logo.svg";
 
 export const Header = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -52,13 +53,12 @@ export const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="p-2 rounded-xl bg-gradient-ocean group-hover:shadow-glow transition-all duration-300">
-              <Plane className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="text-2xl font-serif font-semibold text-foreground">
-              Voyage
-            </span>
+          <Link to="/" className="flex items-center group">
+            <img 
+              src={studentresorLogo} 
+              alt="Studentresor" 
+              className="h-10 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}
