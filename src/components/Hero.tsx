@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, MapPin, Star, Users } from "lucide-react";
 import heroVideo from "@/assets/hero-video.mp4";
+import { BookingWidget } from "./BookingWidget";
 
 export const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex flex-col overflow-hidden">
       {/* Background Video with Overlay */}
       <div className="absolute inset-0">
         <video
@@ -21,7 +22,7 @@ export const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 pt-20">
+      <div className="relative z-10 flex-1 flex items-center container mx-auto px-4 pt-20">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -113,21 +114,17 @@ export const Hero = () => {
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-      >
-        <div className="w-6 h-10 rounded-full border-2 border-primary-foreground/40 flex items-start justify-center p-2">
-          <motion.div
-            animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-1.5 h-1.5 rounded-full bg-primary-foreground/60"
-          />
-        </div>
-      </motion.div>
+      {/* Booking Widget - positioned to overlap hero bottom */}
+      <div className="relative z-20 container mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="translate-y-1/2"
+        >
+          <BookingWidget />
+        </motion.div>
+      </div>
     </section>
   );
 };

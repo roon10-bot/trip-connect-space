@@ -35,8 +35,8 @@ const Index = () => {
       <Hero />
       <FeaturedDestinations />
 
-      {/* Features Section */}
-      <section className="py-24 bg-background">
+      {/* Features Section - added padding-top to account for overlapping widget */}
+      <section className="pt-40 pb-24 bg-background">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
