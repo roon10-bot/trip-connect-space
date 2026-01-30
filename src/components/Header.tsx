@@ -4,13 +4,15 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
+import { Menu, X, LogOut, User as UserIcon, Shield } from "lucide-react";
+import { useAdmin } from "@/hooks/useAdmin";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
 
 export const Header = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -81,6 +83,15 @@ export const Header = () => {
                 className="text-foreground/80 hover:text-primary transition-colors font-medium"
               >
                 Mina bokningar
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="text-foreground/80 hover:text-primary transition-colors font-medium flex items-center gap-1"
+              >
+                <Shield className="w-4 h-4" />
+                Admin
               </Link>
             )}
           </nav>
@@ -156,6 +167,16 @@ export const Header = () => {
                   >
                     Mina bokningar
                   </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      className="text-foreground/80 hover:text-primary transition-colors font-medium py-2 flex items-center gap-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Shield className="w-4 h-4" />
+                      Admin
+                    </Link>
+                  )}
                   <Button variant="outline" onClick={handleSignOut} className="w-full">
                     Logga ut
                   </Button>
