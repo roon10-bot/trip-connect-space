@@ -114,7 +114,7 @@ export const Header = () => {
             ) : (
               <div className="flex items-center gap-3">
                 <Link to="/auth">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className={isScrolled ? "" : "text-white hover:text-white/80 hover:bg-white/10"}>
                     Logga in
                   </Button>
                 </Link>
