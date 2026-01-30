@@ -7,7 +7,7 @@ import { BookingWidget } from "./BookingWidget";
 
 export const Hero = () => {
   return (
-    <section className="relative aspect-video flex flex-col overflow-hidden">
+    <section className="relative aspect-video flex flex-col">
       {/* Background Video with Overlay */}
       <div className="absolute inset-0">
         <video
