@@ -174,14 +174,6 @@
     @apply border-border;
   }
 
-  /* Prevent horizontal layout shift on desktop when overlays lock scroll.
-     Reserve scrollbar width so the viewport width doesn't change on open/close. */
-  @media (min-width: 768px) {
-    body {
-      padding-right: calc(100vw - 100%);
-    }
-  }
-
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }

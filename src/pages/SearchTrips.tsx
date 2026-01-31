@@ -114,7 +114,7 @@ const SearchTrips = () => {
               <SelectTrigger className="w-full h-12 bg-background">
                 <SelectValue placeholder="Välj flygplats" />
               </SelectTrigger>
-              <SelectContent className="bg-background z-50">
+              <SelectContent className="bg-background z-50" disableScrollLock>
                 {departures.map(dep => <SelectItem key={dep.value} value={dep.value}>
                     {dep.label}
                   </SelectItem>)}
@@ -131,7 +131,7 @@ const SearchTrips = () => {
               <SelectTrigger className="w-full h-12 bg-background">
                 <SelectValue placeholder="Alla resor" />
               </SelectTrigger>
-              <SelectContent className="bg-background z-50">
+              <SelectContent className="bg-background z-50" disableScrollLock>
                 {tripTypes.map(type => <SelectItem key={type.value} value={type.value}>
                     {type.label}
                   </SelectItem>)}
