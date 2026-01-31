@@ -72,14 +72,18 @@ export const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             {/* Våra resor dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors ${
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors outline-none ${
                 isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}>
                 Våra resor
                 <ChevronDown className="w-4 h-4" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-background border border-border shadow-lg">
+              <DropdownMenuContent 
+                className="bg-background border border-border shadow-lg z-50"
+                sideOffset={8}
+                align="start"
+              >
                 <DropdownMenuItem asChild>
                   <Link to="/destinations?trip=segelveckan" className="cursor-pointer">
                     Segelveckan
