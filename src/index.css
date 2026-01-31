@@ -192,6 +192,13 @@
     scrollbar-gutter: stable !important;
   }
 
+  /* Prevent horizontal overflow that can cause layout shift */
+  body {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
   /* Neutralize Radix scroll-lock completely */
   body[data-scroll-locked] {
     /* RemoveScroll uses this var to compensate for scrollbar width */
