@@ -299,7 +299,7 @@ export const Header = () => {
                     <Button 
                       variant="outline" 
                       onClick={() => { handleSignOut(); setIsMenuOpen(false); }} 
-                      className="w-full border-white/30 text-white hover:bg-white/10 hover:text-white"
+                      className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
                       Logga ut
@@ -312,7 +312,7 @@ export const Header = () => {
                         </Button>
                       </Link>
                       <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
-                        <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10 hover:text-white">
+                        <Button variant="outline" className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white">
                           Logga in
                         </Button>
                       </Link>
