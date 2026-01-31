@@ -66,19 +66,19 @@ export const Header = () => {
       }`}
     >
       <div className="max-w-5xl mx-auto px-4">
-        <div className="flex items-center justify-between h-14">
-          {/* Logo */}
-          <Link to="/" className="flex items-center group">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo - Left */}
+          <Link to="/" className="flex items-center group shrink-0">
             <img 
               src={studentresorLogo} 
               alt="Studentresor" 
-              className={`h-8 w-auto transition-all duration-300 ${useDarkText ? "brightness-0" : ""}`}
+              className={`h-12 w-auto transition-all duration-300 ${useDarkText ? "brightness-0" : ""}`}
             />
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            {/* Våra resor dropdown */}
+          {/* Right side - Navigation + Auth */}
+          <div className="hidden md:flex items-center gap-6">
+            {/* Navigation Links */}
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors outline-none whitespace-nowrap ${
                 useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
@@ -163,10 +163,8 @@ export const Header = () => {
                 Admin
               </Link>
             )}
-          </nav>
 
-          {/* Auth Buttons */}
-          <div className="hidden md:flex items-center gap-4">
+            {/* Auth Buttons */}
             {user ? (
               <div className="flex items-center gap-3">
                 <Link to="/dashboard">
