@@ -26,6 +26,7 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
   const { signIn, signUp, user } = useAuth();
   const { isAdmin, isLoading: adminLoading } = useAdmin();
   const navigate = useNavigate();
@@ -39,6 +40,15 @@ const Auth = () => {
     resolver: zodResolver(authSchema),
   });
 
+  // Handle redirect after successful login
+  useEffect(() => {
+    if (shouldRedirect && user && !adminLoading) {
+      navigate(isAdmin ? "/admin" : "/dashboard");
+      setShouldRedirect(false);
+    }
+  }, [shouldRedirect, user, isAdmin, adminLoading, navigate]);
+
+  // Handle already logged in users
   useEffect(() => {
     if (user && !adminLoading) {
       navigate(isAdmin ? "/admin" : "/dashboard");
@@ -59,7 +69,7 @@ const Auth = () => {
           }
         } else {
           toast.success("Välkommen tillbaka!");
-          // Navigation handled by useEffect when user and admin status are loaded
+          setShouldRedirect(true);
         }
       } else {
         const { error } = await signUp(data.email, data.password, data.fullName);
@@ -71,7 +81,7 @@ const Auth = () => {
           }
         } else {
           toast.success("Konto skapat! Du är nu inloggad.");
-          // Navigation handled by useEffect when user and admin status are loaded
+          setShouldRedirect(true);
         }
       }
     } catch (error) {
