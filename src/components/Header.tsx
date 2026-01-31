@@ -76,9 +76,8 @@ export const Header = () => {
             />
           </Link>
 
-          {/* Right side - Navigation + Auth */}
-          <div className="hidden md:flex items-center gap-6">
-            {/* Navigation Links */}
+          {/* Center - Main Navigation */}
+          <nav className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors outline-none whitespace-nowrap ${
                 useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
@@ -141,7 +140,10 @@ export const Header = () => {
             >
               För skolor
             </Link>
+          </nav>
 
+          {/* Right side - User links + Auth */}
+          <div className="hidden md:flex items-center gap-4">
             {user && (
               <Link
                 to="/dashboard"
