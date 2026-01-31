@@ -12,6 +12,7 @@ import BookTrip from "./pages/BookTrip";
 import Admin from "./pages/Admin";
 import SearchTrips from "./pages/SearchTrips";
 import NotFound from "./pages/NotFound";
+import { ChatAssistant } from "./components/ChatAssistant";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ChatAssistant />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
