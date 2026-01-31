@@ -219,10 +219,20 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
     createTripMutation.mutate(values);
   };
 
-  const totalPrice =
-    Number(form.watch("first_payment_amount") || 0) +
-    Number(form.watch("second_payment_amount") || 0) +
-    Number(form.watch("final_payment_amount") || 0);
+  const firstPaymentAmount = Number(form.watch("first_payment_amount") || 0);
+  const secondPaymentAmount = Number(form.watch("second_payment_amount") || 0);
+  const finalPaymentAmount = Number(form.watch("final_payment_amount") || 0);
+  const firstPaymentType = form.watch("first_payment_type");
+  const secondPaymentType = form.watch("second_payment_type");
+  const finalPaymentType = form.watch("final_payment_type");
+
+  const allPercent = 
+    firstPaymentType === "percent" && 
+    secondPaymentType === "percent" && 
+    finalPaymentType === "percent";
+
+  const totalPaymentPlan = firstPaymentAmount + secondPaymentAmount + finalPaymentAmount;
+  const paymentPlanUnit = allPercent ? "%" : "kr";
 
   return (
     <Card>
@@ -567,7 +577,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               <div className="flex items-center justify-between border-b pb-2">
                 <h3 className="text-lg font-semibold">Betalningsplan</h3>
                 <div className="text-sm text-muted-foreground">
-                  Totalt: <span className="font-semibold text-foreground">{totalPrice.toLocaleString("sv-SE")} kr</span>
+                  Totalt: <span className="font-semibold text-foreground">{totalPaymentPlan.toLocaleString("sv-SE")} {paymentPlanUnit}</span>
                 </div>
               </div>
 
