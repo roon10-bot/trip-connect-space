@@ -12,9 +12,13 @@ import BookTrip from "./pages/BookTrip";
 import Admin from "./pages/Admin";
 import SearchTrips from "./pages/SearchTrips";
 import NotFound from "./pages/NotFound";
+import ComingSoon from "./pages/ComingSoon";
 import { ChatAssistant } from "./components/ChatAssistant";
 
 const queryClient = new QueryClient();
+
+// Toggle this to show/hide the Coming Soon page
+const COMING_SOON_MODE = true;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -22,19 +26,27 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/destinations" element={<Destinations />} />
-          <Route path="/book/:id" element={<Book />} />
-          <Route path="/book/trip/:id" element={<BookTrip />} />
-          <Route path="/search" element={<SearchTrips />} />
-          <Route path="/admin" element={<Admin />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <ChatAssistant />
+        {COMING_SOON_MODE ? (
+          <Routes>
+            <Route path="*" element={<ComingSoon />} />
+          </Routes>
+        ) : (
+          <>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/destinations" element={<Destinations />} />
+              <Route path="/book/:id" element={<Book />} />
+              <Route path="/book/trip/:id" element={<BookTrip />} />
+              <Route path="/search" element={<SearchTrips />} />
+              <Route path="/admin" element={<Admin />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <ChatAssistant />
+          </>
+        )}
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
