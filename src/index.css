@@ -179,6 +179,12 @@
     scrollbar-gutter: stable;
   }
 
+  @supports not (scrollbar-gutter: stable) {
+    html {
+      overflow-y: scroll;
+    }
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
