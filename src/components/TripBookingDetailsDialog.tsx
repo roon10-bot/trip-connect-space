@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Users,
@@ -27,6 +28,15 @@ import {
   Tag,
 } from "lucide-react";
 import { toast } from "sonner";
+
+interface PaymentPlan {
+  first_payment_amount: number;
+  first_payment_date: string | null;
+  second_payment_amount: number;
+  second_payment_date: string | null;
+  final_payment_amount: number;
+  final_payment_date: string | null;
+}
 
 interface TripBookingDetailsDialogProps {
   booking: {
@@ -50,10 +60,24 @@ interface TripBookingDetailsDialogProps {
       return_date: string;
       departure_location: string;
       price: number;
+      first_payment_amount?: number;
+      first_payment_date?: string | null;
+      second_payment_amount?: number;
+      second_payment_date?: string | null;
+      final_payment_amount?: number;
+      final_payment_date?: string | null;
     } | null;
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+interface PaymentOption {
+  id: string;
+  label: string;
+  amount: number;
+  date: string | null;
+  isAvailable: boolean;
 }
 
 export const TripBookingDetailsDialog = ({
@@ -62,6 +86,7 @@ export const TripBookingDetailsDialog = ({
   onOpenChange,
 }: TripBookingDetailsDialogProps) => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
 
   const formatTripType = (type: string) => {
     const types: Record<string, string> = {
@@ -72,8 +97,71 @@ export const TripBookingDetailsDialog = ({
     return types[type] || type;
   };
 
+  // Build payment options from trip data
+  const paymentOptions: PaymentOption[] = useMemo(() => {
+    if (!booking?.trips) return [];
+    
+    const options: PaymentOption[] = [];
+    const trip = booking.trips;
+    
+    if (trip.first_payment_amount && trip.first_payment_amount > 0) {
+      options.push({
+        id: "first",
+        label: "Delbetalning 1",
+        amount: trip.first_payment_amount,
+        date: trip.first_payment_date || null,
+        isAvailable: true,
+      });
+    }
+    
+    if (trip.second_payment_amount && trip.second_payment_amount > 0) {
+      options.push({
+        id: "second",
+        label: "Delbetalning 2",
+        amount: trip.second_payment_amount,
+        date: trip.second_payment_date || null,
+        isAvailable: true,
+      });
+    }
+    
+    if (trip.final_payment_amount && trip.final_payment_amount > 0) {
+      options.push({
+        id: "final",
+        label: "Slutbetalning",
+        amount: trip.final_payment_amount,
+        date: trip.final_payment_date || null,
+        isAvailable: true,
+      });
+    }
+    
+    return options;
+  }, [booking?.trips]);
+
+  // Calculate selected amount
+  const selectedAmount = useMemo(() => {
+    return paymentOptions
+      .filter((opt) => selectedPayments.has(opt.id))
+      .reduce((sum, opt) => sum + opt.amount, 0);
+  }, [paymentOptions, selectedPayments]);
+
+  const togglePayment = (paymentId: string) => {
+    setSelectedPayments((prev) => {
+      const next = new Set(prev);
+      if (next.has(paymentId)) {
+        next.delete(paymentId);
+      } else {
+        next.add(paymentId);
+      }
+      return next;
+    });
+  };
+
+  const selectAllPayments = () => {
+    setSelectedPayments(new Set(paymentOptions.map((opt) => opt.id)));
+  };
+
   const handlePayment = async () => {
-    if (!booking) return;
+    if (!booking || selectedAmount <= 0) return;
     setIsProcessingPayment(true);
 
     try {
@@ -82,7 +170,7 @@ export const TripBookingDetailsDialog = ({
         {
           body: {
             bookingId: booking.id,
-            amount: booking.total_price,
+            amount: selectedAmount,
             bookingType: "trip",
           },
         }
@@ -104,6 +192,7 @@ export const TripBookingDetailsDialog = ({
   if (!booking) return null;
 
   const isPaid = booking.status === "confirmed";
+  const hasPaymentPlan = paymentOptions.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -344,12 +433,82 @@ export const TripBookingDetailsDialog = ({
                         </div>
                       )}
                       <div className="flex justify-between items-center py-3 bg-muted/50 rounded-lg px-3">
-                        <span className="font-semibold text-lg">Totalt</span>
+                        <span className="font-semibold text-lg">Totalt att betala</span>
                         <span className="font-bold text-2xl text-ocean">
                           {Number(booking.total_price).toLocaleString("sv-SE")} kr
                         </span>
                       </div>
                     </div>
+
+                    {/* Payment Plan Section */}
+                    {!isPaid && hasPaymentPlan && (
+                      <div className="pt-4 border-t">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-semibold text-foreground">Betalningsplan</h4>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={selectAllPayments}
+                            className="text-sm text-ocean hover:text-ocean/80"
+                          >
+                            Välj alla
+                          </Button>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Välj de betalningar du vill genomföra nu:
+                        </p>
+                        
+                        <div className="space-y-3">
+                          {paymentOptions.map((option) => (
+                            <label
+                              key={option.id}
+                              className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                                selectedPayments.has(option.id)
+                                  ? "border-ocean bg-ocean/5"
+                                  : "border-border hover:border-ocean/50"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <Checkbox
+                                  checked={selectedPayments.has(option.id)}
+                                  onCheckedChange={() => togglePayment(option.id)}
+                                  className="data-[state=checked]:bg-ocean data-[state=checked]:border-ocean"
+                                />
+                                <div>
+                                  <p className="font-medium">{option.label}</p>
+                                  {option.date && (
+                                    <p className="text-sm text-muted-foreground">
+                                      Förfaller: {format(new Date(option.date), "d MMMM yyyy", { locale: sv })}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="font-semibold text-lg">
+                                {option.amount.toLocaleString("sv-SE")} kr
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+
+                        {/* Selected Amount Summary */}
+                        {selectedPayments.size > 0 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-4 p-4 bg-ocean/10 rounded-lg border border-ocean/20"
+                          >
+                            <div className="flex justify-between items-center">
+                              <span className="text-muted-foreground">
+                                {selectedPayments.size} betalning{selectedPayments.size > 1 ? "ar" : ""} valda
+                              </span>
+                              <span className="font-bold text-xl text-ocean">
+                                {selectedAmount.toLocaleString("sv-SE")} kr
+                              </span>
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="pt-4">
                       {isPaid ? (
@@ -361,30 +520,58 @@ export const TripBookingDetailsDialog = ({
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <div className="p-4 bg-sunset/10 rounded-lg">
-                            <p className="text-sm text-muted-foreground mb-2">
-                              <AlertCircle className="w-4 h-4 inline mr-1" />
-                              Din bokning är reserverad. Slutför betalningen för
-                              att bekräfta din plats.
-                            </p>
-                          </div>
-                          <Button
-                            onClick={handlePayment}
-                            className="w-full bg-gradient-ocean hover:opacity-90 h-12 text-lg font-semibold"
-                            disabled={isProcessingPayment}
-                          >
-                            {isProcessingPayment ? (
-                              <>
-                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                Förbereder betalning...
-                              </>
-                            ) : (
-                              <>
-                                <CreditCard className="w-5 h-5 mr-2" />
-                                Betala {Number(booking.total_price).toLocaleString("sv-SE")} kr
-                              </>
-                            )}
-                          </Button>
+                          {!hasPaymentPlan && (
+                            <div className="p-4 bg-sunset/10 rounded-lg">
+                              <p className="text-sm text-muted-foreground mb-2">
+                                <AlertCircle className="w-4 h-4 inline mr-1" />
+                                Din bokning är reserverad. Slutför betalningen för
+                                att bekräfta din plats.
+                              </p>
+                            </div>
+                          )}
+                          
+                          {hasPaymentPlan ? (
+                            <Button
+                              onClick={handlePayment}
+                              className="w-full bg-gradient-ocean hover:opacity-90 h-12 text-lg font-semibold"
+                              disabled={isProcessingPayment || selectedPayments.size === 0}
+                            >
+                              {isProcessingPayment ? (
+                                <>
+                                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                  Förbereder betalning...
+                                </>
+                              ) : selectedPayments.size === 0 ? (
+                                <>
+                                  <CreditCard className="w-5 h-5 mr-2" />
+                                  Välj minst en betalning
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className="w-5 h-5 mr-2" />
+                                  Betala {selectedAmount.toLocaleString("sv-SE")} kr
+                                </>
+                              )}
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={handlePayment}
+                              className="w-full bg-gradient-ocean hover:opacity-90 h-12 text-lg font-semibold"
+                              disabled={isProcessingPayment}
+                            >
+                              {isProcessingPayment ? (
+                                <>
+                                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                  Förbereder betalning...
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className="w-5 h-5 mr-2" />
+                                  Betala {Number(booking.total_price).toLocaleString("sv-SE")} kr
+                                </>
+                              )}
+                            </Button>
+                          )}
                         </div>
                       )}
                     </div>

@@ -110,7 +110,13 @@ const Dashboard = () => {
             departure_date,
             return_date,
             departure_location,
-            price
+            price,
+            first_payment_amount,
+            first_payment_date,
+            second_payment_amount,
+            second_payment_date,
+            final_payment_amount,
+            final_payment_date
           )
         `)
         .eq("user_id", user.id)
