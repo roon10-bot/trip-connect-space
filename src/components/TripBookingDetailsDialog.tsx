@@ -28,13 +28,17 @@ import {
   Tag,
 } from "lucide-react";
 import { toast } from "sonner";
+import { calculatePaymentAmount, type PaymentValueType } from "@/lib/paymentCalculations";
 
 interface PaymentPlan {
   first_payment_amount: number;
+  first_payment_type: PaymentValueType;
   first_payment_date: string | null;
   second_payment_amount: number;
+  second_payment_type: PaymentValueType;
   second_payment_date: string | null;
   final_payment_amount: number;
+  final_payment_type: PaymentValueType;
   final_payment_date: string | null;
 }
 
@@ -61,10 +65,13 @@ interface TripBookingDetailsDialogProps {
       departure_location: string;
       price: number;
       first_payment_amount?: number;
+      first_payment_type?: PaymentValueType;
       first_payment_date?: string | null;
       second_payment_amount?: number;
+      second_payment_type?: PaymentValueType;
       second_payment_date?: string | null;
       final_payment_amount?: number;
+      final_payment_type?: PaymentValueType;
       final_payment_date?: string | null;
     } | null;
   } | null;
@@ -97,45 +104,67 @@ export const TripBookingDetailsDialog = ({
     return types[type] || type;
   };
 
-  // Build payment options from trip data
+  // Build payment options from trip data with calculated amounts
   const paymentOptions: PaymentOption[] = useMemo(() => {
     if (!booking?.trips) return [];
     
     const options: PaymentOption[] = [];
     const trip = booking.trips;
+    const totalPrice = Number(booking.total_price);
     
     if (trip.first_payment_amount && trip.first_payment_amount > 0) {
+      const calculatedAmount = calculatePaymentAmount(
+        trip.first_payment_amount,
+        trip.first_payment_type || "amount",
+        totalPrice
+      );
       options.push({
         id: "first",
-        label: "Delbetalning 1",
-        amount: trip.first_payment_amount,
+        label: trip.first_payment_type === "percent" 
+          ? `Delbetalning 1 (${trip.first_payment_amount}%)`
+          : "Delbetalning 1",
+        amount: calculatedAmount,
         date: trip.first_payment_date || null,
         isAvailable: true,
       });
     }
     
     if (trip.second_payment_amount && trip.second_payment_amount > 0) {
+      const calculatedAmount = calculatePaymentAmount(
+        trip.second_payment_amount,
+        trip.second_payment_type || "amount",
+        totalPrice
+      );
       options.push({
         id: "second",
-        label: "Delbetalning 2",
-        amount: trip.second_payment_amount,
+        label: trip.second_payment_type === "percent"
+          ? `Delbetalning 2 (${trip.second_payment_amount}%)`
+          : "Delbetalning 2",
+        amount: calculatedAmount,
         date: trip.second_payment_date || null,
         isAvailable: true,
       });
     }
     
     if (trip.final_payment_amount && trip.final_payment_amount > 0) {
+      const calculatedAmount = calculatePaymentAmount(
+        trip.final_payment_amount,
+        trip.final_payment_type || "amount",
+        totalPrice
+      );
       options.push({
         id: "final",
-        label: "Slutbetalning",
-        amount: trip.final_payment_amount,
+        label: trip.final_payment_type === "percent"
+          ? `Slutbetalning (${trip.final_payment_amount}%)`
+          : "Slutbetalning",
+        amount: calculatedAmount,
         date: trip.final_payment_date || null,
         isAvailable: true,
       });
     }
     
     return options;
-  }, [booking?.trips]);
+  }, [booking?.trips, booking?.total_price]);
 
   // Calculate selected amount
   const selectedAmount = useMemo(() => {
