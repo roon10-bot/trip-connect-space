@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Play } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import heroVideo from "@/assets/hero-video.mp4";
 import { BookingWidget } from "./BookingWidget";
 
@@ -10,10 +10,15 @@ export const Hero = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const handlePlay = () => {
+  const handleTogglePlay = () => {
     if (videoRef.current) {
-      videoRef.current.play();
-      setIsPlaying(true);
+      if (isPlaying) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        videoRef.current.play();
+        setIsPlaying(true);
+      }
     }
   };
 
@@ -35,31 +40,48 @@ export const Hero = () => {
       {/* Content */}
       <div className="relative z-10 flex-1 flex items-center container mx-auto px-4 pt-16">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Play Button - above text */}
-          <AnimatePresence>
-            {!isPlaying && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.3 }}
-                onClick={handlePlay}
-                className="mb-6 cursor-pointer group"
-                aria-label="Spela video"
-              >
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative inline-flex"
-                >
-                  {/* Play icon only - transparent fill */}
-                  <div className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Play className="w-12 h-12 md:w-16 md:h-16 text-white fill-transparent ml-1 drop-shadow-lg" />
-                  </div>
-                </motion.div>
-              </motion.button>
-            )}
-          </AnimatePresence>
+          {/* Play/Pause Button - above text */}
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            onClick={handleTogglePlay}
+            className="mb-6 cursor-pointer group"
+            aria-label={isPlaying ? "Pausa video" : "Spela video"}
+          >
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative inline-flex"
+            >
+              {/* Play/Pause icon - transparent fill */}
+              <div className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <AnimatePresence mode="wait">
+                  {isPlaying ? (
+                    <motion.div
+                      key="pause"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Pause className="w-12 h-12 md:w-16 md:h-16 text-white fill-transparent drop-shadow-lg" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="play"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Play className="w-12 h-12 md:w-16 md:h-16 text-white fill-transparent ml-1 drop-shadow-lg" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </motion.button>
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
