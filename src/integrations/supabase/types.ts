@@ -235,6 +235,51 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          current_uses: number
+          discount_amount: number | null
+          discount_percent: number | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          current_uses?: number
+          discount_amount?: number | null
+          discount_percent?: number | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          current_uses?: number
+          discount_amount?: number | null
+          discount_percent?: number | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -262,6 +307,69 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      trips: {
+        Row: {
+          capacity: number
+          created_at: string
+          created_by: string
+          departure_date: string
+          departure_location: string
+          description: string | null
+          final_payment_amount: number
+          final_payment_date: string | null
+          first_payment_amount: number
+          first_payment_date: string | null
+          id: string
+          is_active: boolean
+          name: string
+          return_date: string
+          second_payment_amount: number
+          second_payment_date: string | null
+          trip_type: Database["public"]["Enums"]["trip_type"]
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          created_by: string
+          departure_date: string
+          departure_location: string
+          description?: string | null
+          final_payment_amount?: number
+          final_payment_date?: string | null
+          first_payment_amount?: number
+          first_payment_date?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          return_date: string
+          second_payment_amount?: number
+          second_payment_date?: string | null
+          trip_type: Database["public"]["Enums"]["trip_type"]
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          created_by?: string
+          departure_date?: string
+          departure_location?: string
+          description?: string | null
+          final_payment_amount?: number
+          final_payment_date?: string | null
+          first_payment_amount?: number
+          first_payment_date?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          return_date?: string
+          second_payment_amount?: number
+          second_payment_date?: string | null
+          trip_type?: Database["public"]["Enums"]["trip_type"]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -301,6 +409,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      trip_type: "seglingsvecka" | "splitveckan" | "studentveckan"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -429,6 +538,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      trip_type: ["seglingsvecka", "splitveckan", "studentveckan"],
     },
   },
 } as const
