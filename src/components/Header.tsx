@@ -4,9 +4,15 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Menu, X, LogOut, User as UserIcon, Shield } from "lucide-react";
+import { Menu, X, LogOut, User as UserIcon, Shield, ChevronDown } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Header = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -64,23 +70,73 @@ export const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6">
+            {/* Våra resor dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors ${
+                isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+              }`}>
+                Våra resor
+                <ChevronDown className="w-4 h-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-background border border-border shadow-lg">
+                <DropdownMenuItem asChild>
+                  <Link to="/destinations?trip=segelveckan" className="cursor-pointer">
+                    Segelveckan
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/destinations?trip=studentveckan" className="cursor-pointer">
+                    Studentveckan
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/destinations?trip=splitveckan" className="cursor-pointer">
+                    Splitveckan
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Link
-              to="/"
-              className="text-foreground/80 hover:text-primary transition-colors font-medium"
+              to="/om-oss"
+              className={`font-medium transition-colors ${
+                isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+              }`}
             >
-              Hem
+              Om Oss
             </Link>
             <Link
-              to="/destinations"
-              className="text-foreground/80 hover:text-primary transition-colors font-medium"
+              to="/kontakt"
+              className={`font-medium transition-colors ${
+                isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+              }`}
             >
-              Destinationer
+              Kontakt
             </Link>
+            <Link
+              to="/faq"
+              className={`font-medium transition-colors ${
+                isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+              }`}
+            >
+              Frågor och Svar
+            </Link>
+            <Link
+              to="/for-skolor"
+              className={`font-medium transition-colors ${
+                isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+              }`}
+            >
+              För skolor
+            </Link>
+
             {user && (
               <Link
                 to="/dashboard"
-                className="text-foreground/80 hover:text-primary transition-colors font-medium"
+                className={`font-medium transition-colors ${
+                  isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                }`}
               >
                 Mina bokningar
               </Link>
@@ -88,7 +144,9 @@ export const Header = () => {
             {isAdmin && (
               <Link
                 to="/admin"
-                className="text-foreground/80 hover:text-primary transition-colors font-medium flex items-center gap-1"
+                className={`font-medium transition-colors flex items-center gap-1 ${
+                  isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                }`}
               >
                 <Shield className="w-4 h-4" />
                 Admin
@@ -144,19 +202,60 @@ export const Header = () => {
             className="md:hidden py-4 border-t border-border"
           >
             <nav className="flex flex-col gap-4">
+              {/* Våra resor section */}
+              <div className="py-2">
+                <p className="text-foreground font-medium mb-2">Våra resor</p>
+                <div className="pl-4 flex flex-col gap-2">
+                  <Link
+                    to="/destinations?trip=segelveckan"
+                    className="text-foreground/70 hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Segelveckan
+                  </Link>
+                  <Link
+                    to="/destinations?trip=studentveckan"
+                    className="text-foreground/70 hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Studentveckan
+                  </Link>
+                  <Link
+                    to="/destinations?trip=splitveckan"
+                    className="text-foreground/70 hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Splitveckan
+                  </Link>
+                </div>
+              </div>
               <Link
-                to="/"
+                to="/om-oss"
                 className="text-foreground/80 hover:text-primary transition-colors font-medium py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Hem
+                Om Oss
               </Link>
               <Link
-                to="/destinations"
+                to="/kontakt"
                 className="text-foreground/80 hover:text-primary transition-colors font-medium py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Destinationer
+                Kontakt
+              </Link>
+              <Link
+                to="/faq"
+                className="text-foreground/80 hover:text-primary transition-colors font-medium py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Frågor och Svar
+              </Link>
+              <Link
+                to="/for-skolor"
+                className="text-foreground/80 hover:text-primary transition-colors font-medium py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                För skolor
               </Link>
               {user ? (
                 <>
