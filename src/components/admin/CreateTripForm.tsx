@@ -124,9 +124,9 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   };
 
   const totalPrice =
-    (form.watch("first_payment_amount") || 0) +
-    (form.watch("second_payment_amount") || 0) +
-    (form.watch("final_payment_amount") || 0);
+    Number(form.watch("first_payment_amount") || 0) +
+    Number(form.watch("second_payment_amount") || 0) +
+    Number(form.watch("final_payment_amount") || 0);
 
   return (
     <Card>
