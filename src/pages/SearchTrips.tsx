@@ -89,21 +89,19 @@ const SearchTrips = () => {
       <Header />
       
       <main className="flex-1 container mx-auto px-4 py-8 mt-20">
-        <div className="mb-8">
+        <div className="bg-card rounded-2xl shadow-elegant border border-border p-6 mb-6">
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3">
             Din sökning
           </h1>
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-full border border-border">
-            <span className="text-sm text-muted-foreground">
-              {departures.find(d => d.value === departure)?.label || "Alla avgångsorter"}
-              {" · "}
-              {tripTypes.find(t => t.value === tripType)?.label || "Alla resor"}
-              {" · "}
-              {date ? format(date, "d MMM yyyy", { locale: sv }) : "Alla datum"}
-              {" · "}
-              {guests} {guests === 1 ? "resenär" : "resenärer"}
-            </span>
-          </div>
+          <p className="text-muted-foreground">
+            {departures.find(d => d.value === departure)?.label || "Alla avgångsorter"}
+            {" · "}
+            {tripTypes.find(t => t.value === tripType)?.label || "Alla resor"}
+            {" · "}
+            {date ? format(date, "d MMM yyyy", { locale: sv }) : "Alla datum"}
+            {" · "}
+            {guests} {guests === 1 ? "resenär" : "resenärer"}
+          </p>
         </div>
         {/* Search Widget */}
         <div className="bg-card rounded-2xl shadow-elegant border border-border p-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
