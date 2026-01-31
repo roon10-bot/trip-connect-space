@@ -23,7 +23,7 @@ export const Hero = () => {
   };
 
   return (
-    <section className="relative aspect-video flex flex-col overflow-visible">
+    <section className="relative min-h-[70vh] md:aspect-video md:min-h-0 flex flex-col overflow-visible">
       {/* Background Video with Overlay */}
       <div className="absolute inset-0">
         <video
@@ -38,7 +38,7 @@ export const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex-1 flex items-center container mx-auto px-4 pt-16">
+      <div className="relative z-10 flex-1 flex items-center container mx-auto px-4 pt-20 md:pt-16">
         <div className="max-w-4xl mx-auto text-center">
           {/* Play/Pause Button - above text */}
           <motion.button
@@ -55,7 +55,7 @@ export const Hero = () => {
               className="relative inline-flex"
             >
               {/* Play/Pause icon - transparent fill */}
-              <div className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <div className="w-16 h-16 md:w-24 md:h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <AnimatePresence mode="wait">
                   {isPlaying ? (
                     <motion.div
@@ -65,7 +65,7 @@ export const Hero = () => {
                       exit={{ opacity: 0, scale: 0.8 }}
                       transition={{ duration: 0.15 }}
                     >
-                      <Pause className="w-12 h-12 md:w-16 md:h-16 text-white fill-transparent drop-shadow-lg" />
+                      <Pause className="w-10 h-10 md:w-16 md:h-16 text-white fill-transparent drop-shadow-lg" />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -75,7 +75,7 @@ export const Hero = () => {
                       exit={{ opacity: 0, scale: 0.8 }}
                       transition={{ duration: 0.15 }}
                     >
-                      <Play className="w-12 h-12 md:w-16 md:h-16 text-white fill-transparent ml-1 drop-shadow-lg" />
+                      <Play className="w-10 h-10 md:w-16 md:h-16 text-white fill-transparent ml-1 drop-shadow-lg" />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -86,7 +86,7 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-3xl md:text-5xl font-serif font-bold text-primary-foreground mb-4 leading-tight whitespace-nowrap"
+            className="text-2xl sm:text-3xl md:text-5xl font-serif font-bold text-primary-foreground mb-3 md:mb-4 leading-tight md:whitespace-nowrap"
           >
             Drömmer ni om en <span className="text-primary">oförglömlig</span> studentresa?
           </motion.h1>
@@ -95,7 +95,7 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-base md:text-lg text-primary-foreground/90 mb-8 max-w-xl mx-auto leading-relaxed"
+            className="text-sm sm:text-base md:text-lg text-primary-foreground/90 mb-6 md:mb-8 max-w-xl mx-auto leading-relaxed px-2 md:px-0"
           >
             Ert livs äventyr väntar runt hörnet, boka din resa redan idag.
           </motion.p>
@@ -109,7 +109,7 @@ export const Hero = () => {
             <Link to="/book">
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[180px] px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[140px] md:min-w-[180px] px-6 md:px-8 py-5 md:py-6 text-base md:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Boka direkt
               </Button>
@@ -117,7 +117,7 @@ export const Hero = () => {
             <Link to="/destinations">
               <Button
                 size="lg"
-                className="bg-white/90 hover:bg-white text-accent min-w-[180px] px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-white/90 hover:bg-white text-accent min-w-[140px] md:min-w-[180px] px-6 md:px-8 py-5 md:py-6 text-base md:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Se våra resor
               </Button>
