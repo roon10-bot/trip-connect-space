@@ -1,7 +1,5 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { Play, Pause } from "lucide-react";
 import heroVideo from "@/assets/hero-video.mp4";
 import { BookingWidget } from "./BookingWidget";
@@ -100,29 +98,6 @@ export const Hero = () => {
             Ert livs äventyr väntar runt hörnet, boka din resa redan idag.
           </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <Link to="/book">
-              <Button
-                size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[140px] md:min-w-[180px] px-6 md:px-8 py-5 md:py-6 text-base md:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                Boka direkt
-              </Button>
-            </Link>
-            <Link to="/destinations">
-              <Button
-                size="lg"
-                className="bg-white/90 hover:bg-white text-accent min-w-[140px] md:min-w-[180px] px-6 md:px-8 py-5 md:py-6 text-base md:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                Se våra resor
-              </Button>
-            </Link>
-          </motion.div>
         </div>
       </div>
 
