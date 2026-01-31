@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Check } from "lucide-react";
 import { toast } from "sonner";
 import { BookingStepIndicator } from "@/components/booking/BookingStepIndicator";
+import { BookingStepAccount, AccountFormData } from "@/components/booking/BookingStepAccount";
 import { BookingStep1 } from "@/components/booking/BookingStep1";
 import { BookingStep2 } from "@/components/booking/BookingStep2";
 import { BookingStep3 } from "@/components/booking/BookingStep3";
@@ -30,7 +32,13 @@ export interface TravelerInfo {
 const BookTrip = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(1);
+  const { user, loading: authLoading, signUp } = useAuth();
+  
+  // Determine if we need the account creation step
+  const needsAccount = !user && !authLoading;
+  const totalSteps = needsAccount ? 4 : 3;
+  
+  const [currentStep, setCurrentStep] = useState(needsAccount ? 1 : 1);
   const [travelers, setTravelers] = useState(1);
   const [discountCode, setDiscountCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<{
@@ -47,6 +55,7 @@ const BookTrip = () => {
     departureLocation: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
 
   const { data: trip, isLoading } = useQuery({
@@ -168,15 +177,52 @@ const BookTrip = () => {
     return true;
   };
 
+  const handleAccountCreation = async (data: AccountFormData) => {
+    setIsCreatingAccount(true);
+    try {
+      const fullName = `${data.firstName} ${data.lastName}`;
+      const { error } = await signUp(data.email, data.password, fullName);
+      
+      if (error) {
+        if (error.message.includes("already registered")) {
+          toast.error("E-postadressen är redan registrerad. Logga in istället.");
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
+      
+      // Pre-fill traveler info with account data
+      setTravelerInfo((prev) => ({
+        ...prev,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+      }));
+      
+      toast.success("Konto skapat! Fortsätt med bokningen.");
+      setCurrentStep(2);
+    } catch (error) {
+      toast.error("Något gick fel. Försök igen.");
+    } finally {
+      setIsCreatingAccount(false);
+    }
+  };
+
   const handleNextStep = () => {
-    if (currentStep === 2 && !validateStep2()) {
+    // Adjust step validation based on whether we have account step
+    const travelerInfoStep = needsAccount ? 3 : 2;
+    const maxStep = totalSteps;
+    
+    if (currentStep === travelerInfoStep && !validateStep2()) {
       return;
     }
-    setCurrentStep((prev) => Math.min(prev + 1, 3));
+    setCurrentStep((prev) => Math.min(prev + 1, maxStep));
   };
 
   const handlePrevStep = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    const minStep = needsAccount ? 2 : 1; // Can't go back to account step once created
+    setCurrentStep((prev) => Math.max(prev - 1, minStep));
   };
 
   const handleSubmitBooking = async () => {
@@ -284,13 +330,23 @@ const BookTrip = () => {
           </p>
         </div>
 
-        <BookingStepIndicator currentStep={currentStep} />
+        <BookingStepIndicator currentStep={currentStep} totalSteps={totalSteps} />
 
         <div className="grid lg:grid-cols-3 gap-8 mt-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
-              {currentStep === 1 && (
+              {/* Step 1: Account Creation (only for non-logged in users) */}
+              {needsAccount && currentStep === 1 && (
+                <BookingStepAccount
+                  key="step-account"
+                  onNext={handleAccountCreation}
+                  isLoading={isCreatingAccount}
+                />
+              )}
+              
+              {/* Step for travelers count (Step 1 for logged in, Step 2 for new users) */}
+              {((needsAccount && currentStep === 2) || (!needsAccount && currentStep === 1)) && (
                 <BookingStep1
                   key="step1"
                   travelers={travelers}
@@ -303,7 +359,9 @@ const BookTrip = () => {
                   onNext={handleNextStep}
                 />
               )}
-              {currentStep === 2 && (
+              
+              {/* Step for traveler info (Step 2 for logged in, Step 3 for new users) */}
+              {((needsAccount && currentStep === 3) || (!needsAccount && currentStep === 2)) && (
                 <BookingStep2
                   key="step2"
                   travelerInfo={travelerInfo}
@@ -312,7 +370,9 @@ const BookTrip = () => {
                   onPrev={handlePrevStep}
                 />
               )}
-              {currentStep === 3 && (
+              
+              {/* Step for summary (Step 3 for logged in, Step 4 for new users) */}
+              {((needsAccount && currentStep === 4) || (!needsAccount && currentStep === 3)) && (
                 <BookingStep3
                   key="step3"
                   trip={trip}
