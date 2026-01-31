@@ -16,6 +16,7 @@ import { BookingStep1 } from "@/components/booking/BookingStep1";
 import { BookingStep2 } from "@/components/booking/BookingStep2";
 import { BookingStep3 } from "@/components/booking/BookingStep3";
 import { BookingTripSummary } from "@/components/booking/BookingTripSummary";
+import { BookingSuccess } from "@/components/booking/BookingSuccess";
 
 export interface TravelerInfo {
   firstName: string;
@@ -46,6 +47,7 @@ const BookTrip = () => {
     departureLocation: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingComplete, setBookingComplete] = useState(false);
 
   const { data: trip, isLoading } = useQuery({
     queryKey: ["trip", id],
@@ -183,9 +185,9 @@ const BookTrip = () => {
     setIsSubmitting(true);
     try {
       // Here you would typically create the booking in the database
-      // For now, we'll just show a success message
-      toast.success("Bokning skickad! Vi återkommer med bekräftelse.");
-      navigate("/");
+      // Simulate a small delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setBookingComplete(true);
     } catch (error) {
       toast.error("Något gick fel. Försök igen.");
     } finally {
@@ -220,6 +222,18 @@ const BookTrip = () => {
             <Button>Tillbaka till sök</Button>
           </Link>
         </div>
+      </div>
+    );
+  }
+
+  if (bookingComplete) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 pt-28 pb-16">
+          <BookingSuccess />
+        </main>
+        <Footer />
       </div>
     );
   }
