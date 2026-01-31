@@ -34,11 +34,21 @@ const BookTrip = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signUp } = useAuth();
   
-  // Determine if we need the account creation step
-  const needsAccount = !user && !authLoading;
-  const totalSteps = needsAccount ? 4 : 3;
+  // Track if user started without an account (persists through the booking flow)
+  const [startedWithoutAccount, setStartedWithoutAccount] = useState<boolean | null>(null);
   
-  const [currentStep, setCurrentStep] = useState(needsAccount ? 1 : 1);
+  // Set initial state once auth loading is complete
+  useEffect(() => {
+    if (!authLoading && startedWithoutAccount === null) {
+      setStartedWithoutAccount(!user);
+    }
+  }, [authLoading, user, startedWithoutAccount]);
+  
+  // Use the persisted state for step calculation
+  const needsAccountStep = startedWithoutAccount === true;
+  const totalSteps = needsAccountStep ? 4 : 3;
+  
+  const [currentStep, setCurrentStep] = useState(1);
   const [travelers, setTravelers] = useState(1);
   const [discountCode, setDiscountCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<{
@@ -211,7 +221,7 @@ const BookTrip = () => {
 
   const handleNextStep = () => {
     // Adjust step validation based on whether we have account step
-    const travelerInfoStep = needsAccount ? 3 : 2;
+    const travelerInfoStep = needsAccountStep ? 3 : 2;
     const maxStep = totalSteps;
     
     if (currentStep === travelerInfoStep && !validateStep2()) {
@@ -221,7 +231,7 @@ const BookTrip = () => {
   };
 
   const handlePrevStep = () => {
-    const minStep = needsAccount ? 2 : 1; // Can't go back to account step once created
+    const minStep = needsAccountStep ? 2 : 1; // Can't go back to account step once created
     setCurrentStep((prev) => Math.max(prev - 1, minStep));
   };
 
@@ -337,7 +347,7 @@ const BookTrip = () => {
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
               {/* Step 1: Account Creation (only for non-logged in users) */}
-              {needsAccount && currentStep === 1 && (
+              {needsAccountStep && currentStep === 1 && (
                 <BookingStepAccount
                   key="step-account"
                   onNext={handleAccountCreation}
@@ -346,7 +356,7 @@ const BookTrip = () => {
               )}
               
               {/* Step for travelers count (Step 1 for logged in, Step 2 for new users) */}
-              {((needsAccount && currentStep === 2) || (!needsAccount && currentStep === 1)) && (
+              {((needsAccountStep && currentStep === 2) || (!needsAccountStep && currentStep === 1)) && (
                 <BookingStep1
                   key="step1"
                   travelers={travelers}
@@ -361,7 +371,7 @@ const BookTrip = () => {
               )}
               
               {/* Step for traveler info (Step 2 for logged in, Step 3 for new users) */}
-              {((needsAccount && currentStep === 3) || (!needsAccount && currentStep === 2)) && (
+              {((needsAccountStep && currentStep === 3) || (!needsAccountStep && currentStep === 2)) && (
                 <BookingStep2
                   key="step2"
                   travelerInfo={travelerInfo}
@@ -372,7 +382,7 @@ const BookTrip = () => {
               )}
               
               {/* Step for summary (Step 3 for logged in, Step 4 for new users) */}
-              {((needsAccount && currentStep === 4) || (!needsAccount && currentStep === 3)) && (
+              {((needsAccountStep && currentStep === 4) || (!needsAccountStep && currentStep === 3)) && (
                 <BookingStep3
                   key="step3"
                   trip={trip}
