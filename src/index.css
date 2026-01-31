@@ -174,17 +174,10 @@
     @apply border-border;
   }
 
-  /* Keep layout width stable on desktop when overlays open/close */
-  @media (min-width: 768px) {
-    html {
-      scrollbar-gutter: stable;
-    }
-
-    @supports not (scrollbar-gutter: stable) {
-      html {
-        overflow-y: scroll;
-      }
-    }
+  /* Prevent layout shift when Radix overlays lock scroll */
+  body[data-scroll-locked] {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
   }
 
   body {
