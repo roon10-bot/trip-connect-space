@@ -32,41 +32,34 @@ export const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/60 via-foreground/40 to-background" />
       </div>
 
-      {/* Play Button Overlay */}
-      <AnimatePresence>
-        {!isPlaying && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.3 }}
-            onClick={handlePlay}
-            className="absolute inset-0 z-30 flex items-center justify-center cursor-pointer group"
-            aria-label="Spela video"
-          >
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative"
-            >
-              {/* Outer glow ring */}
-              <div className="absolute inset-0 rounded-full bg-white/20 blur-xl scale-150 group-hover:bg-white/30 transition-colors duration-300" />
-              
-              {/* Play button circle */}
-              <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-2xl group-hover:bg-white transition-all duration-300">
-                <Play className="w-10 h-10 md:w-14 md:h-14 text-accent fill-accent ml-1" />
-              </div>
-              
-              {/* Pulsing ring animation */}
-              <div className="absolute inset-0 rounded-full border-2 border-white/50 animate-ping" />
-            </motion.div>
-          </motion.button>
-        )}
-      </AnimatePresence>
-
       {/* Content */}
-      <div className="relative z-10 flex-1 flex items-center container mx-auto px-4 pt-16 pointer-events-none">
+      <div className="relative z-10 flex-1 flex items-center container mx-auto px-4 pt-16">
         <div className="max-w-4xl mx-auto text-center">
+          {/* Play Button - above text */}
+          <AnimatePresence>
+            {!isPlaying && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.3 }}
+                onClick={handlePlay}
+                className="mb-6 cursor-pointer group"
+                aria-label="Spela video"
+              >
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative inline-flex"
+                >
+                  {/* Play button circle - transparent */}
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-2 border-white/70 backdrop-blur-sm flex items-center justify-center group-hover:border-white group-hover:bg-white/10 transition-all duration-300">
+                    <Play className="w-8 h-8 md:w-10 md:h-10 text-white fill-white/80 ml-1" />
+                  </div>
+                </motion.div>
+              </motion.button>
+            )}
+          </AnimatePresence>
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -89,7 +82,7 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center pointer-events-auto"
+            className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link to="/book">
               <Button
