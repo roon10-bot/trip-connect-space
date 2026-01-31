@@ -325,6 +325,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          price: number
           return_date: string
           second_payment_amount: number
           second_payment_date: string | null
@@ -345,6 +346,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          price?: number
           return_date: string
           second_payment_amount?: number
           second_payment_date?: string | null
@@ -365,6 +367,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          price?: number
           return_date?: string
           second_payment_amount?: number
           second_payment_date?: string | null

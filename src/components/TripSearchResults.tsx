@@ -12,9 +12,7 @@ interface Trip {
   departure_date: string;
   return_date: string;
   departure_location: string;
-  first_payment_amount: number;
-  second_payment_amount: number;
-  final_payment_amount: number;
+  price: number;
   description: string | null;
   capacity: number;
 }
@@ -41,10 +39,6 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
   if (trips.length === 0) {
     return null;
   }
-
-  const getTotalPrice = (trip: Trip) => {
-    return trip.first_payment_amount + trip.second_payment_amount + trip.final_payment_amount;
-  };
 
   const formatTripType = (type: string) => {
     const types: Record<string, string> = {
@@ -110,9 +104,9 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
             {/* Price and CTA */}
             <div className="flex flex-col items-end gap-3">
               <div className="text-right">
-                <span className="text-sm text-muted-foreground">Totalpris</span>
+                <span className="text-sm text-muted-foreground">Pris</span>
                 <p className="text-3xl font-bold text-primary">
-                  {getTotalPrice(trip).toLocaleString("sv-SE")} kr
+                  {trip.price.toLocaleString("sv-SE")} kr
                 </p>
               </div>
               
