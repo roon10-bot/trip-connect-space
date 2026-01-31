@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
 export const useAdmin = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
-  const { data: isAdmin, isLoading } = useQuery({
+  const { data: isAdmin, isLoading: queryLoading, isFetching } = useQuery({
     queryKey: ["isAdmin", user?.id],
     queryFn: async () => {
       if (!user?.id) return false;
@@ -25,7 +25,11 @@ export const useAdmin = () => {
       return !!data;
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
+
+  // isLoading is true when auth is loading OR when we have a user but the query hasn't finished
+  const isLoading = authLoading || (!!user?.id && (queryLoading || isFetching));
 
   return {
     isAdmin: isAdmin ?? false,
