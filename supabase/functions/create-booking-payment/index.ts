@@ -48,24 +48,53 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Parse request body
-    const { bookingId, amount } = await req.json();
+    const { bookingId, amount, bookingType } = await req.json();
     if (!bookingId || !amount) {
       throw new Error("Missing bookingId or amount");
     }
-    logStep("Request parsed", { bookingId, amount });
+    logStep("Request parsed", { bookingId, amount, bookingType });
 
-    // Verify booking belongs to user
-    const { data: booking, error: bookingError } = await supabaseClient
-      .from("bookings")
-      .select("*, destinations(name, country)")
-      .eq("id", bookingId)
-      .eq("user_id", user.id)
-      .maybeSingle();
+    let bookingData: { id: string; name: string; description: string };
 
-    if (bookingError || !booking) {
-      throw new Error("Booking not found or access denied");
+    if (bookingType === "trip") {
+      // Fetch from trip_bookings table
+      const { data: tripBooking, error: tripError } = await supabaseClient
+        .from("trip_bookings")
+        .select("*, trips(name, trip_type)")
+        .eq("id", bookingId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (tripError || !tripBooking) {
+        throw new Error("Trip booking not found or access denied");
+      }
+      
+      bookingData = {
+        id: tripBooking.id,
+        name: tripBooking.trips?.name || "Resa",
+        description: `Bokningsnummer: ${tripBooking.id.slice(0, 8).toUpperCase()} | ${tripBooking.trips?.trip_type || ""}`,
+      };
+      logStep("Trip booking verified", { bookingId: tripBooking.id });
+    } else {
+      // Fetch from bookings table (legacy destination bookings)
+      const { data: booking, error: bookingError } = await supabaseClient
+        .from("bookings")
+        .select("*, destinations(name, country)")
+        .eq("id", bookingId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (bookingError || !booking) {
+        throw new Error("Booking not found or access denied");
+      }
+      
+      bookingData = {
+        id: booking.id,
+        name: booking.destinations?.name || "Destination",
+        description: `Bokningsnummer: ${booking.id.slice(0, 8).toUpperCase()} | ${booking.destinations?.country || ""}`,
+      };
+      logStep("Booking verified", { bookingId: booking.id });
     }
-    logStep("Booking verified", { bookingId: booking.id });
 
     // Initialize Stripe
     const stripe = new Stripe(stripeKey, {
@@ -97,8 +126,8 @@ serve(async (req) => {
           price_data: {
             currency: "sek",
             product_data: {
-              name: `Resa till ${booking.destinations?.name || "Destination"}`,
-              description: `Bokningsnummer: ${booking.id.slice(0, 8).toUpperCase()} | ${booking.destinations?.country || ""}`,
+              name: `Resa: ${bookingData.name}`,
+              description: bookingData.description,
             },
             unit_amount: Math.round(Number(amount) * 100), // Convert to öre
           },
@@ -110,6 +139,7 @@ serve(async (req) => {
       cancel_url: `${origin}/dashboard?payment=cancelled&booking=${bookingId}`,
       metadata: {
         booking_id: bookingId,
+        booking_type: bookingType || "destination",
         user_id: user.id,
       },
     });
