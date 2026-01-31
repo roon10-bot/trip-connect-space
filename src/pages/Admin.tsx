@@ -10,6 +10,8 @@ import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { TripsList } from "@/components/admin/TripsList";
 import { CreateTripForm } from "@/components/admin/CreateTripForm";
 import { DiscountCodesList } from "@/components/admin/DiscountCodesList";
+import { AdminBookingsList } from "@/components/admin/AdminBookingsList";
+import { AdminTransactionsList } from "@/components/admin/AdminTransactionsList";
 import { Shield } from "lucide-react";
 import { toast } from "sonner";
 
@@ -56,6 +58,10 @@ const Admin = () => {
         return <TripsList onEditTrip={(id) => console.log("Edit trip", id)} />;
       case "create-trip":
         return <CreateTripForm onSuccess={handleTripCreated} />;
+      case "bookings":
+        return <AdminBookingsList />;
+      case "transactions":
+        return <AdminTransactionsList />;
       case "discount-codes":
         return <DiscountCodesList />;
       default:
@@ -86,6 +92,8 @@ const Admin = () => {
               {currentView === "dashboard" && "Översikt och statistik"}
               {currentView === "trips" && "Hantera dina resor"}
               {currentView === "create-trip" && "Skapa en ny resa"}
+              {currentView === "bookings" && "Alla resebokningar"}
+              {currentView === "transactions" && "Betalningshistorik"}
               {currentView === "discount-codes" && "Hantera rabattkoder"}
             </p>
           </motion.div>
