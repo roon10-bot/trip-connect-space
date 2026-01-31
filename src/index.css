@@ -175,8 +175,8 @@
   }
 
   html {
-    /* Prevent layout shift when Radix overlays lock body scroll */
-    overflow-y: scroll;
+    /* Prevent layout shift when overlays open/close without forcing visible scrollbar */
+    scrollbar-gutter: stable;
   }
 
   body {
