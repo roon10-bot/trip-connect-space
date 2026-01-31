@@ -458,7 +458,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               </div>
 
               {/* Dynamic pricing preview for Splitveckan */}
-              {form.watch("trip_type") === "splitveckan" && form.watch("base_price") > 0 && (
+              {form.watch("trip_type") === "splitveckan" && Number(form.watch("base_price")) > 0 && (
                 <div className="bg-muted/50 border rounded-lg p-4 space-y-3">
                   <h4 className="font-semibold text-sm">Prisberäkning per person (Splitveckan)</h4>
                   <p className="text-xs text-muted-foreground">
@@ -466,10 +466,10 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {Array.from(
-                      { length: (form.watch("max_persons") || 8) - (form.watch("min_persons") || 1) + 1 },
-                      (_, i) => (form.watch("min_persons") || 1) + i
+                      { length: Number(form.watch("max_persons") || 8) - Number(form.watch("min_persons") || 1) + 1 },
+                      (_, i) => Number(form.watch("min_persons") || 1) + i
                     ).map((persons) => {
-                      const basePrice = form.watch("base_price") || 0;
+                      const basePrice = Number(form.watch("base_price")) || 0;
                       const priceWithMargin = basePrice * 1.20; // 20% margin
                       const pricePerPerson = Math.ceil(priceWithMargin / persons);
                       return (
@@ -481,7 +481,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                     })}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Total med marginal: {Math.ceil((form.watch("base_price") || 0) * 1.20).toLocaleString("sv-SE")} kr
+                    Total med marginal: {Math.ceil(Number(form.watch("base_price") || 0) * 1.20).toLocaleString("sv-SE")} kr
                   </p>
                 </div>
               )}
