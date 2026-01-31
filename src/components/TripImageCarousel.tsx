@@ -47,7 +47,9 @@ export const TripImageCarousel = ({
       <img
         src={allImages[currentIndex].image_url}
         alt={`Resebild ${currentIndex + 1}`}
-        className="w-full h-full object-cover transition-transform duration-300"
+        className="w-full h-full object-cover"
+        loading="lazy"
+        style={{ willChange: 'auto' }}
       />
 
       {/* Navigation arrows - only show if more than 1 image */}
