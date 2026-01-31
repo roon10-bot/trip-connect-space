@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Ship, Calendar, Users, Trash2, Edit, MapPin, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { EditTripDialog } from "./EditTripDialog";
 
 const tripTypeLabels: Record<string, string> = {
   seglingsvecka: "Seglingsveckan",
@@ -40,6 +42,7 @@ interface TripsListProps {
 
 export const TripsList = ({ onEditTrip }: TripsListProps) => {
   const queryClient = useQueryClient();
+  const [editingTripId, setEditingTripId] = useState<string | null>(null);
 
   const { data: trips, isLoading } = useQuery({
     queryKey: ["admin-trips"],
@@ -193,15 +196,13 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
                           )}
                         </Button>
 
-                        {onEditTrip && (
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => onEditTrip(trip.id)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setEditingTripId(trip.id)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
 
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -245,6 +246,12 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
           </div>
         )}
       </CardContent>
+
+      <EditTripDialog
+        tripId={editingTripId}
+        open={!!editingTripId}
+        onOpenChange={(open) => !open && setEditingTripId(null)}
+      />
     </Card>
   );
 };
