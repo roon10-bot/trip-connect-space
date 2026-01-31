@@ -310,6 +310,71 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_bookings: {
+        Row: {
+          birth_date: string
+          created_at: string
+          departure_location: string
+          discount_amount: number | null
+          discount_code: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          status: string
+          total_price: number
+          travelers: number
+          trip_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          birth_date: string
+          created_at?: string
+          departure_location: string
+          discount_amount?: number | null
+          discount_code?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          phone: string
+          status?: string
+          total_price: number
+          travelers?: number
+          trip_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          birth_date?: string
+          created_at?: string
+          departure_location?: string
+          discount_amount?: number | null
+          discount_code?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string
+          status?: string
+          total_price?: number
+          travelers?: number
+          trip_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_bookings_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trips: {
         Row: {
           capacity: number

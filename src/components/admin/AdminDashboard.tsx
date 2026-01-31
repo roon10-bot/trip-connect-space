@@ -41,9 +41,11 @@ import {
   Trash2,
   TrendingUp,
   Ship,
+  Ticket,
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { TripBookingsList } from "./TripBookingsList";
 
 interface AdminDashboardProps {
   isAdmin: boolean;
@@ -80,6 +82,20 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
         .from("trips")
         .select("*")
         .order("departure_date", { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAdmin,
+  });
+
+  const { data: tripBookings } = useQuery({
+    queryKey: ["admin-trip-bookings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trip_bookings")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
@@ -169,11 +185,15 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
     }
   };
 
+  const tripBookingsRevenue = tripBookings?.reduce((sum, b) => sum + Number(b.total_price), 0) || 0;
+  const destinationBookingsRevenue = bookings?.reduce((sum, b) => sum + Number(b.total_price), 0) || 0;
+
   const stats = {
     totalBookings: bookings?.length || 0,
+    tripBookings: tripBookings?.length || 0,
     confirmedBookings: bookings?.filter((b) => b.status === "confirmed").length || 0,
     pendingBookings: bookings?.filter((b) => b.status === "pending").length || 0,
-    totalRevenue: bookings?.reduce((sum, b) => sum + Number(b.total_price), 0) || 0,
+    totalRevenue: tripBookingsRevenue + destinationBookingsRevenue,
     activeTrips: trips?.filter((t) => t.is_active).length || 0,
     totalTrips: trips?.length || 0,
   };
@@ -181,16 +201,16 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
   return (
     <div className="space-y-8">
       {/* Stats */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card className="bg-gradient-card shadow-elegant">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-ocean-light">
-                <Plane className="w-6 h-6 text-ocean" />
+                <Ticket className="w-6 h-6 text-ocean" />
               </div>
               <div>
-                <p className="text-3xl font-bold text-foreground">{stats.totalBookings}</p>
-                <p className="text-muted-foreground">Totala bokningar</p>
+                <p className="text-3xl font-bold text-foreground">{stats.tripBookings}</p>
+                <p className="text-muted-foreground">Resebokningar</p>
               </div>
             </div>
           </CardContent>
@@ -200,11 +220,11 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-palm-light">
-                <CheckCircle className="w-6 h-6 text-palm" />
+                <Plane className="w-6 h-6 text-palm" />
               </div>
               <div>
-                <p className="text-3xl font-bold text-foreground">{stats.confirmedBookings}</p>
-                <p className="text-muted-foreground">Bekräftade</p>
+                <p className="text-3xl font-bold text-foreground">{stats.totalBookings}</p>
+                <p className="text-muted-foreground">Destinationsbokningar</p>
               </div>
             </div>
           </CardContent>
@@ -356,6 +376,9 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
           )}
         </CardContent>
       </Card>
+
+      {/* Trip Bookings */}
+      <TripBookingsList />
     </div>
   );
 };
