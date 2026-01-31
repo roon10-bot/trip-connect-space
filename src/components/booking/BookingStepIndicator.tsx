@@ -3,15 +3,25 @@ import { cn } from "@/lib/utils";
 
 interface BookingStepIndicatorProps {
   currentStep: number;
+  totalSteps?: 3 | 4;
 }
 
-const steps = [
+const stepsWithAccount = [
+  { number: 1, title: "Skapa konto" },
+  { number: 2, title: "Antal resenärer" },
+  { number: 3, title: "Resenärinformation" },
+  { number: 4, title: "Sammanfattning" },
+];
+
+const stepsWithoutAccount = [
   { number: 1, title: "Antal resenärer" },
   { number: 2, title: "Resenärinformation" },
   { number: 3, title: "Sammanfattning" },
 ];
 
-export const BookingStepIndicator = ({ currentStep }: BookingStepIndicatorProps) => {
+export const BookingStepIndicator = ({ currentStep, totalSteps = 3 }: BookingStepIndicatorProps) => {
+  const steps = totalSteps === 4 ? stepsWithAccount : stepsWithoutAccount;
+  
   return (
     <div className="flex items-center justify-center gap-2 md:gap-4">
       {steps.map((step, index) => (
