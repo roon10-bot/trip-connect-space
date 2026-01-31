@@ -43,6 +43,8 @@ const departureLocations = [
   { value: "Arlanda (ARN)", label: "Arlanda (ARN)" },
 ];
 
+const paymentValueTypes = ["percent", "amount"] as const;
+
 const tripSchema = z.object({
   trip_type: z.enum(["seglingsvecka", "splitveckan", "studentveckan"], {
     required_error: "Välj en restyp",
@@ -58,10 +60,13 @@ const tripSchema = z.object({
   departure_location: z.string().min(2, "Avgångsort måste vara minst 2 tecken").max(100, "Avgångsort får max vara 100 tecken"),
   price: z.coerce.number().min(0, "Pris måste vara 0 eller mer"),
   first_payment_amount: z.coerce.number().min(0, "Belopp måste vara 0 eller mer"),
+  first_payment_type: z.enum(paymentValueTypes),
   first_payment_date: z.date().optional().nullable(),
   second_payment_amount: z.coerce.number().min(0, "Belopp måste vara 0 eller mer"),
+  second_payment_type: z.enum(paymentValueTypes),
   second_payment_date: z.date().optional().nullable(),
   final_payment_amount: z.coerce.number().min(0, "Belopp måste vara 0 eller mer"),
+  final_payment_type: z.enum(paymentValueTypes),
   final_payment_date: z.date().optional().nullable(),
 }).refine((data) => data.return_date > data.departure_date, {
   message: "Hemresedatum måste vara efter avgångsdatum",
@@ -97,8 +102,11 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       departure_location: "",
       price: 0,
       first_payment_amount: 0,
+      first_payment_type: "amount",
       second_payment_amount: 0,
+      second_payment_type: "amount",
       final_payment_amount: 0,
+      final_payment_type: "amount",
     },
   });
 
@@ -165,10 +173,13 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
         departure_location: values.departure_location,
         price: values.price,
         first_payment_amount: values.first_payment_amount,
+        first_payment_type: values.first_payment_type,
         first_payment_date: values.first_payment_date ? format(values.first_payment_date, "yyyy-MM-dd") : null,
         second_payment_amount: values.second_payment_amount,
+        second_payment_type: values.second_payment_type,
         second_payment_date: values.second_payment_date ? format(values.second_payment_date, "yyyy-MM-dd") : null,
         final_payment_amount: values.final_payment_amount,
+        final_payment_type: values.final_payment_type,
         final_payment_date: values.final_payment_date ? format(values.final_payment_date, "yyyy-MM-dd") : null,
         created_by: user.id,
       }).select('id').single();
@@ -561,16 +572,38 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               </div>
 
               {/* First Payment */}
-              <div className="grid md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
                 <FormField
                   control={form.control}
                   name="first_payment_amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Första betalningen (kr)</FormLabel>
+                      <FormLabel>Första betalningen</FormLabel>
                       <FormControl>
                         <Input type="number" min={0} {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="first_payment_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Typ</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Välj typ" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="percent">Procent (%)</SelectItem>
+                          <SelectItem value="amount">Kronor (kr)</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -618,16 +651,38 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               </div>
 
               {/* Second Payment */}
-              <div className="grid md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
                 <FormField
                   control={form.control}
                   name="second_payment_amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Andra betalningen (kr)</FormLabel>
+                      <FormLabel>Andra betalningen</FormLabel>
                       <FormControl>
                         <Input type="number" min={0} {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="second_payment_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Typ</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Välj typ" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="percent">Procent (%)</SelectItem>
+                          <SelectItem value="amount">Kronor (kr)</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -675,16 +730,38 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               </div>
 
               {/* Final Payment */}
-              <div className="grid md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
                 <FormField
                   control={form.control}
                   name="final_payment_amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sista betalningen (kr)</FormLabel>
+                      <FormLabel>Sista betalningen</FormLabel>
                       <FormControl>
                         <Input type="number" min={0} {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="final_payment_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Typ</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Välj typ" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="percent">Procent (%)</SelectItem>
+                          <SelectItem value="amount">Kronor (kr)</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

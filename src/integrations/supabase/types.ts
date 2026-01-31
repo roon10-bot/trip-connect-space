@@ -468,8 +468,10 @@ export type Database = {
           description: string | null
           final_payment_amount: number
           final_payment_date: string | null
+          final_payment_type: Database["public"]["Enums"]["payment_value_type"]
           first_payment_amount: number
           first_payment_date: string | null
+          first_payment_type: Database["public"]["Enums"]["payment_value_type"]
           id: string
           image_url: string | null
           is_active: boolean
@@ -480,6 +482,7 @@ export type Database = {
           return_date: string
           second_payment_amount: number
           second_payment_date: string | null
+          second_payment_type: Database["public"]["Enums"]["payment_value_type"]
           trip_type: Database["public"]["Enums"]["trip_type"]
           updated_at: string
         }
@@ -493,8 +496,10 @@ export type Database = {
           description?: string | null
           final_payment_amount?: number
           final_payment_date?: string | null
+          final_payment_type?: Database["public"]["Enums"]["payment_value_type"]
           first_payment_amount?: number
           first_payment_date?: string | null
+          first_payment_type?: Database["public"]["Enums"]["payment_value_type"]
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -505,6 +510,7 @@ export type Database = {
           return_date: string
           second_payment_amount?: number
           second_payment_date?: string | null
+          second_payment_type?: Database["public"]["Enums"]["payment_value_type"]
           trip_type: Database["public"]["Enums"]["trip_type"]
           updated_at?: string
         }
@@ -518,8 +524,10 @@ export type Database = {
           description?: string | null
           final_payment_amount?: number
           final_payment_date?: string | null
+          final_payment_type?: Database["public"]["Enums"]["payment_value_type"]
           first_payment_amount?: number
           first_payment_date?: string | null
+          first_payment_type?: Database["public"]["Enums"]["payment_value_type"]
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -530,6 +538,7 @@ export type Database = {
           return_date?: string
           second_payment_amount?: number
           second_payment_date?: string | null
+          second_payment_type?: Database["public"]["Enums"]["payment_value_type"]
           trip_type?: Database["public"]["Enums"]["trip_type"]
           updated_at?: string
         }
@@ -571,6 +580,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      payment_value_type: "percent" | "amount"
       trip_type: "seglingsvecka" | "splitveckan" | "studentveckan"
     }
     CompositeTypes: {
@@ -700,6 +710,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      payment_value_type: ["percent", "amount"],
       trip_type: ["seglingsvecka", "splitveckan", "studentveckan"],
     },
   },
