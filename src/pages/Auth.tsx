@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp, user } = useAuth();
+  const { isAdmin, isLoading: adminLoading } = useAdmin();
   const navigate = useNavigate();
 
   const {
@@ -38,10 +40,10 @@ const Auth = () => {
   });
 
   useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
+    if (user && !adminLoading) {
+      navigate(isAdmin ? "/admin" : "/dashboard");
     }
-  }, [user, navigate]);
+  }, [user, isAdmin, adminLoading, navigate]);
 
   const onSubmit = async (data: AuthFormData) => {
     setIsLoading(true);
@@ -57,7 +59,7 @@ const Auth = () => {
           }
         } else {
           toast.success("Välkommen tillbaka!");
-          navigate("/dashboard");
+          // Navigation handled by useEffect when user and admin status are loaded
         }
       } else {
         const { error } = await signUp(data.email, data.password, data.fullName);
@@ -69,7 +71,7 @@ const Auth = () => {
           }
         } else {
           toast.success("Konto skapat! Du är nu inloggad.");
-          navigate("/dashboard");
+          // Navigation handled by useEffect when user and admin status are loaded
         }
       }
     } catch (error) {
