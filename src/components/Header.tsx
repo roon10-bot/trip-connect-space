@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,10 @@ export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const { isAdmin } = useAdmin();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Only use transparent header with white text on the home page
+  const isHomePage = location.pathname === "/";
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -48,12 +52,15 @@ export const Header = () => {
     navigate("/");
   };
 
+  // Use dark text styling when not on home page OR when scrolled
+  const useDarkText = !isHomePage || isScrolled;
+
   return (
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
+        useDarkText
           ? "bg-background/95 backdrop-blur-md shadow-elegant border-b border-border"
           : "bg-transparent"
       }`}
@@ -74,7 +81,7 @@ export const Header = () => {
             {/* Våra resor dropdown */}
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors outline-none ${
-                isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}>
                 Våra resor
                 <ChevronDown className="w-4 h-4" />
@@ -105,7 +112,7 @@ export const Header = () => {
             <Link
               to="/om-oss"
               className={`font-medium transition-colors ${
-                isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}
             >
               Om Oss
@@ -113,7 +120,7 @@ export const Header = () => {
             <Link
               to="/kontakt"
               className={`font-medium transition-colors ${
-                isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}
             >
               Kontakt
@@ -121,7 +128,7 @@ export const Header = () => {
             <Link
               to="/faq"
               className={`font-medium transition-colors ${
-                isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}
             >
               Frågor och Svar
@@ -129,7 +136,7 @@ export const Header = () => {
             <Link
               to="/for-skolor"
               className={`font-medium transition-colors ${
-                isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}
             >
               För skolor
@@ -139,7 +146,7 @@ export const Header = () => {
               <Link
                 to="/dashboard"
                 className={`font-medium transition-colors ${
-                  isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                  useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
                 Mina bokningar
@@ -149,7 +156,7 @@ export const Header = () => {
               <Link
                 to="/admin"
                 className={`font-medium transition-colors flex items-center gap-1 ${
-                  isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                  useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
                 <Shield className="w-4 h-4" />
@@ -176,7 +183,7 @@ export const Header = () => {
             ) : (
               <div className="flex items-center gap-3">
                 <Link to="/auth">
-                  <Button variant="ghost" size="sm" className={isScrolled ? "" : "text-white hover:text-white/80 hover:bg-white/10"}>
+                  <Button variant="ghost" size="sm" className={useDarkText ? "" : "text-white hover:text-white/80 hover:bg-white/10"}>
                     Logga in
                   </Button>
                 </Link>
@@ -191,7 +198,7 @@ export const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className={`md:hidden p-1.5 z-50 ${isMenuOpen ? "text-white" : isScrolled ? "text-foreground" : "text-white"}`}
+            className={`md:hidden p-1.5 z-50 ${isMenuOpen ? "text-white" : useDarkText ? "text-foreground" : "text-white"}`}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
