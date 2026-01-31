@@ -42,6 +42,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TripImageUploader } from "./TripImageUploader";
 
 const tripSchema = z.object({
   trip_type: z.enum(["seglingsvecka", "splitveckan", "studentveckan"], {
@@ -476,6 +477,14 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                     )}
                   />
                 </div>
+
+                {/* Trip Images Section */}
+                {tripId && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold border-b pb-2">Resebilder</h3>
+                    <TripImageUploader tripId={tripId} />
+                  </div>
+                )}
 
                 {/* Payment Schedule Section */}
                 <div className="space-y-4">
