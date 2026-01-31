@@ -174,10 +174,17 @@
     @apply border-border;
   }
 
-  /* Prevent layout shift when Radix overlays lock scroll */
-  body[data-scroll-locked] {
-    padding-right: 0 !important;
-    margin-right: 0 !important;
+  /* Keep header/text from jumping when overlays open/close (desktop only) */
+  @media (min-width: 768px) {
+    html {
+      scrollbar-gutter: stable;
+    }
+
+    @supports not (scrollbar-gutter: stable) {
+      html {
+        overflow-y: scroll;
+      }
+    }
   }
 
   body {
