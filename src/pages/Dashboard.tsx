@@ -107,10 +107,13 @@ const Dashboard = () => {
             departure_location,
             price,
             first_payment_amount,
+            first_payment_type,
             first_payment_date,
             second_payment_amount,
+            second_payment_type,
             second_payment_date,
             final_payment_amount,
+            final_payment_type,
             final_payment_date
           )
         `)

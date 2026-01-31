@@ -17,6 +17,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import type { PaymentValueType } from "@/lib/paymentCalculations";
 
 interface TripBooking {
   id: string;
@@ -40,10 +41,13 @@ interface TripBooking {
     departure_location: string;
     price: number;
     first_payment_amount?: number;
+    first_payment_type?: PaymentValueType;
     first_payment_date?: string | null;
     second_payment_amount?: number;
+    second_payment_type?: PaymentValueType;
     second_payment_date?: string | null;
     final_payment_amount?: number;
+    final_payment_type?: PaymentValueType;
     final_payment_date?: string | null;
   } | null;
 }

@@ -17,6 +17,7 @@ import {
   TrendingUp,
   CalendarClock,
 } from "lucide-react";
+import { calculatePaymentAmount, type PaymentValueType } from "@/lib/paymentCalculations";
 
 interface PaymentOverviewProps {
   userId: string;
@@ -30,10 +31,13 @@ interface TripBookingWithTrip {
   trips: {
     name: string;
     first_payment_amount: number;
+    first_payment_type: PaymentValueType;
     first_payment_date: string | null;
     second_payment_amount: number;
+    second_payment_type: PaymentValueType;
     second_payment_date: string | null;
     final_payment_amount: number;
+    final_payment_type: PaymentValueType;
     final_payment_date: string | null;
   } | null;
 }
@@ -63,10 +67,13 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
           trips (
             name,
             first_payment_amount,
+            first_payment_type,
             first_payment_date,
             second_payment_amount,
+            second_payment_type,
             second_payment_date,
             final_payment_amount,
+            final_payment_type,
             final_payment_date
           )
         `)
@@ -163,6 +170,7 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
     tripBookings.forEach((booking) => {
       if (!booking.trips) return;
       
+      const totalPrice = Number(booking.total_price);
       const bookingPayments = payments.filter(
         (p) => p.trip_booking_id === booking.id && p.status === "completed"
       );
@@ -171,20 +179,38 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
       const paymentPlan = [
         {
           type: "first_payment",
-          label: "Delbetalning 1",
-          amount: booking.trips.first_payment_amount,
+          label: booking.trips.first_payment_type === "percent" 
+            ? `Delbetalning 1 (${booking.trips.first_payment_amount}%)`
+            : "Delbetalning 1",
+          amount: calculatePaymentAmount(
+            booking.trips.first_payment_amount,
+            booking.trips.first_payment_type || "amount",
+            totalPrice
+          ),
           date: booking.trips.first_payment_date,
         },
         {
           type: "second_payment",
-          label: "Delbetalning 2",
-          amount: booking.trips.second_payment_amount,
+          label: booking.trips.second_payment_type === "percent"
+            ? `Delbetalning 2 (${booking.trips.second_payment_amount}%)`
+            : "Delbetalning 2",
+          amount: calculatePaymentAmount(
+            booking.trips.second_payment_amount,
+            booking.trips.second_payment_type || "amount",
+            totalPrice
+          ),
           date: booking.trips.second_payment_date,
         },
         {
           type: "final_payment",
-          label: "Slutbetalning",
-          amount: booking.trips.final_payment_amount,
+          label: booking.trips.final_payment_type === "percent"
+            ? `Slutbetalning (${booking.trips.final_payment_amount}%)`
+            : "Slutbetalning",
+          amount: calculatePaymentAmount(
+            booking.trips.final_payment_amount,
+            booking.trips.final_payment_type || "amount",
+            totalPrice
+          ),
           date: booking.trips.final_payment_date,
         },
       ];
