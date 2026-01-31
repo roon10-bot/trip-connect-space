@@ -1,13 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Minus, Plus, Search } from "lucide-react";
+import { CalendarIcon, Minus, Plus, Search } from "lucide-react";
+import { format } from "date-fns";
+import { sv } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TripSearchResults } from "@/components/TripSearchResults";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { cn } from "@/lib/utils";
 const departures = [{
   value: "all",
   label: "Alla avgångsorter"
@@ -39,6 +44,9 @@ const SearchTrips = () => {
   const [departure, setDeparture] = useState<string>(searchParams.get("departure") || "all");
   const [tripType, setTripType] = useState<string>(searchParams.get("tripType") || "all");
   const [guests, setGuests] = useState(parseInt(searchParams.get("guests") || "2", 10));
+  const [date, setDate] = useState<Date | undefined>(
+    searchParams.get("date") ? new Date(searchParams.get("date")!) : undefined
+  );
   const {
     data: trips,
     isLoading,
@@ -64,11 +72,15 @@ const SearchTrips = () => {
     }
   });
   const handleSearch = () => {
-    setSearchParams({
+    const params: Record<string, string> = {
       departure,
       tripType,
-      guests: guests.toString()
-    });
+      guests: guests.toString(),
+    };
+    if (date) {
+      params.date = format(date, "yyyy-MM-dd");
+    }
+    setSearchParams(params);
     refetch();
   };
   const incrementGuests = () => setGuests(prev => Math.min(prev + 1, 10));
@@ -82,7 +94,7 @@ const SearchTrips = () => {
         </h1>
 
         {/* Search Widget */}
-        <div className="bg-card rounded-2xl shadow-elegant border border-border p-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="bg-card rounded-2xl shadow-elegant border border-border p-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
           {/* Avreseort */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
@@ -115,6 +127,38 @@ const SearchTrips = () => {
                   </SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Datum */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground">
+              Avresedatum
+            </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full h-12 justify-start text-left font-normal bg-background",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "d MMM yyyy", { locale: sv }) : "Välj datum"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  initialFocus
+                  locale={sv}
+                  disabled={(d) => d < new Date()}
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Antal */}
