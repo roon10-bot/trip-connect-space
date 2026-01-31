@@ -49,6 +49,9 @@ const tripSchema = z.object({
   }),
   name: z.string().min(2, "Namn måste vara minst 2 tecken").max(100, "Namn får max vara 100 tecken"),
   capacity: z.coerce.number().min(1, "Kapacitet måste vara minst 1").max(500, "Kapacitet får max vara 500"),
+  min_persons: z.coerce.number().min(1, "Minst 1 person"),
+  max_persons: z.coerce.number().min(1, "Minst 1 person"),
+  base_price: z.coerce.number().min(0, "Baspris måste vara 0 eller mer"),
   departure_date: z.date({ required_error: "Välj avgångsdatum" }),
   return_date: z.date({ required_error: "Välj hemresedatum" }),
   description: z.string().max(2000, "Beskrivning får max vara 2000 tecken").optional(),
@@ -63,6 +66,9 @@ const tripSchema = z.object({
 }).refine((data) => data.return_date > data.departure_date, {
   message: "Hemresedatum måste vara efter avgångsdatum",
   path: ["return_date"],
+}).refine((data) => data.max_persons >= data.min_persons, {
+  message: "Max personer måste vara större eller lika med min personer",
+  path: ["max_persons"],
 });
 
 type TripFormValues = z.infer<typeof tripSchema>;
@@ -84,6 +90,9 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       trip_type: undefined,
       name: "",
       capacity: 20,
+      min_persons: 1,
+      max_persons: 8,
+      base_price: 0,
       description: "",
       departure_location: "",
       price: 0,
@@ -147,6 +156,9 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
         trip_type: values.trip_type,
         name: values.name,
         capacity: values.capacity,
+        min_persons: values.min_persons,
+        max_persons: values.max_persons,
+        base_price: values.base_price,
         departure_date: format(values.departure_date, "yyyy-MM-dd"),
         return_date: format(values.return_date, "yyyy-MM-dd"),
         description: values.description || null,
@@ -255,17 +267,64 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="capacity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Kapacitet</FormLabel>
+                      <FormLabel>Total kapacitet</FormLabel>
                       <FormControl>
                         <Input type="number" min={1} {...field} />
                       </FormControl>
-                      <FormDescription>Antal platser tillgängliga</FormDescription>
+                      <FormDescription>Antal platser totalt</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="min_persons"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Min personer/boende</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={1} {...field} />
+                      </FormControl>
+                      <FormDescription>Minsta antal per lägenhet</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="max_persons"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max personer/boende</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={1} {...field} />
+                      </FormControl>
+                      <FormDescription>Högsta antal per lägenhet</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="base_price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Baspris för boende (kr)</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={0} placeholder="t.ex. 15000" {...field} />
+                      </FormControl>
+                      <FormDescription>Inköpspris för lägenheten (20% marginal adderas)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -397,6 +456,35 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                   )}
                 />
               </div>
+
+              {/* Dynamic pricing preview for Splitveckan */}
+              {form.watch("trip_type") === "splitveckan" && form.watch("base_price") > 0 && (
+                <div className="bg-muted/50 border rounded-lg p-4 space-y-3">
+                  <h4 className="font-semibold text-sm">Prisberäkning per person (Splitveckan)</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Baspris med 20% marginal, delat på antal personer i lägenheten
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {Array.from(
+                      { length: (form.watch("max_persons") || 8) - (form.watch("min_persons") || 1) + 1 },
+                      (_, i) => (form.watch("min_persons") || 1) + i
+                    ).map((persons) => {
+                      const basePrice = form.watch("base_price") || 0;
+                      const priceWithMargin = basePrice * 1.20; // 20% margin
+                      const pricePerPerson = Math.ceil(priceWithMargin / persons);
+                      return (
+                        <div key={persons} className="bg-background rounded p-2 text-center">
+                          <div className="text-xs text-muted-foreground">{persons} pers</div>
+                          <div className="font-semibold text-sm">{pricePerPerson.toLocaleString("sv-SE")} kr</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Total med marginal: {Math.ceil((form.watch("base_price") || 0) * 1.20).toLocaleString("sv-SE")} kr
+                  </p>
+                </div>
+              )}
 
               <FormField
                 control={form.control}

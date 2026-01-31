@@ -427,6 +427,7 @@ export type Database = {
       }
       trips: {
         Row: {
+          base_price: number | null
           capacity: number
           created_at: string
           created_by: string
@@ -440,6 +441,8 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          max_persons: number | null
+          min_persons: number | null
           name: string
           price: number
           return_date: string
@@ -449,6 +452,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          base_price?: number | null
           capacity?: number
           created_at?: string
           created_by: string
@@ -462,6 +466,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          max_persons?: number | null
+          min_persons?: number | null
           name: string
           price?: number
           return_date: string
@@ -471,6 +477,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          base_price?: number | null
           capacity?: number
           created_at?: string
           created_by?: string
@@ -484,6 +491,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          max_persons?: number | null
+          min_persons?: number | null
           name?: string
           price?: number
           return_date?: string
