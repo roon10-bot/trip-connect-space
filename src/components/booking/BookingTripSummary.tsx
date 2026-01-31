@@ -11,6 +11,9 @@ interface Trip {
   return_date: string;
   departure_location: string;
   price: number;
+  base_price?: number | null;
+  min_persons?: number | null;
+  max_persons?: number | null;
 }
 
 interface BookingTripSummaryProps {
@@ -32,7 +35,13 @@ export const BookingTripSummary = ({
   totalPrice,
   formatTripType,
 }: BookingTripSummaryProps) => {
-  const baseTotal = trip.price * travelers;
+  // For Splitveckan, calculate price per person based on group size
+  const isSplitVeckan = trip.trip_type === "splitveckan";
+  const pricePerPerson = isSplitVeckan && trip.base_price && travelers > 0
+    ? Math.ceil((Number(trip.base_price) * 1.20) / travelers)
+    : trip.price;
+  
+  const baseTotal = pricePerPerson * travelers;
   const discountAmount = baseTotal - totalPrice;
 
   return (
@@ -67,7 +76,7 @@ export const BookingTripSummary = ({
           {/* Price per person */}
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Pris per person</span>
-            <span className="font-medium">{trip.price.toLocaleString("sv-SE")} kr</span>
+            <span className="font-medium">{pricePerPerson.toLocaleString("sv-SE")} kr</span>
           </div>
 
           {/* Travelers */}

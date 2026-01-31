@@ -95,7 +95,14 @@ const BookTrip = () => {
 
   const calculateTotalPrice = () => {
     if (!trip) return 0;
-    const baseTotal = trip.price * travelers;
+    
+    // For Splitveckan, calculate price based on group size with 20% margin
+    let pricePerPerson = trip.price;
+    if (trip.trip_type === "splitveckan" && trip.base_price && travelers > 0) {
+      pricePerPerson = Math.ceil((Number(trip.base_price) * 1.20) / travelers);
+    }
+    
+    const baseTotal = pricePerPerson * travelers;
     
     if (appliedDiscount) {
       if (appliedDiscount.percent) {
