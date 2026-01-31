@@ -174,20 +174,10 @@
     @apply border-border;
   }
 
-  /* Prevent layout shift when Radix dropdowns lock scroll */
-  body[data-scroll-locked] {
-    margin-right: 0 !important;
-    padding-right: 0 !important;
-    --removed-body-scroll-bar-size: 0px;
-    overflow: visible !important;
-  }
-
-  /* Reserve scrollbar space on desktop to avoid horizontal "jump".
-     Scoped to desktop to avoid mobile/browser quirks ("zoom" feeling). */
-  @media (min-width: 768px) {
-    html {
-      scrollbar-gutter: stable;
-    }
+  /* Prevent header shift when Radix dropdowns lock scroll.
+     When scroll is locked, compensate for removed scrollbar by adding padding to fixed header. */
+  body[data-scroll-locked] header.fixed {
+    padding-right: var(--removed-body-scroll-bar-size, 0px);
   }
 
   body {
