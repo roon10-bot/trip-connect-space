@@ -177,7 +177,17 @@
   /* Prevent layout shift when Radix dropdowns lock scroll */
   body[data-scroll-locked] {
     margin-right: 0 !important;
+    padding-right: 0 !important;
+    --removed-body-scroll-bar-size: 0px;
     overflow: visible !important;
+  }
+
+  /* Reserve scrollbar space on desktop to avoid horizontal "jump".
+     Scoped to desktop to avoid mobile/browser quirks ("zoom" feeling). */
+  @media (min-width: 768px) {
+    html {
+      scrollbar-gutter: stable;
+    }
   }
 
   body {
