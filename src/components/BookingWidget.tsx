@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Minus, Plus, Search } from "lucide-react";
+import { CalendarIcon, Minus, Plus, Search } from "lucide-react";
+import { format } from "date-fns";
+import { sv } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,6 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 const departures = [
   { value: "all", label: "Alla avgångsorter" },
@@ -29,12 +38,14 @@ export const BookingWidget = () => {
   const [departure, setDeparture] = useState<string>("all");
   const [tripType, setTripType] = useState<string>("all");
   const [guests, setGuests] = useState(2);
+  const [date, setDate] = useState<Date>();
 
   const handleSearch = () => {
     const params = new URLSearchParams({
       departure,
       tripType,
       guests: guests.toString(),
+      ...(date && { date: format(date, "yyyy-MM-dd") }),
     });
     navigate(`/search?${params.toString()}`);
   };
@@ -43,7 +54,7 @@ export const BookingWidget = () => {
   const decrementGuests = () => setGuests((prev) => Math.max(prev - 1, 1));
 
   return (
-    <div className="bg-background/10 backdrop-blur-sm rounded-2xl shadow-elegant border border-white/20 p-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <div className="bg-background/10 backdrop-blur-sm rounded-2xl shadow-elegant border border-white/20 p-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
       {/* Avreseort */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-muted-foreground">
@@ -80,6 +91,38 @@ export const BookingWidget = () => {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Datum */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-muted-foreground">
+          Avresedatum
+        </label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full h-12 justify-start text-left font-normal bg-background",
+                !date && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, "d MMM yyyy", { locale: sv }) : "Välj datum"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              initialFocus
+              locale={sv}
+              disabled={(date) => date < new Date()}
+              className="pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Antal */}
