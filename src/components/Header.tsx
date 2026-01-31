@@ -72,7 +72,7 @@ export const Header = () => {
             <img 
               src={studentresorLogo} 
               alt="Studentresor" 
-              className="h-8 w-auto"
+              className={`h-8 w-auto transition-all duration-300 ${useDarkText ? "brightness-0" : ""}`}
             />
           </Link>
 
