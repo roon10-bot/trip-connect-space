@@ -174,17 +174,6 @@
     @apply border-border;
   }
 
-  html {
-    /* Prevent layout shift when overlays open/close without forcing visible scrollbar */
-    scrollbar-gutter: stable;
-  }
-
-  @supports not (scrollbar-gutter: stable) {
-    html {
-      overflow-y: scroll;
-    }
-  }
-
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }

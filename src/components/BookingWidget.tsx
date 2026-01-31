@@ -97,10 +97,10 @@ export const BookingWidget = () => {
           Avreseort
         </label>
         <Select value={departure} onValueChange={setDeparture}>
-          <SelectTrigger className="w-full h-12 bg-background text-base md:text-sm">
+          <SelectTrigger className="w-full h-12 bg-background">
             <SelectValue placeholder="Välj flygplats" />
           </SelectTrigger>
-          <SelectContent className="bg-background z-[100]" position="popper" sideOffset={4}>
+          <SelectContent className="bg-background z-50">
             {departures.map((dep) => (
               <SelectItem key={dep.value} value={dep.value}>
                 {dep.label}
@@ -116,10 +116,10 @@ export const BookingWidget = () => {
           Våra resor
         </label>
         <Select value={tripType} onValueChange={setTripType}>
-          <SelectTrigger className="w-full h-12 bg-background text-base md:text-sm">
+          <SelectTrigger className="w-full h-12 bg-background">
             <SelectValue placeholder="Alla resor" />
           </SelectTrigger>
-          <SelectContent className="bg-background z-[100]" position="popper" sideOffset={4}>
+          <SelectContent className="bg-background z-50">
             {tripTypes.map((type) => (
               <SelectItem key={type.value} value={type.value}>
                 {type.label}
@@ -134,12 +134,12 @@ export const BookingWidget = () => {
         <label className="text-sm font-medium text-muted-foreground">
           Avresedatum
         </label>
-        <Popover modal={false}>
+        <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                "w-full h-12 justify-start text-left font-normal bg-background text-base md:text-sm",
+                "w-full h-12 justify-start text-left font-normal bg-background",
                 !date && "text-muted-foreground"
               )}
             >
@@ -147,7 +147,7 @@ export const BookingWidget = () => {
               {date ? format(date, "d MMM yyyy", { locale: sv }) : "Välj datum"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-background z-[100]" align="start" sideOffset={4}>
+          <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
             <Calendar
               mode="single"
               selected={date}
