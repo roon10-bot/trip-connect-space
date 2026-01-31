@@ -99,6 +99,7 @@ export const TripBookingDetailsDialog = ({
 
   // Build payment options from trip data
   const paymentOptions: PaymentOption[] = useMemo(() => {
+    console.log("TripBookingDetailsDialog - booking.trips:", booking?.trips);
     if (!booking?.trips) return [];
     
     const options: PaymentOption[] = [];
