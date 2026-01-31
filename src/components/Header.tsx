@@ -80,7 +80,7 @@ export const Header = () => {
           <nav className="hidden md:flex items-center gap-6">
             {/* Våra resor dropdown */}
             <DropdownMenu modal={false}>
-              <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors outline-none ${
+              <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors outline-none whitespace-nowrap ${
                 useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}>
                 Våra resor
@@ -111,7 +111,7 @@ export const Header = () => {
 
             <Link
               to="/om-oss"
-              className={`font-medium transition-colors ${
+              className={`font-medium transition-colors whitespace-nowrap ${
                 useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}
             >
@@ -119,7 +119,7 @@ export const Header = () => {
             </Link>
             <Link
               to="/kontakt"
-              className={`font-medium transition-colors ${
+              className={`font-medium transition-colors whitespace-nowrap ${
                 useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}
             >
@@ -127,7 +127,7 @@ export const Header = () => {
             </Link>
             <Link
               to="/faq"
-              className={`font-medium transition-colors ${
+              className={`font-medium transition-colors whitespace-nowrap ${
                 useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}
             >
@@ -135,7 +135,7 @@ export const Header = () => {
             </Link>
             <Link
               to="/for-skolor"
-              className={`font-medium transition-colors ${
+              className={`font-medium transition-colors whitespace-nowrap ${
                 useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}
             >
@@ -145,7 +145,7 @@ export const Header = () => {
             {user && (
               <Link
                 to="/dashboard"
-                className={`font-medium transition-colors ${
+                className={`font-medium transition-colors whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
@@ -155,7 +155,7 @@ export const Header = () => {
             {isAdmin && (
               <Link
                 to="/admin"
-                className={`font-medium transition-colors flex items-center gap-1 ${
+                className={`font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
