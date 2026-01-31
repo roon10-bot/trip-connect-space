@@ -43,7 +43,7 @@ export const BookingWidget = () => {
   const decrementGuests = () => setGuests((prev) => Math.max(prev - 1, 1));
 
   return (
-    <div className="bg-background/95 backdrop-blur-md rounded-2xl shadow-elegant border border-border p-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <div className="bg-background/10 backdrop-blur-sm rounded-2xl shadow-elegant border border-white/20 p-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
       {/* Avreseort */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-muted-foreground">
