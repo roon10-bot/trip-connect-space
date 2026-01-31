@@ -52,9 +52,9 @@ export const Hero = () => {
                   whileTap={{ scale: 0.95 }}
                   className="relative inline-flex"
                 >
-                  {/* Play icon only - fully transparent */}
+                  {/* Play icon only - transparent fill */}
                   <div className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Play className="w-12 h-12 md:w-16 md:h-16 text-white fill-white/80 ml-1 drop-shadow-lg" />
+                    <Play className="w-12 h-12 md:w-16 md:h-16 text-white fill-transparent ml-1 drop-shadow-lg" />
                   </div>
                 </motion.div>
               </motion.button>
