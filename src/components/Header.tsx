@@ -59,13 +59,13 @@ export const Header = () => {
       }`}
     >
       <div className="max-w-5xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link to="/" className="flex items-center group">
             <img 
               src={studentresorLogo} 
               alt="Studentresor" 
-              className="h-10 w-auto"
+              className="h-8 w-auto"
             />
           </Link>
 
@@ -191,7 +191,7 @@ export const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-foreground"
+            className="md:hidden p-1.5 text-foreground"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
