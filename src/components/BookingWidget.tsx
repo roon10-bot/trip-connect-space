@@ -90,7 +90,7 @@ export const BookingWidget = () => {
   const decrementGuests = () => setGuests((prev) => Math.max(prev - 1, 1));
 
   return (
-    <div className="bg-background/10 backdrop-blur-sm rounded-2xl shadow-elegant border border-white/20 p-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+    <div className="bg-background/10 backdrop-blur-sm rounded-2xl shadow-elegant border border-white/20 p-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-end relative">
       {/* Avreseort */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-muted-foreground">
@@ -100,7 +100,7 @@ export const BookingWidget = () => {
           <SelectTrigger className="w-full h-12 bg-background">
             <SelectValue placeholder="Välj flygplats" />
           </SelectTrigger>
-          <SelectContent className="bg-background z-50">
+          <SelectContent className="bg-background z-[100]" position="popper" sideOffset={4}>
             {departures.map((dep) => (
               <SelectItem key={dep.value} value={dep.value}>
                 {dep.label}
@@ -119,7 +119,7 @@ export const BookingWidget = () => {
           <SelectTrigger className="w-full h-12 bg-background">
             <SelectValue placeholder="Alla resor" />
           </SelectTrigger>
-          <SelectContent className="bg-background z-50">
+          <SelectContent className="bg-background z-[100]" position="popper" sideOffset={4}>
             {tripTypes.map((type) => (
               <SelectItem key={type.value} value={type.value}>
                 {type.label}
@@ -147,7 +147,7 @@ export const BookingWidget = () => {
               {date ? format(date, "d MMM yyyy", { locale: sv }) : "Välj datum"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
+          <PopoverContent className="w-auto p-0 bg-background z-[100]" align="start" sideOffset={4}>
             <Calendar
               mode="single"
               selected={date}
