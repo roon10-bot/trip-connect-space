@@ -1,7 +1,7 @@
-import { Map, PlusCircle, Ticket, LayoutDashboard } from "lucide-react";
+import { Map, PlusCircle, Ticket, LayoutDashboard, ClipboardList, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type AdminView = "dashboard" | "trips" | "create-trip" | "discount-codes";
+export type AdminView = "dashboard" | "trips" | "create-trip" | "discount-codes" | "bookings" | "transactions";
 
 interface AdminSidebarProps {
   currentView: AdminView;
@@ -26,6 +26,16 @@ const menuItems = [
         label: "Skapa en resa",
         value: "create-trip" as AdminView,
         icon: PlusCircle,
+      },
+      {
+        label: "Bokningar",
+        value: "bookings" as AdminView,
+        icon: ClipboardList,
+      },
+      {
+        label: "Transaktioner",
+        value: "transactions" as AdminView,
+        icon: CreditCard,
       },
       {
         label: "Rabattkoder",
