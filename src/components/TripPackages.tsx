@@ -1,24 +1,24 @@
 import { motion } from "framer-motion";
-import { Sailboat, Building, Users } from "lucide-react";
+import { Anchor, MapPin, Ship } from "lucide-react";
 
 const packages = [
   {
     title: "Seglingsveckan",
     description:
       "Följ med på en episk vecka till havs där du bor på båt, hoppar mellan öar och festar i solnedgången. Seglingsveckan är för dig som vill ha frihet, vackra vyer och ett helt unikt äventyr.",
-    icon: Sailboat,
+    icon: Anchor,
   },
   {
     title: "Splitveckan",
     description:
       "Bo mitt i Split med gångavstånd till både strand och nattliv. Här blandas beachhäng, dagsfester och klubbar i ett oslagbart tempo. Splitveckan är för dig som vill ha allt – på ett och samma ställe.",
-    icon: Building,
+    icon: MapPin,
   },
   {
     title: "Studentveckan",
     description:
       "Tillsammans med Yacht Days bjuder Studentresor in dig till en vecka du aldrig glömmer. Segla genom Kroatiens övärld med sol, bad, fester och nya vänner tillsammans med 150 studenter från hela Sverige.",
-    icon: Users,
+    icon: Ship,
   },
 ];
 
