@@ -146,7 +146,7 @@ const SearchTrips = () => {
               Avreseort
             </label>
             <Select value={departure} onValueChange={setDeparture}>
-              <SelectTrigger className="w-full h-12 bg-background">
+              <SelectTrigger className="w-full h-12 bg-background text-base md:text-sm">
                 <SelectValue placeholder="Välj flygplats" />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
@@ -163,7 +163,7 @@ const SearchTrips = () => {
               Våra resor
             </label>
             <Select value={tripType} onValueChange={setTripType}>
-              <SelectTrigger className="w-full h-12 bg-background">
+              <SelectTrigger className="w-full h-12 bg-background text-base md:text-sm">
                 <SelectValue placeholder="Alla resor" />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
@@ -184,7 +184,7 @@ const SearchTrips = () => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full h-12 justify-start text-left font-normal bg-background",
+                    "w-full h-12 justify-start text-left font-normal bg-background text-base md:text-sm",
                     !date && "text-muted-foreground"
                   )}
                 >
