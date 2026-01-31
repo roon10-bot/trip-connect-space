@@ -174,10 +174,12 @@
     @apply border-border;
   }
 
-  /* Prevent header shift when Radix dropdowns lock scroll.
-     When scroll is locked, compensate for removed scrollbar by adding padding to fixed header. */
-  body[data-scroll-locked] header.fixed {
-    padding-right: var(--removed-body-scroll-bar-size, 0px);
+  /* Prevent horizontal layout shift on desktop when overlays lock scroll.
+     Reserve scrollbar width so the viewport width doesn't change on open/close. */
+  @media (min-width: 768px) {
+    body {
+      padding-right: calc(100vw - 100%);
+    }
   }
 
   body {
