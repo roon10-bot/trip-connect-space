@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookingDetailsDialog } from "@/components/BookingDetailsDialog";
+import { TripBookingDetailsDialog } from "@/components/TripBookingDetailsDialog";
 import { toast } from "sonner";
 import {
   Plane,
@@ -33,6 +34,8 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedTripBooking, setSelectedTripBooking] = useState<any>(null);
+  const [tripDetailsOpen, setTripDetailsOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -275,7 +278,13 @@ const Dashboard = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * index }}
                 >
-                  <Card className="overflow-hidden hover:shadow-lg transition-all">
+                  <Card 
+                    className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
+                    onClick={() => {
+                      setSelectedTripBooking(booking);
+                      setTripDetailsOpen(true);
+                    }}
+                  >
                     <CardContent className="p-6">
                       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div>
@@ -311,6 +320,10 @@ const Dashboard = () => {
                           <p className="text-sm text-muted-foreground mt-1">
                             Bokad {format(new Date(booking.created_at), "d MMM yyyy", { locale: sv })}
                           </p>
+                          <div className="flex items-center gap-1 text-sm text-ocean mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span>Visa detaljer</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -438,6 +451,12 @@ const Dashboard = () => {
         booking={selectedBooking}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
+      />
+
+      <TripBookingDetailsDialog
+        booking={selectedTripBooking}
+        open={tripDetailsOpen}
+        onOpenChange={setTripDetailsOpen}
       />
     </div>
   );
