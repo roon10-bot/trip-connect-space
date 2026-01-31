@@ -134,7 +134,7 @@ export const BookingWidget = () => {
         <label className="text-sm font-medium text-muted-foreground">
           Avresedatum
         </label>
-        <Popover>
+        <Popover modal={false}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
