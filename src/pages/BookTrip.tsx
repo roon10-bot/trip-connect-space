@@ -1,0 +1,312 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import { format } from "date-fns";
+import { sv } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Check } from "lucide-react";
+import { toast } from "sonner";
+import { BookingStepIndicator } from "@/components/booking/BookingStepIndicator";
+import { BookingStep1 } from "@/components/booking/BookingStep1";
+import { BookingStep2 } from "@/components/booking/BookingStep2";
+import { BookingStep3 } from "@/components/booking/BookingStep3";
+import { BookingTripSummary } from "@/components/booking/BookingTripSummary";
+
+export interface TravelerInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+  birthDate: Date | undefined;
+  phone: string;
+  departureLocation: string;
+}
+
+const BookTrip = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [travelers, setTravelers] = useState(1);
+  const [discountCode, setDiscountCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    code: string;
+    percent: number | null;
+    amount: number | null;
+  } | null>(null);
+  const [travelerInfo, setTravelerInfo] = useState<TravelerInfo>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    birthDate: undefined,
+    phone: "",
+    departureLocation: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { data: trip, isLoading } = useQuery({
+    queryKey: ["trip", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("trips")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const formatTripType = (type: string) => {
+    const types: Record<string, string> = {
+      seglingsvecka: "Seglingsvecka",
+      splitveckan: "Splitveckan",
+      studentveckan: "Studentveckan",
+    };
+    return types[type] || type;
+  };
+
+  const calculateTotalPrice = () => {
+    if (!trip) return 0;
+    const baseTotal = trip.price * travelers;
+    
+    if (appliedDiscount) {
+      if (appliedDiscount.percent) {
+        return baseTotal - (baseTotal * appliedDiscount.percent / 100);
+      }
+      if (appliedDiscount.amount) {
+        return Math.max(0, baseTotal - appliedDiscount.amount);
+      }
+    }
+    return baseTotal;
+  };
+
+  const applyDiscountCode = async () => {
+    if (!discountCode.trim()) {
+      toast.error("Ange en rabattkod");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("discount_codes")
+      .select("*")
+      .eq("code", discountCode.toUpperCase())
+      .eq("is_active", true)
+      .single();
+
+    if (error || !data) {
+      toast.error("Ogiltig rabattkod");
+      return;
+    }
+
+    // Check if code has reached max uses
+    if (data.max_uses && data.current_uses >= data.max_uses) {
+      toast.error("Rabattkoden har redan använts maximalt antal gånger");
+      return;
+    }
+
+    // Check validity dates
+    const now = new Date();
+    if (data.valid_from && new Date(data.valid_from) > now) {
+      toast.error("Rabattkoden är inte aktiv än");
+      return;
+    }
+    if (data.valid_until && new Date(data.valid_until) < now) {
+      toast.error("Rabattkoden har gått ut");
+      return;
+    }
+
+    setAppliedDiscount({
+      code: data.code,
+      percent: data.discount_percent,
+      amount: data.discount_amount,
+    });
+    toast.success("Rabattkod tillämpad!");
+  };
+
+  const removeDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode("");
+  };
+
+  const validateStep2 = () => {
+    const { firstName, lastName, email, birthDate, phone, departureLocation } = travelerInfo;
+    
+    if (!firstName.trim()) {
+      toast.error("Förnamn krävs");
+      return false;
+    }
+    if (!lastName.trim()) {
+      toast.error("Efternamn krävs");
+      return false;
+    }
+    if (!email.trim() || !email.includes("@")) {
+      toast.error("Giltig e-postadress krävs");
+      return false;
+    }
+    if (!birthDate) {
+      toast.error("Födelsedatum krävs");
+      return false;
+    }
+    if (!phone.trim()) {
+      toast.error("Telefonnummer krävs");
+      return false;
+    }
+    if (!departureLocation.trim()) {
+      toast.error("Avgångsort krävs");
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 2 && !validateStep2()) {
+      return;
+    }
+    setCurrentStep((prev) => Math.min(prev + 1, 3));
+  };
+
+  const handlePrevStep = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleSubmitBooking = async () => {
+    if (!trip) return;
+    
+    setIsSubmitting(true);
+    try {
+      // Here you would typically create the booking in the database
+      // For now, we'll just show a success message
+      toast.success("Bokning skickad! Vi återkommer med bekräftelse.");
+      navigate("/");
+    } catch (error) {
+      toast.error("Något gick fel. Försök igen.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 pt-32 pb-16">
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="h-12 w-3/4" />
+              <Skeleton className="h-[400px] rounded-xl" />
+            </div>
+            <Skeleton className="h-[300px] rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!trip) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 pt-32 pb-16 text-center">
+          <h1 className="text-3xl font-serif font-bold mb-4">Resan hittades inte</h1>
+          <Link to="/search">
+            <Button>Tillbaka till sök</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+
+      <main className="container mx-auto px-4 pt-28 pb-16">
+        <Link
+          to="/search"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Tillbaka till sökresultat
+        </Link>
+
+        <div className="mb-8">
+          <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
+            Boka {trip.name}
+          </h1>
+          <p className="text-muted-foreground">
+            {formatTripType(trip.trip_type)} • {format(new Date(trip.departure_date), "d MMMM", { locale: sv })} - {format(new Date(trip.return_date), "d MMMM yyyy", { locale: sv })}
+          </p>
+        </div>
+
+        <BookingStepIndicator currentStep={currentStep} />
+
+        <div className="grid lg:grid-cols-3 gap-8 mt-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            <AnimatePresence mode="wait">
+              {currentStep === 1 && (
+                <BookingStep1
+                  key="step1"
+                  travelers={travelers}
+                  setTravelers={setTravelers}
+                  discountCode={discountCode}
+                  setDiscountCode={setDiscountCode}
+                  appliedDiscount={appliedDiscount}
+                  applyDiscountCode={applyDiscountCode}
+                  removeDiscount={removeDiscount}
+                  onNext={handleNextStep}
+                />
+              )}
+              {currentStep === 2 && (
+                <BookingStep2
+                  key="step2"
+                  travelerInfo={travelerInfo}
+                  setTravelerInfo={setTravelerInfo}
+                  onNext={handleNextStep}
+                  onPrev={handlePrevStep}
+                />
+              )}
+              {currentStep === 3 && (
+                <BookingStep3
+                  key="step3"
+                  trip={trip}
+                  travelers={travelers}
+                  travelerInfo={travelerInfo}
+                  appliedDiscount={appliedDiscount}
+                  totalPrice={calculateTotalPrice()}
+                  formatTripType={formatTripType}
+                  onPrev={handlePrevStep}
+                  onSubmit={handleSubmitBooking}
+                  isSubmitting={isSubmitting}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Trip Summary Sidebar */}
+          <div className="lg:col-span-1">
+            <BookingTripSummary
+              trip={trip}
+              travelers={travelers}
+              appliedDiscount={appliedDiscount}
+              totalPrice={calculateTotalPrice()}
+              formatTripType={formatTripType}
+            />
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default BookTrip;
