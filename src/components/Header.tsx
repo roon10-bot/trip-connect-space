@@ -59,7 +59,7 @@ export const Header = () => {
       }`}
     >
       <div className="max-w-5xl mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center group">
             <img 
