@@ -166,7 +166,7 @@ export const BookingStep3 = ({
         <Button
           onClick={onSubmit}
           size="lg"
-          className="flex-1 bg-gradient-ocean hover:opacity-90 text-lg font-semibold h-14"
+          className="flex-1 bg-sunset hover:bg-sunset/90 text-accent-foreground text-lg font-semibold h-14"
           disabled={isSubmitting}
         >
           {isSubmitting ? (
@@ -174,7 +174,7 @@ export const BookingStep3 = ({
           ) : (
             <>
               <Check className="w-5 h-5 mr-2" />
-              Bekräfta bokning
+              Boka resan
             </>
           )}
         </Button>
