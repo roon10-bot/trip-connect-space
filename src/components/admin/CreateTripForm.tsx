@@ -46,6 +46,7 @@ const tripSchema = z.object({
   return_date: z.date({ required_error: "Välj hemresedatum" }),
   description: z.string().max(2000, "Beskrivning får max vara 2000 tecken").optional(),
   departure_location: z.string().min(2, "Avgångsort måste vara minst 2 tecken").max(100, "Avgångsort får max vara 100 tecken"),
+  price: z.coerce.number().min(0, "Pris måste vara 0 eller mer"),
   first_payment_amount: z.coerce.number().min(0, "Belopp måste vara 0 eller mer"),
   first_payment_date: z.date().optional().nullable(),
   second_payment_amount: z.coerce.number().min(0, "Belopp måste vara 0 eller mer"),
@@ -75,6 +76,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       capacity: 20,
       description: "",
       departure_location: "",
+      price: 0,
       first_payment_amount: 0,
       second_payment_amount: 0,
       final_payment_amount: 0,
@@ -93,6 +95,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
         return_date: format(values.return_date, "yyyy-MM-dd"),
         description: values.description || null,
         departure_location: values.departure_location,
+        price: values.price,
         first_payment_amount: values.first_payment_amount,
         first_payment_date: values.first_payment_date ? format(values.first_payment_date, "yyyy-MM-dd") : null,
         second_payment_amount: values.second_payment_amount,
@@ -288,6 +291,23 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                           />
                         </PopoverContent>
                       </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pris för resan (kr)</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={0} placeholder="t.ex. 9990" {...field} />
+                      </FormControl>
+                      <FormDescription>Totalpriset som visas för kunden</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
