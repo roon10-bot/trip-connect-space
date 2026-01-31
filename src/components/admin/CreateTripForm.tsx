@@ -85,8 +85,8 @@ interface CreateTripFormProps {
 export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<TripFormValues>({
@@ -110,48 +110,99 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
     },
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const picked = Array.from(files);
+    const accepted: File[] = [];
+    const previewPromises: Promise<string>[] = [];
+
+    picked.forEach((file) => {
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("Bilden får max vara 5 MB");
+        toast.error(`${file.name} är för stor (max 5 MB)`);
         return;
       }
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+
+      accepted.push(file);
+      previewPromises.push(
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("Kunde inte läsa filen"));
+          reader.readAsDataURL(file);
+        })
+      );
+    });
+
+    if (accepted.length === 0) return;
+
+    const previews = await Promise.all(previewPromises);
+
+    // Lägg till i befintlig lista så man kan välja i omgångar
+    setImageFiles((prev) => [...prev, ...accepted]);
+    setImagePreviews((prev) => [...prev, ...previews]);
+
+    // Allow re-selecting the same files later
+    e.target.value = "";
   };
 
-  const removeImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
+  const removeImageAt = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const uploadImage = async (tripId: string): Promise<string | null> => {
-    if (!imageFile) return null;
+  const clearImages = () => {
+    setImageFiles([]);
+    setImagePreviews([]);
+  };
 
-    const fileExt = imageFile.name.split('.').pop();
-    const fileName = `${tripId}.${fileExt}`;
-    const filePath = `${fileName}`;
+  const uploadTripImages = async (
+    tripId: string,
+    files: File[]
+  ): Promise<string | null> => {
+    if (!files.length) return null;
 
-    const { error: uploadError } = await supabase.storage
-      .from('trip-images')
-      .upload(filePath, imageFile, { upsert: true });
+    let firstPublicUrl: string | null = null;
 
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      throw uploadError;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > 5 * 1024 * 1024) {
+        // Double check, should already be filtered client-side
+        continue;
+      }
+
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${tripId}/${Date.now()}-${i}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("trip-images")
+        .upload(fileName, file);
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw uploadError;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("trip-images").getPublicUrl(fileName);
+
+      if (!firstPublicUrl) firstPublicUrl = publicUrl;
+
+      const { error: insertError } = await supabase.from("trip_images").insert({
+        trip_id: tripId,
+        image_url: publicUrl,
+        display_order: i,
+      });
+
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        throw insertError;
+      }
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('trip-images')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
+    return firstPublicUrl;
   };
 
   const createTripMutation = useMutation({
@@ -186,15 +237,15 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
 
       if (tripError) throw tripError;
 
-      // Then upload image if provided
-      if (imageFile && tripData) {
-        const imageUrl = await uploadImage(tripData.id);
-        if (imageUrl) {
+      // Then upload images (max 5MB per image)
+      if (imageFiles.length > 0 && tripData) {
+        const firstImageUrl = await uploadTripImages(tripData.id, imageFiles);
+        if (firstImageUrl) {
           const { error: updateError } = await supabase
-            .from('trips')
-            .update({ image_url: imageUrl })
-            .eq('id', tripData.id);
-          
+            .from("trips")
+            .update({ image_url: firstImageUrl })
+            .eq("id", tripData.id);
+
           if (updateError) throw updateError;
         }
       }
@@ -204,8 +255,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       queryClient.invalidateQueries({ queryKey: ["admin-trips"] });
       toast.success("Resa skapad!");
       form.reset();
-      setImageFile(null);
-      setImagePreview(null);
+      clearImages();
       onSuccess?.();
     },
     onError: (error) => {
@@ -529,43 +579,61 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               <div className="space-y-2">
                 <FormLabel>Resebild</FormLabel>
                 <FormDescription>
-                  Ladda upp en bild som visas för kunder (max 5 MB)
+                  Ladda upp en eller flera bilder som visas för kunder (max 5 MB per bild)
                 </FormDescription>
-                
-                {imagePreview ? (
-                  <div className="relative inline-block">
-                    <img 
-                      src={imagePreview} 
-                      alt="Förhandsvisning" 
-                      className="max-w-xs h-40 object-cover rounded-lg border"
+
+                <div className="flex items-center gap-4">
+                  <label className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
+                      <Upload className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        {imagePreviews.length > 0 ? "Lägg till fler" : "Välj bilder"}
+                      </span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageChange}
+                      className="hidden"
                     />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute -top-2 -right-2 h-6 w-6"
-                      onClick={removeImage}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                  </label>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Image className="h-4 w-4" />
+                    <span className="text-sm">JPG, PNG, WEBP</span>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-4">
-                    <label className="cursor-pointer">
-                      <div className="flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
-                        <Upload className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Välj bild</span>
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
-                    </label>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Image className="h-4 w-4" />
-                      <span className="text-sm">JPG, PNG, WEBP</span>
+                </div>
+
+                {imagePreviews.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        Valda bilder: {imagePreviews.length}
+                      </p>
+                      <Button type="button" variant="outline" size="sm" onClick={clearImages}>
+                        Rensa
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                      {imagePreviews.map((src, idx) => (
+                        <div key={`${idx}-${src.slice(0, 16)}`} className="relative group">
+                          <img
+                            src={src}
+                            alt={`Förhandsvisning resebild ${idx + 1}`}
+                            className="w-full aspect-square object-cover rounded-lg border"
+                            loading="lazy"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeImageAt(idx)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
