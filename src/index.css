@@ -174,9 +174,10 @@
     @apply border-border;
   }
 
-  /* Always show scrollbar to prevent layout shift when modals/dropdowns lock scroll */
-  html {
-    overflow-y: scroll;
+  /* Prevent layout shift when Radix dropdowns lock scroll */
+  body[data-scroll-locked] {
+    margin-right: 0 !important;
+    overflow: visible !important;
   }
 
   body {
