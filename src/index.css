@@ -174,19 +174,6 @@
     @apply border-border;
   }
 
-  /* Keep header/text from jumping when overlays open/close (desktop only) */
-  @media (min-width: 768px) {
-    html {
-      scrollbar-gutter: stable;
-    }
-
-    @supports not (scrollbar-gutter: stable) {
-      html {
-        overflow-y: scroll;
-      }
-    }
-  }
-
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }

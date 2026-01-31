@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CalendarIcon, Minus, Plus, Search } from "lucide-react";
-import { format, parseISO, isSameDay } from "date-fns";
+import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -47,41 +47,6 @@ const SearchTrips = () => {
   const [date, setDate] = useState<Date | undefined>(
     searchParams.get("date") ? new Date(searchParams.get("date")!) : undefined
   );
-
-  // Fetch available dates based on current filters
-  const { data: availableDatesData } = useQuery({
-    queryKey: ["available-dates", departure, tripType],
-    queryFn: async () => {
-      let query = supabase
-        .from("trips")
-        .select("departure_date, departure_location, trip_type")
-        .eq("is_active", true)
-        .gte("departure_date", new Date().toISOString().split("T")[0]);
-
-      if (tripType !== "all") {
-        query = query.eq("trip_type", tripType as "seglingsvecka" | "splitveckan" | "studentveckan");
-      }
-      if (departure !== "all") {
-        query = query.ilike("departure_location", `%${departure}%`);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Extract available dates
-  const availableDates = useMemo(() => {
-    if (!availableDatesData) return [];
-    return availableDatesData.map((trip) => parseISO(trip.departure_date));
-  }, [availableDatesData]);
-
-  // Check if a date is available
-  const isDateAvailable = (checkDate: Date) => {
-    return availableDates.some((availableDate) => isSameDay(availableDate, checkDate));
-  };
-
   const {
     data: trips,
     isLoading,
@@ -146,7 +111,7 @@ const SearchTrips = () => {
               Avreseort
             </label>
             <Select value={departure} onValueChange={setDeparture}>
-              <SelectTrigger className="w-full h-12 bg-background text-base md:text-sm">
+              <SelectTrigger className="w-full h-12 bg-background">
                 <SelectValue placeholder="Välj flygplats" />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
@@ -163,7 +128,7 @@ const SearchTrips = () => {
               Våra resor
             </label>
             <Select value={tripType} onValueChange={setTripType}>
-              <SelectTrigger className="w-full h-12 bg-background text-base md:text-sm">
+              <SelectTrigger className="w-full h-12 bg-background">
                 <SelectValue placeholder="Alla resor" />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
@@ -184,7 +149,7 @@ const SearchTrips = () => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full h-12 justify-start text-left font-normal bg-background text-base md:text-sm",
+                    "w-full h-12 justify-start text-left font-normal bg-background",
                     !date && "text-muted-foreground"
                   )}
                 >
@@ -199,20 +164,9 @@ const SearchTrips = () => {
                   onSelect={setDate}
                   initialFocus
                   locale={sv}
-                  disabled={(checkDate) => !isDateAvailable(checkDate)}
-                  modifiers={{
-                    available: availableDates,
-                  }}
-                  modifiersClassNames={{
-                    available: "bg-primary/20 text-primary font-semibold hover:bg-primary hover:text-primary-foreground",
-                  }}
+                  disabled={(d) => d < new Date()}
                   className="pointer-events-auto"
                 />
-                {availableDates.length === 0 && (
-                  <p className="p-3 text-sm text-muted-foreground text-center border-t">
-                    Inga tillgängliga datum för valda filter
-                  </p>
-                )}
               </PopoverContent>
             </Popover>
           </div>
