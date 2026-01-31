@@ -12,6 +12,7 @@ import { CreateTripForm } from "@/components/admin/CreateTripForm";
 import { DiscountCodesList } from "@/components/admin/DiscountCodesList";
 import { AdminBookingsList } from "@/components/admin/AdminBookingsList";
 import { AdminTransactionsList } from "@/components/admin/AdminTransactionsList";
+import { AdminCustomersList } from "@/components/admin/AdminCustomersList";
 import { Shield } from "lucide-react";
 import { toast } from "sonner";
 
@@ -64,6 +65,8 @@ const Admin = () => {
         return <AdminTransactionsList />;
       case "discount-codes":
         return <DiscountCodesList />;
+      case "customers":
+        return <AdminCustomersList />;
       default:
         return <AdminDashboard isAdmin={isAdmin} userId={user?.id} />;
     }
@@ -95,6 +98,7 @@ const Admin = () => {
               {currentView === "bookings" && "Alla resebokningar"}
               {currentView === "transactions" && "Betalningshistorik"}
               {currentView === "discount-codes" && "Hantera rabattkoder"}
+              {currentView === "customers" && "Alla kunder som bokat resa"}
             </p>
           </motion.div>
 
