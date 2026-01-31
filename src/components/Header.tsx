@@ -59,7 +59,7 @@ export const Header = () => {
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         useDarkText
           ? "bg-background/95 backdrop-blur-md shadow-elegant border-b border-border"
           : "bg-transparent"
