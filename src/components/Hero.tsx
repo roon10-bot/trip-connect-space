@@ -21,7 +21,7 @@ export const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[50vh] md:aspect-video md:min-h-0 flex flex-col overflow-visible pb-32 md:pb-0">
+    <section className="relative min-h-[85vh] md:aspect-video md:min-h-0 flex flex-col overflow-visible">
       {/* Background Video with Overlay */}
       <div className="absolute inset-0">
         <video
@@ -36,7 +36,7 @@ export const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex-1 flex items-start md:items-center container mx-auto px-4 pt-20 md:pt-16">
+      <div className="relative z-10 container mx-auto px-4 pt-20 md:pt-16 md:flex-1 md:flex md:items-center">
         <div className="max-w-4xl mx-auto text-center">
           {/* Play/Pause Button - above text */}
           <motion.button
@@ -101,8 +101,8 @@ export const Hero = () => {
         </div>
       </div>
 
-      {/* Booking Widget - positioned below hero on mobile, overlapping on desktop */}
-      <div className="relative md:absolute md:bottom-0 left-0 right-0 z-20 container mx-auto px-4 mt-4 md:mt-0 md:translate-y-1/2">
+      {/* Booking Widget - at bottom on mobile, overlapping on desktop */}
+      <div className="absolute bottom-4 md:bottom-0 left-0 right-0 z-20 container mx-auto px-4 md:translate-y-1/2">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
