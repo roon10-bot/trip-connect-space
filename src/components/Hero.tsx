@@ -21,7 +21,7 @@ export const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex-1 flex items-center container mx-auto px-4 pt-20">
+      <div className="relative z-10 flex-1 flex items-center container mx-auto px-4 pt-16">
         <div className="max-w-4xl mx-auto text-center">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
