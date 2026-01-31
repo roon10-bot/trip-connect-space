@@ -1,17 +1,29 @@
-import { motion } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { Play } from "lucide-react";
 import heroVideo from "@/assets/hero-video.mp4";
 import { BookingWidget } from "./BookingWidget";
 
 export const Hero = () => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlay = () => {
+    if (videoRef.current) {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
   return (
     <section className="relative aspect-video flex flex-col overflow-visible">
       {/* Background Video with Overlay */}
       <div className="absolute inset-0">
         <video
+          ref={videoRef}
           src={heroVideo}
-          autoPlay
           loop
           muted
           playsInline
@@ -20,8 +32,40 @@ export const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/60 via-foreground/40 to-background" />
       </div>
 
+      {/* Play Button Overlay */}
+      <AnimatePresence>
+        {!isPlaying && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            onClick={handlePlay}
+            className="absolute inset-0 z-30 flex items-center justify-center cursor-pointer group"
+            aria-label="Spela video"
+          >
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative"
+            >
+              {/* Outer glow ring */}
+              <div className="absolute inset-0 rounded-full bg-white/20 blur-xl scale-150 group-hover:bg-white/30 transition-colors duration-300" />
+              
+              {/* Play button circle */}
+              <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-2xl group-hover:bg-white transition-all duration-300">
+                <Play className="w-10 h-10 md:w-14 md:h-14 text-accent fill-accent ml-1" />
+              </div>
+              
+              {/* Pulsing ring animation */}
+              <div className="absolute inset-0 rounded-full border-2 border-white/50 animate-ping" />
+            </motion.div>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* Content */}
-      <div className="relative z-10 flex-1 flex items-center container mx-auto px-4 pt-16">
+      <div className="relative z-10 flex-1 flex items-center container mx-auto px-4 pt-16 pointer-events-none">
         <div className="max-w-4xl mx-auto text-center">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -45,7 +89,7 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="flex flex-col sm:flex-row gap-4 justify-center pointer-events-auto"
           >
             <Link to="/book">
               <Button
