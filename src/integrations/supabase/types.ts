@@ -438,6 +438,7 @@ export type Database = {
           first_payment_amount: number
           first_payment_date: string | null
           id: string
+          image_url: string | null
           is_active: boolean
           name: string
           price: number
@@ -459,6 +460,7 @@ export type Database = {
           first_payment_amount?: number
           first_payment_date?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name: string
           price?: number
@@ -480,6 +482,7 @@ export type Database = {
           first_payment_amount?: number
           first_payment_date?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name?: string
           price?: number
