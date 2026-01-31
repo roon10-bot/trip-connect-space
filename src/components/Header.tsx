@@ -65,9 +65,9 @@ export const Header = () => {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-5xl mx-auto px-4">
+      <div className="w-full px-6">
         <div className="flex items-center justify-between h-16">
-          {/* Logo - Left */}
+          {/* Logo - Far Left */}
           <Link to="/" className="flex items-center group shrink-0">
             <img 
               src={studentresorLogo} 
