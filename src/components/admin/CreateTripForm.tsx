@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Upload, X, Image } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,12 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+const departureLocations = [
+  { value: "Kastrup (CPH)", label: "Kastrup (CPH)" },
+  { value: "Landvetter (GOT)", label: "Landvetter (GOT)" },
+  { value: "Arlanda (ARN)", label: "Arlanda (ARN)" },
+];
 
 const tripSchema = z.object({
   trip_type: z.enum(["seglingsvecka", "splitveckan", "studentveckan"], {
@@ -67,6 +74,9 @@ interface CreateTripFormProps {
 export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripSchema),
@@ -83,11 +93,57 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
     },
   });
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Bilden får max vara 5 MB");
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const uploadImage = async (tripId: string): Promise<string | null> => {
+    if (!imageFile) return null;
+
+    const fileExt = imageFile.name.split('.').pop();
+    const fileName = `${tripId}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('trip-images')
+      .upload(filePath, imageFile, { upsert: true });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      throw uploadError;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('trip-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
   const createTripMutation = useMutation({
     mutationFn: async (values: TripFormValues) => {
       if (!user?.id) throw new Error("Du måste vara inloggad");
+      setIsUploading(true);
 
-      const { error } = await supabase.from("trips").insert({
+      // First create the trip to get the ID
+      const { data: tripData, error: tripError } = await supabase.from("trips").insert({
         trip_type: values.trip_type,
         name: values.name,
         capacity: values.capacity,
@@ -103,17 +159,34 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
         final_payment_amount: values.final_payment_amount,
         final_payment_date: values.final_payment_date ? format(values.final_payment_date, "yyyy-MM-dd") : null,
         created_by: user.id,
-      });
+      }).select('id').single();
 
-      if (error) throw error;
+      if (tripError) throw tripError;
+
+      // Then upload image if provided
+      if (imageFile && tripData) {
+        const imageUrl = await uploadImage(tripData.id);
+        if (imageUrl) {
+          const { error: updateError } = await supabase
+            .from('trips')
+            .update({ image_url: imageUrl })
+            .eq('id', tripData.id);
+          
+          if (updateError) throw updateError;
+        }
+      }
     },
     onSuccess: () => {
+      setIsUploading(false);
       queryClient.invalidateQueries({ queryKey: ["admin-trips"] });
       toast.success("Resa skapad!");
       form.reset();
+      setImageFile(null);
+      setImagePreview(null);
       onSuccess?.();
     },
     onError: (error) => {
+      setIsUploading(false);
       console.error("Error creating trip:", error);
       toast.error("Kunde inte skapa resan");
     },
@@ -204,9 +277,20 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Avgångsort</FormLabel>
-                      <FormControl>
-                        <Input placeholder="t.ex. Stockholm" {...field} />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Välj avgångsort" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {departureLocations.map((loc) => (
+                            <SelectItem key={loc.value} value={loc.value}>
+                              {loc.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -331,6 +415,52 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                   </FormItem>
                 )}
               />
+
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <FormLabel>Resebild</FormLabel>
+                <FormDescription>
+                  Ladda upp en bild som visas för kunder (max 5 MB)
+                </FormDescription>
+                
+                {imagePreview ? (
+                  <div className="relative inline-block">
+                    <img 
+                      src={imagePreview} 
+                      alt="Förhandsvisning" 
+                      className="max-w-xs h-40 object-cover rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-6 w-6"
+                      onClick={removeImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <label className="cursor-pointer">
+                      <div className="flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
+                        <Upload className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Välj bild</span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Image className="h-4 w-4" />
+                      <span className="text-sm">JPG, PNG, WEBP</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Payment Schedule Section */}
@@ -518,9 +648,9 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               type="submit"
               size="lg"
               className="w-full"
-              disabled={createTripMutation.isPending}
+              disabled={createTripMutation.isPending || isUploading}
             >
-              {createTripMutation.isPending ? "Skapar..." : "Skapa resa"}
+              {createTripMutation.isPending || isUploading ? "Skapar..." : "Skapa resa"}
             </Button>
           </form>
         </Form>
