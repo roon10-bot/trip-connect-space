@@ -180,15 +180,39 @@ const BookTrip = () => {
   };
 
   const handleSubmitBooking = async () => {
-    if (!trip) return;
+    if (!trip || !travelerInfo.birthDate) return;
     
     setIsSubmitting(true);
     try {
-      // Here you would typically create the booking in the database
-      // Simulate a small delay for better UX
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const totalPrice = calculateTotalPrice();
+      const baseTotal = trip.price * travelers;
+      const discountAmount = baseTotal - totalPrice;
+
+      const { error } = await supabase
+        .from("trip_bookings")
+        .insert({
+          trip_id: trip.id,
+          user_id: user?.id || null,
+          first_name: travelerInfo.firstName,
+          last_name: travelerInfo.lastName,
+          email: travelerInfo.email,
+          birth_date: format(travelerInfo.birthDate, "yyyy-MM-dd"),
+          phone: travelerInfo.phone,
+          departure_location: travelerInfo.departureLocation,
+          travelers: travelers,
+          total_price: totalPrice,
+          discount_code: appliedDiscount?.code || null,
+          discount_amount: discountAmount > 0 ? discountAmount : 0,
+          status: "pending",
+        });
+
+      if (error) throw error;
+      
       setBookingComplete(true);
     } catch (error) {
+      console.error("Booking error:", error);
       toast.error("Något gick fel. Försök igen.");
     } finally {
       setIsSubmitting(false);
