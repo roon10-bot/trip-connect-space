@@ -92,6 +92,33 @@ const Dashboard = () => {
     enabled: !!user?.id,
   });
 
+  // Fetch trip bookings (resebokningar)
+  const { data: tripBookings, isLoading: tripBookingsLoading } = useQuery({
+    queryKey: ["trip-bookings", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("trip_bookings")
+        .select(`
+          *,
+          trips (
+            name,
+            trip_type,
+            departure_date,
+            return_date,
+            departure_location,
+            price
+          )
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
@@ -161,7 +188,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <p className="text-3xl font-bold text-foreground">
-                    {bookings?.length || 0}
+                    {(bookings?.length || 0) + (tripBookings?.length || 0)}
                   </p>
                   <p className="text-muted-foreground">Totala bokningar</p>
                 </div>
@@ -177,7 +204,8 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <p className="text-3xl font-bold text-foreground">
-                    {bookings?.filter((b) => b.status === "confirmed").length || 0}
+                    {(bookings?.filter((b) => b.status === "confirmed").length || 0) + 
+                     (tripBookings?.filter((b) => b.status === "confirmed").length || 0)}
                   </p>
                   <p className="text-muted-foreground">Bekräftade resor</p>
                 </div>
@@ -193,35 +221,37 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <p className="text-3xl font-bold text-foreground">
-                    {new Set(bookings?.map((b) => b.destination_id)).size || 0}
+                    {(new Set(bookings?.map((b) => b.destination_id)).size || 0) + 
+                     (new Set(tripBookings?.map((b) => b.trip_id)).size || 0)}
                   </p>
-                  <p className="text-muted-foreground">Unika destinationer</p>
+                  <p className="text-muted-foreground">Unika resor</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Bookings */}
+        {/* Trip Bookings Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="mb-12"
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-serif font-semibold text-foreground">
-              Mina bokningar
+              Mina resebokningar
             </h2>
-            <Link to="/destinations">
+            <Link to="/search">
               <Button className="bg-gradient-ocean hover:opacity-90">
                 Boka ny resa
               </Button>
             </Link>
           </div>
 
-          {bookingsLoading ? (
+          {tripBookingsLoading ? (
             <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
+              {[...Array(2)].map((_, i) => (
                 <Card key={i}>
                   <CardContent className="p-6">
                     <div className="flex gap-6">
@@ -236,7 +266,96 @@ const Dashboard = () => {
                 </Card>
               ))}
             </div>
-          ) : bookings && bookings.length > 0 ? (
+          ) : tripBookings && tripBookings.length > 0 ? (
+            <div className="space-y-4">
+              {tripBookings.map((booking, index) => (
+                <motion.div
+                  key={booking.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                >
+                  <Card className="overflow-hidden hover:shadow-lg transition-all">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div>
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-serif font-semibold text-foreground">
+                              {booking.trips?.name}
+                            </h3>
+                            {getStatusBadge(booking.status)}
+                          </div>
+                          <p className="text-muted-foreground flex items-center gap-2 mb-4">
+                            <MapPin className="w-4 h-4" />
+                            {booking.departure_location}
+                          </p>
+                          <div className="flex flex-wrap gap-6 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-ocean" />
+                              <span>
+                                {booking.trips?.departure_date && format(new Date(booking.trips.departure_date), "d MMM", { locale: sv })} -{" "}
+                                {booking.trips?.return_date && format(new Date(booking.trips.return_date), "d MMM yyyy", { locale: sv })}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-ocean" />
+                              <span>{booking.travelers} resenär{booking.travelers > 1 ? "er" : ""}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right flex flex-col items-end">
+                          <div className="flex items-center gap-2 text-2xl font-bold text-foreground">
+                            <CreditCard className="w-5 h-5 text-sunset" />
+                            {Number(booking.total_price).toLocaleString("sv-SE")} kr
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Bokad {format(new Date(booking.created_at), "d MMM yyyy", { locale: sv })}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <Card className="bg-gradient-card">
+              <CardHeader className="text-center py-8">
+                <div className="mx-auto mb-4 p-4 rounded-full bg-ocean-light w-fit">
+                  <Plane className="w-8 h-8 text-ocean" />
+                </div>
+                <CardTitle className="font-serif">Inga resebokningar ännu</CardTitle>
+                <CardDescription className="text-lg">
+                  Utforska våra fantastiska resor och boka din första resa!
+                </CardDescription>
+                <Link to="/search" className="mt-6 inline-block">
+                  <Button size="lg" className="bg-gradient-ocean hover:opacity-90">
+                    Sök resor
+                  </Button>
+                </Link>
+              </CardHeader>
+            </Card>
+          )}
+        </motion.div>
+
+        {/* Destination Bookings Section (legacy) */}
+        {bookings && bookings.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-serif font-semibold text-foreground">
+                Destinationsbokningar
+              </h2>
+              <Link to="/destinations">
+                <Button variant="outline">
+                  Boka destination
+                </Button>
+              </Link>
+            </div>
+
             <div className="space-y-4">
               {bookings.map((booking, index) => (
                 <motion.div
@@ -309,25 +428,8 @@ const Dashboard = () => {
                 </motion.div>
               ))}
             </div>
-          ) : (
-            <Card className="bg-gradient-card">
-              <CardHeader className="text-center py-12">
-                <div className="mx-auto mb-4 p-4 rounded-full bg-ocean-light w-fit">
-                  <Plane className="w-8 h-8 text-ocean" />
-                </div>
-                <CardTitle className="font-serif">Inga bokningar ännu</CardTitle>
-                <CardDescription className="text-lg">
-                  Utforska våra fantastiska destinationer och boka din första resa!
-                </CardDescription>
-                <Link to="/destinations" className="mt-6 inline-block">
-                  <Button size="lg" className="bg-gradient-ocean hover:opacity-90">
-                    Utforska destinationer
-                  </Button>
-                </Link>
-              </CardHeader>
-            </Card>
-          )}
-        </motion.div>
+          </motion.div>
+        )}
       </main>
 
       <Footer />
