@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Carousel,
   CarouselContent,
@@ -11,6 +13,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { TripImageCarousel } from "./TripImageCarousel";
 
 interface Trip {
   id: string;
@@ -23,6 +26,13 @@ interface Trip {
   description: string | null;
   capacity: number;
   image_url: string | null;
+}
+
+interface TripImage {
+  id: string;
+  trip_id: string;
+  image_url: string;
+  display_order: number;
 }
 
 interface TripSearchResultsProps {
@@ -44,6 +54,31 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
       </div>
     );
   }
+
+  // Fetch all trip images for these trips
+  const tripIds = trips.map(t => t.id);
+  const { data: allTripImages } = useQuery({
+    queryKey: ["trip-images-search", tripIds],
+    queryFn: async () => {
+      if (tripIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("trip_images")
+        .select("*")
+        .in("trip_id", tripIds)
+        .order("display_order", { ascending: true });
+
+      if (error) throw error;
+      return data as TripImage[];
+    },
+    enabled: tripIds.length > 0,
+  });
+
+  // Group images by trip_id
+  const imagesByTrip = (allTripImages || []).reduce((acc, img) => {
+    if (!acc[img.trip_id]) acc[img.trip_id] = [];
+    acc[img.trip_id].push(img);
+    return acc;
+  }, {} as Record<string, TripImage[]>);
 
   if (trips.length === 0) {
     return null;
@@ -89,17 +124,12 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
                 transition={{ delay: index * 0.1 }}
                 className="bg-card rounded-xl overflow-hidden shadow-elegant border border-border hover:shadow-lg transition-all duration-300 h-full flex flex-col"
               >
-                {/* Trip Image */}
-                {trip.image_url && (
-                  <div className="relative h-40 overflow-hidden">
-                    <img
-                      src={trip.image_url}
-                      alt={trip.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 via-transparent to-transparent" />
-                  </div>
-                )}
+                {/* Trip Image Carousel */}
+                <TripImageCarousel 
+                  images={imagesByTrip[trip.id] || []}
+                  fallbackImage={trip.image_url}
+                  className="h-40"
+                />
                 
                 <div className="p-5 flex flex-col flex-1">
                   {/* Trip Type Badge */}
