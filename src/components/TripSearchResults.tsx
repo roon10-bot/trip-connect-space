@@ -22,6 +22,7 @@ interface Trip {
   price: number;
   description: string | null;
   capacity: number;
+  image_url: string | null;
 }
 
 interface TripSearchResultsProps {
@@ -86,56 +87,70 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-xl p-5 shadow-elegant border border-border hover:shadow-lg transition-all duration-300 h-full flex flex-col"
+                className="bg-card rounded-xl overflow-hidden shadow-elegant border border-border hover:shadow-lg transition-all duration-300 h-full flex flex-col"
               >
-                {/* Trip Type Badge */}
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2 py-1 rounded-full bg-ocean-light text-primary text-xs font-medium">
-                    {formatTripType(trip.trip_type)}
-                  </span>
-                </div>
+                {/* Trip Image */}
+                {trip.image_url && (
+                  <div className="relative h-40 overflow-hidden">
+                    <img
+                      src={trip.image_url}
+                      alt={trip.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 via-transparent to-transparent" />
+                  </div>
+                )}
                 
-                {/* Trip Name */}
-                <h4 className="text-xl font-serif font-bold text-foreground mb-3">
-                  {trip.name}
-                </h4>
-                
-                {/* Trip Details */}
-                <div className="space-y-2 text-muted-foreground flex-1">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span className="text-sm">
-                      {format(new Date(trip.departure_date), "d MMM", { locale: sv })} - {format(new Date(trip.return_date), "d MMM yyyy", { locale: sv })}
+                <div className="p-5 flex flex-col flex-1">
+                  {/* Trip Type Badge */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-1 rounded-full bg-ocean-light text-primary text-xs font-medium">
+                      {formatTripType(trip.trip_type)}
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <Plane className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span className="text-sm">Avgång från {trip.departure_location}</span>
-                  </div>
-
-                  {trip.description && (
-                    <p className="text-sm line-clamp-2 mt-2">
-                      {trip.description}
-                    </p>
-                  )}
-                </div>
-
-                {/* Price and CTA */}
-                <div className="mt-4 pt-4 border-t border-border">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <span className="text-xs text-muted-foreground">Pris</span>
-                      <p className="text-2xl font-bold text-primary">
-                        {trip.price.toLocaleString("sv-SE")} kr
-                      </p>
+                  {/* Trip Name */}
+                  <h4 className="text-xl font-serif font-bold text-foreground mb-3">
+                    {trip.name}
+                  </h4>
+                  
+                  {/* Trip Details */}
+                  <div className="space-y-2 text-muted-foreground flex-1">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="text-sm">
+                        {format(new Date(trip.departure_date), "d MMM", { locale: sv })} - {format(new Date(trip.return_date), "d MMM yyyy", { locale: sv })}
+                      </span>
                     </div>
                     
-                    <Link to={`/book/trip/${trip.id}`}>
-                      <Button className="bg-sunset hover:bg-sunset/90 text-accent-foreground font-semibold px-6">
-                        Boka resa
-                      </Button>
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Plane className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="text-sm">Avgång från {trip.departure_location}</span>
+                    </div>
+
+                    {trip.description && (
+                      <p className="text-sm line-clamp-2 mt-2">
+                        {trip.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Price and CTA */}
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <span className="text-xs text-muted-foreground">Pris</span>
+                        <p className="text-2xl font-bold text-primary">
+                          {trip.price.toLocaleString("sv-SE")} kr
+                        </p>
+                      </div>
+                      
+                      <Link to={`/book/trip/${trip.id}`}>
+                        <Button className="bg-sunset hover:bg-sunset/90 text-accent-foreground font-semibold px-6">
+                          Boka resa
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </motion.div>
