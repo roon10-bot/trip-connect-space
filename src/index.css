@@ -178,18 +178,25 @@
     Prevent horizontal layout shift when Radix (Select/Dropdown/etc.) applies scroll-lock.
     On macOS, toggling overflow/scrollbar compensation can move the whole layout (hero/header).
 
-    1) Reserve scrollbar gutter permanently.
-    2) Neutralize RemoveScroll/Radix scrollbar compensation variable.
+    ROOT CAUSE (from session replay):
+    - Radix sets data-scroll-locked → .with-scroll-bars-hidden → overflow: hidden
+    - Scrollbar disappears → viewport widens → everything "zooms out"
+
+    FIX:
+    1) Force overflow: scroll (scrollbar always visible, even if content is short)
+    2) Reserve scrollbar gutter permanently with scrollbar-gutter: stable
+    3) Neutralize RemoveScroll/Radix scrollbar compensation variable
   */
   html {
-    scrollbar-gutter: stable;
+    overflow-y: scroll !important;
+    scrollbar-gutter: stable !important;
   }
 
-  /* Completely disable Radix scroll-lock effects to prevent any layout shift */
+  /* Neutralize Radix scroll-lock completely */
   body[data-scroll-locked] {
     /* RemoveScroll uses this var to compensate for scrollbar width */
     --removed-body-scroll-bar-size: 0px !important;
-    overflow: auto !important;
+    overflow-y: scroll !important;
     padding-right: 0 !important;
     margin-right: 0 !important;
   }
@@ -197,7 +204,13 @@
   /* Ensure html doesn't get modified either */
   html[data-scroll-locked] {
     --removed-body-scroll-bar-size: 0px !important;
-    overflow: auto !important;
+    overflow-y: scroll !important;
+  }
+
+  /* Force-disable .with-scroll-bars-hidden if Radix injects it */
+  .with-scroll-bars-hidden {
+    overflow-y: scroll !important;
+    padding-right: 0 !important;
   }
 
   body {
