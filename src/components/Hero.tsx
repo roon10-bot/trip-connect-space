@@ -30,7 +30,10 @@ export const Hero = () => {
           loop
           muted
           playsInline
+          preload="auto"
+          poster=""
           className="w-full h-full object-cover"
+          style={{ backgroundColor: 'hsl(var(--foreground))' }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/60 via-foreground/40 to-background" />
       </div>
