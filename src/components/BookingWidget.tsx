@@ -54,7 +54,7 @@ export const BookingWidget = () => {
   const decrementGuests = () => setGuests((prev) => Math.max(prev - 1, 1));
 
   return (
-    <div className="bg-background/10 backdrop-blur-sm rounded-2xl shadow-elegant border border-white/20 p-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+    <div className="bg-background/10 backdrop-blur-sm rounded-2xl shadow-elegant border border-white/20 p-6 grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
       {/* Avreseort */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-muted-foreground">
@@ -158,7 +158,7 @@ export const BookingWidget = () => {
       {/* Sök-knapp */}
       <Button
         onClick={handleSearch}
-        className="h-12 bg-sunset hover:bg-sunset/90 text-accent-foreground font-semibold"
+        className="h-12 bg-sunset hover:bg-sunset/90 text-accent-foreground font-semibold col-span-2 md:col-span-1"
       >
         <Search className="mr-2 h-4 w-4" />
         Sök resor
