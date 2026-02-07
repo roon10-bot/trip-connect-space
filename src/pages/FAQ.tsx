@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import {
@@ -93,6 +94,19 @@ const faqItems = [
 ];
 
 const FAQ = () => {
+  useEffect(() => {
+    document.title = "Frågor och Svar | Studentresor";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) {
+      meta.setAttribute("content", "Vanliga frågor om Studentresors resor, bokning, betalning och resevillkor.");
+    } else {
+      const tag = document.createElement("meta");
+      tag.name = "description";
+      tag.content = "Vanliga frågor om Studentresors resor, bokning, betalning och resevillkor.";
+      document.head.appendChild(tag);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />

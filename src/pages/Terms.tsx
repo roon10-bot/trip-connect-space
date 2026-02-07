@@ -1,7 +1,21 @@
+import { useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
 const Terms = () => {
+  useEffect(() => {
+    document.title = "Allmänna resevillkor | Studentresor";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) {
+      meta.setAttribute("content", "Läs Studentresors allmänna resevillkor för paketresor arrangerade av Studentlife Sweden AB.");
+    } else {
+      const tag = document.createElement("meta");
+      tag.name = "description";
+      tag.content = "Läs Studentresors allmänna resevillkor för paketresor arrangerade av Studentlife Sweden AB.";
+      document.head.appendChild(tag);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
