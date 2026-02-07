@@ -7,20 +7,39 @@ import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    setTimeout(() => {
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("send-contact-email", {
+        body: {
+          firstName: formData.get("firstName"),
+          lastName: formData.get("lastName"),
+          email: formData.get("email"),
+          subject: formData.get("subject"),
+          message: formData.get("message"),
+        },
+      });
+
+      if (error) throw error;
+
       toast.success("Tack för ditt meddelande! Vi återkommer så snart vi kan.");
+      form.reset();
+    } catch (err: any) {
+      console.error("Contact form error:", err);
+      toast.error("Något gick fel. Försök igen eller mejla oss direkt.");
+    } finally {
       setIsSubmitting(false);
-      (e.target as HTMLFormElement).reset();
-    }, 1000);
+    }
   };
 
   return (
@@ -103,25 +122,26 @@ const Contact = () => {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">Förnamn</Label>
-                    <Input id="firstName" placeholder="Ditt förnamn" required maxLength={100} />
+                    <Input id="firstName" name="firstName" placeholder="Ditt förnamn" required maxLength={100} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Efternamn</Label>
-                    <Input id="lastName" placeholder="Ditt efternamn" required maxLength={100} />
+                    <Input id="lastName" name="lastName" placeholder="Ditt efternamn" required maxLength={100} />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">E-post</Label>
-                  <Input id="email" type="email" placeholder="din@email.se" required maxLength={255} />
+                  <Input id="email" name="email" type="email" placeholder="din@email.se" required maxLength={255} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="subject">Ämne</Label>
-                  <Input id="subject" placeholder="Vad gäller det?" required maxLength={200} />
+                  <Input id="subject" name="subject" placeholder="Vad gäller det?" required maxLength={200} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="message">Meddelande</Label>
                   <Textarea
                     id="message"
+                    name="message"
                     placeholder="Skriv ditt meddelande här..."
                     className="min-h-[140px]"
                     required
