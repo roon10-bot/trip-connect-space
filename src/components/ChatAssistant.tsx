@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Loader2, Bot, User } from "lucide-react";
+import { X, Send, Loader2, User } from "lucide-react";
+import chatRobotIcon from "@/assets/chat-robot-icon.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -179,9 +180,9 @@ export const ChatAssistant = () => {
             <Button
               onClick={() => setIsOpen(true)}
               size="lg"
-              className="h-14 w-14 rounded-full bg-gradient-ocean shadow-elegant hover:opacity-90"
+              className="h-14 w-14 rounded-full bg-gradient-ocean shadow-elegant hover:opacity-90 p-0 overflow-hidden"
             >
-              <MessageCircle className="h-6 w-6" />
+              <img src={chatRobotIcon} alt="AI-assistent" className="h-10 w-10 object-contain" />
             </Button>
           </motion.div>
         )}
@@ -200,8 +201,8 @@ export const ChatAssistant = () => {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-border bg-gradient-ocean text-primary-foreground">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/20 rounded-full">
-                  <Bot className="h-5 w-5" />
+                <div className="p-1 bg-white/20 rounded-full">
+                  <img src={chatRobotIcon} alt="AI-assistent" className="h-7 w-7 object-contain" />
                 </div>
                 <div>
                   <h3 className="font-semibold">AI-assistent</h3>
@@ -238,7 +239,7 @@ export const ChatAssistant = () => {
                       {message.role === "user" ? (
                         <User className="h-4 w-4" />
                       ) : (
-                        <Bot className="h-4 w-4" />
+                        <img src={chatRobotIcon} alt="AI" className="h-6 w-6 object-contain" />
                       )}
                     </div>
                     <div
@@ -265,7 +266,7 @@ export const ChatAssistant = () => {
                     className="flex gap-3"
                   >
                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                      <Bot className="h-4 w-4 text-muted-foreground" />
+                      <img src={chatRobotIcon} alt="AI" className="h-6 w-6 object-contain" />
                     </div>
                     <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
                       <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
