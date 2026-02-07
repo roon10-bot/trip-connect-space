@@ -15,6 +15,8 @@ import NotFound from "./pages/NotFound";
 import ComingSoon from "./pages/ComingSoon";
 import ForElevkarer from "./pages/ForElevkarer";
 import Contact from "./pages/Contact";
+import FAQ from "./pages/FAQ";
+import Terms from "./pages/Terms";
 import { ChatAssistant } from "./components/ChatAssistant";
 
 const queryClient = new QueryClient();
@@ -45,6 +47,8 @@ const App = () => (
               <Route path="/admin" element={<Admin />} />
               <Route path="/kontakt" element={<Contact />} />
               <Route path="/for-skolor" element={<ForElevkarer />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/resevillkor" element={<Terms />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
