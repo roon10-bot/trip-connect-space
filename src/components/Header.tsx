@@ -138,7 +138,7 @@ export const Header = () => {
                 useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
               }`}
             >
-              För skolor
+              För elevkårer & studentkommittéer
             </Link>
           </nav>
 
@@ -273,7 +273,7 @@ export const Header = () => {
                     className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    För skolor
+                    För elevkårer & studentkommittéer
                   </Link>
 
                   {user && (
