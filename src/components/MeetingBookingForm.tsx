@@ -17,6 +17,7 @@ interface Slot {
   slot_date: string;
   start_time: string;
   end_time: string;
+  meet_link: string | null;
 }
 
 export const MeetingBookingForm = () => {
@@ -85,6 +86,24 @@ export const MeetingBookingForm = () => {
         .update({ is_booked: true })
         .eq("id", selectedSlot.id);
 
+      // Send confirmation email
+      try {
+        await supabase.functions.invoke("send-meeting-confirmation", {
+          body: {
+            firstName: form.first_name,
+            lastName: form.last_name,
+            email: form.email,
+            school: form.school,
+            date: format(new Date(selectedSlot.slot_date), "d MMMM yyyy", { locale: sv }),
+            time: `${selectedSlot.start_time.slice(0, 5)} – ${selectedSlot.end_time.slice(0, 5)}`,
+            meetLink: selectedSlot.meet_link,
+          },
+        });
+      } catch {
+        // Email failure shouldn't block the booking
+        console.error("Failed to send confirmation email");
+      }
+
       setSuccess(true);
       toast.success("Mötet är bokat!");
     } catch {
@@ -105,9 +124,20 @@ export const MeetingBookingForm = () => {
         <h3 className="text-2xl font-serif font-bold text-foreground mb-2">
           Mötet är bokat!
         </h3>
-        <p className="text-muted-foreground">
-          Vi återkommer med en länk till videosamtalet via mejl.
+        <p className="text-muted-foreground mb-4">
+          Vi har skickat en bekräftelse till din mejl med alla detaljer.
         </p>
+        {selectedSlot?.meet_link && (
+          <a
+            href={selectedSlot.meet_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-primary underline font-medium"
+          >
+            <Video className="w-4 h-4" />
+            Öppna Google Meet
+          </a>
+        )}
       </motion.div>
     );
   }

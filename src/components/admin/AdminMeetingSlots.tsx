@@ -19,6 +19,7 @@ interface Slot {
   start_time: string;
   end_time: string;
   is_booked: boolean;
+  meet_link: string | null;
 }
 
 interface Booking {
@@ -40,6 +41,7 @@ export const AdminMeetingSlots = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [startTime, setStartTime] = useState("10:00");
   const [endTime, setEndTime] = useState("10:30");
+  const [meetLink, setMeetLink] = useState("");
   const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
@@ -62,12 +64,14 @@ export const AdminMeetingSlots = () => {
       slot_date: format(selectedDate, "yyyy-MM-dd"),
       start_time: startTime,
       end_time: endTime,
+      meet_link: meetLink || null,
       created_by: user.id,
     });
     if (error) {
       toast.error("Kunde inte lägga till tid");
     } else {
       toast.success("Tid tillagd");
+      setMeetLink("");
       fetchData();
     }
     setLoading(false);
@@ -124,6 +128,15 @@ export const AdminMeetingSlots = () => {
                 />
               </div>
             </div>
+            <div>
+              <Label>Google Meet-länk (valfritt)</Label>
+              <Input
+                type="url"
+                placeholder="https://meet.google.com/..."
+                value={meetLink}
+                onChange={(e) => setMeetLink(e.target.value)}
+              />
+            </div>
             {selectedDate && (
               <p className="text-sm text-muted-foreground">
                 Datum: {format(selectedDate, "d MMMM yyyy", { locale: sv })}
@@ -151,6 +164,7 @@ export const AdminMeetingSlots = () => {
               <TableRow>
                 <TableHead>Datum</TableHead>
                 <TableHead>Tid</TableHead>
+                <TableHead>Meet-länk</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Bokad av</TableHead>
                 <TableHead></TableHead>
@@ -166,6 +180,15 @@ export const AdminMeetingSlots = () => {
                     </TableCell>
                     <TableCell>
                       {slot.start_time.slice(0, 5)} – {slot.end_time.slice(0, 5)}
+                    </TableCell>
+                    <TableCell>
+                      {slot.meet_link ? (
+                        <a href={slot.meet_link} target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">
+                          Öppna
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge variant={slot.is_booked ? "default" : "secondary"}>
