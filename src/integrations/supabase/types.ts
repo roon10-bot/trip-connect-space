@@ -331,6 +331,7 @@ export type Database = {
           end_time: string
           id: string
           is_booked: boolean
+          meet_link: string | null
           slot_date: string
           start_time: string
           updated_at: string
@@ -341,6 +342,7 @@ export type Database = {
           end_time: string
           id?: string
           is_booked?: boolean
+          meet_link?: string | null
           slot_date: string
           start_time: string
           updated_at?: string
@@ -351,6 +353,7 @@ export type Database = {
           end_time?: string
           id?: string
           is_booked?: boolean
+          meet_link?: string | null
           slot_date?: string
           start_time?: string
           updated_at?: string

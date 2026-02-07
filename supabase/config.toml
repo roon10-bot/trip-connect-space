@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.send-contact-email]
 verify_jwt = false
+
+[functions.send-meeting-confirmation]
+verify_jwt = false
