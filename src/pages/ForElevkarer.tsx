@@ -1,10 +1,11 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
-import { Users, Calendar, Gift, CheckCircle, ArrowRight } from "lucide-react";
+import { Users, Calendar, Gift, CheckCircle, ArrowRight, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/elevkarer-hero.jpg";
+import { MeetingBookingForm } from "@/components/MeetingBookingForm";
 
 const benefits = [
   {
@@ -141,8 +142,34 @@ const ForElevkarer = () => {
         </div>
       </section>
 
+      {/* Meeting booking */}
+      <section className="py-24 bg-background" id="boka-mote">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Video className="w-7 h-7 text-primary" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
+              Boka ett videosamtal
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Välj en tid som passar er så berättar vi mer om hur vi kan hjälpa er elevkår eller studentkommitté.
+            </p>
+          </motion.div>
+          <div className="max-w-3xl mx-auto">
+            <MeetingBookingForm />
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
-      <section className="py-24 bg-background">
+      <section className="py-24 bg-muted/30">
         <div className="container mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -151,10 +178,10 @@ const ForElevkarer = () => {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
-              Redo att planera er resa?
+              Vill ni hellre prata direkt?
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-              Kontakta oss så hjälper vi er att skapa den perfekta studentresan för er grupp.
+              Kontakta oss via formuläret så återkommer vi inom kort.
             </p>
             <Link to="/kontakt">
               <Button size="lg" className="bg-gradient-ocean hover:opacity-90 gap-2">

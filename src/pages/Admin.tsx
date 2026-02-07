@@ -13,6 +13,7 @@ import { DiscountCodesList } from "@/components/admin/DiscountCodesList";
 import { AdminBookingsList } from "@/components/admin/AdminBookingsList";
 import { AdminTransactionsList } from "@/components/admin/AdminTransactionsList";
 import { AdminCustomersList } from "@/components/admin/AdminCustomersList";
+import { AdminMeetingSlots } from "@/components/admin/AdminMeetingSlots";
 import { Shield } from "lucide-react";
 import { toast } from "sonner";
 
@@ -67,6 +68,8 @@ const Admin = () => {
         return <DiscountCodesList />;
       case "customers":
         return <AdminCustomersList />;
+      case "meeting-slots":
+        return <AdminMeetingSlots />;
       default:
         return <AdminDashboard isAdmin={isAdmin} userId={user?.id} />;
     }
@@ -99,6 +102,7 @@ const Admin = () => {
               {currentView === "transactions" && "Betalningshistorik"}
               {currentView === "discount-codes" && "Hantera rabattkoder"}
               {currentView === "customers" && "Alla kunder som bokat resa"}
+              {currentView === "meeting-slots" && "Hantera tider för videosamtal"}
             </p>
           </motion.div>
 
