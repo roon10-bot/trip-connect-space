@@ -74,8 +74,8 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground">Telefon</h3>
-                    <a href="tel:+46812345678" className="text-muted-foreground hover:text-primary transition-colors">
-                      08-123 456 78
+                    <a href="tel:+46424240471" className="text-muted-foreground hover:text-primary transition-colors">
+                      042-424 04 71
                     </a>
                   </div>
                 </div>
@@ -87,7 +87,7 @@ const Contact = () => {
                   <div>
                     <h3 className="font-semibold text-foreground">Adress</h3>
                     <p className="text-muted-foreground">
-                      Strandvägen 42, Stockholm
+                      Tågagatan 44, Helsingborg
                     </p>
                   </div>
                 </div>
