@@ -180,9 +180,9 @@ export const ChatAssistant = () => {
             <Button
               onClick={() => setIsOpen(true)}
               size="lg"
-              className="h-14 w-14 rounded-full bg-gradient-ocean shadow-elegant hover:opacity-90 p-0 overflow-hidden"
+              className="h-20 w-20 rounded-full bg-gradient-ocean shadow-elegant hover:opacity-90 p-0 overflow-hidden"
             >
-              <img src={chatRobotIcon} alt="AI-assistent" className="h-10 w-10 object-contain" />
+              <img src={chatRobotIcon} alt="AI-assistent" className="h-16 w-16 object-contain" />
             </Button>
           </motion.div>
         )}
