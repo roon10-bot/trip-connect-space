@@ -13,6 +13,7 @@ import Admin from "./pages/Admin";
 import SearchTrips from "./pages/SearchTrips";
 import NotFound from "./pages/NotFound";
 import ComingSoon from "./pages/ComingSoon";
+import ForElevkarer from "./pages/ForElevkarer";
 import Contact from "./pages/Contact";
 import { ChatAssistant } from "./components/ChatAssistant";
 
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/search" element={<SearchTrips />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/kontakt" element={<Contact />} />
+              <Route path="/for-skolor" element={<ForElevkarer />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
