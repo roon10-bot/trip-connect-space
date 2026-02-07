@@ -13,6 +13,7 @@ import Admin from "./pages/Admin";
 import SearchTrips from "./pages/SearchTrips";
 import NotFound from "./pages/NotFound";
 import ComingSoon from "./pages/ComingSoon";
+import Contact from "./pages/Contact";
 import { ChatAssistant } from "./components/ChatAssistant";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="/book/trip/:id" element={<BookTrip />} />
               <Route path="/search" element={<SearchTrips />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/kontakt" element={<Contact />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
