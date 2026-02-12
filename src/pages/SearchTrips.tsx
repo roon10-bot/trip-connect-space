@@ -51,7 +51,7 @@ const SearchTrips = () => {
     isLoading,
     refetch
   } = useQuery({
-    queryKey: ["trips", departure, tripType, selectedMonth?.year, selectedMonth?.month],
+    queryKey: ["trips", departure, tripType, selectedMonth?.year, selectedMonth?.month, guests],
     queryFn: async () => {
       let query = supabase.from("trips").select("*").eq("is_active", true).order("departure_date", {
         ascending: true
@@ -69,6 +69,7 @@ const SearchTrips = () => {
         const endDate = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
         query = query.gte("departure_date", startDate).lt("departure_date", endDate);
       }
+      query = query.gte("max_persons", guests);
       const { data, error } = await query;
       if (error) throw error;
       return data;
