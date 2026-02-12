@@ -88,6 +88,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [returnDateOpen, setReturnDateOpen] = useState(false);
 
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripSchema),
@@ -457,7 +458,12 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                           <Calendar
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
+                            onSelect={(date) => {
+                              field.onChange(date);
+                              if (date) {
+                                setTimeout(() => setReturnDateOpen(true), 150);
+                              }
+                            }}
                             disabled={(date) => date < new Date()}
                             initialFocus
                             className="p-3 pointer-events-auto"
@@ -475,7 +481,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Hemresedatum</FormLabel>
-                      <Popover>
+                      <Popover open={returnDateOpen} onOpenChange={setReturnDateOpen}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
@@ -498,8 +504,14 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                           <Calendar
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date()}
+                            onSelect={(date) => {
+                              field.onChange(date);
+                              setReturnDateOpen(false);
+                            }}
+                            disabled={(date) => {
+                              const dep = form.getValues("departure_date");
+                              return dep ? date <= dep : date < new Date();
+                            }}
                             initialFocus
                             className="p-3 pointer-events-auto"
                           />
