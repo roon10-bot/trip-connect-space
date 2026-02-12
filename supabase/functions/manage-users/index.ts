@@ -96,10 +96,45 @@ serve(async (req: Request) => {
         });
       }
 
-      // Delete profile first
-      await supabaseAdmin.from("profiles").delete().eq("user_id", userId);
+      // Delete all related data first to avoid foreign key constraints
+      // 1. Get trip bookings for this user
+      const { data: tripBookings } = await supabaseAdmin
+        .from("trip_bookings")
+        .select("id")
+        .eq("user_id", userId);
 
-      // Delete the auth user
+      if (tripBookings && tripBookings.length > 0) {
+        const bookingIds = tripBookings.map((b) => b.id);
+        // Delete payments linked to trip bookings
+        await supabaseAdmin.from("payments").delete().in("trip_booking_id", bookingIds);
+        // Delete travelers linked to trip bookings
+        await supabaseAdmin.from("trip_booking_travelers").delete().in("trip_booking_id", bookingIds);
+        // Delete trip bookings
+        await supabaseAdmin.from("trip_bookings").delete().eq("user_id", userId);
+      }
+
+      // 2. Delete payments directly linked to user
+      await supabaseAdmin.from("payments").delete().eq("user_id", userId);
+
+      // 3. Get bookings for this user
+      const { data: bookings } = await supabaseAdmin
+        .from("bookings")
+        .select("id")
+        .eq("user_id", userId);
+
+      if (bookings && bookings.length > 0) {
+        const bookingIds = bookings.map((b) => b.id);
+        await supabaseAdmin.from("booking_accommodations").delete().in("booking_id", bookingIds);
+        await supabaseAdmin.from("booking_attachments").delete().in("booking_id", bookingIds);
+        await supabaseAdmin.from("booking_flights").delete().in("booking_id", bookingIds);
+        await supabaseAdmin.from("bookings").delete().eq("user_id", userId);
+      }
+
+      // 4. Delete profile and roles
+      await supabaseAdmin.from("profiles").delete().eq("user_id", userId);
+      await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
+
+      // 5. Delete the auth user
       const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
       if (deleteError) {
