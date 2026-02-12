@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, Plane, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, Plane, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -174,6 +174,13 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
                       <Plane className="w-4 h-4 text-primary flex-shrink-0" />
                       <span className="text-sm">Avgång från {trip.departure_location}</span>
                     </div>
+
+                    {trip.max_persons && (
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-primary flex-shrink-0" />
+                        <span className="text-sm">Max {trip.max_persons} personer</span>
+                      </div>
+                    )}
 
                     {trip.description && (
                       <p className="text-sm line-clamp-2 mt-2">
