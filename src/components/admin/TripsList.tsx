@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -26,10 +27,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Ship, Calendar, Users, Trash2, Edit, MapPin, Eye, EyeOff, Copy, Ban } from "lucide-react";
+import { Ship, Calendar, Users, Trash2, Edit, MapPin, Eye, EyeOff, Copy, Ban, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { EditTripDialog } from "./EditTripDialog";
 import { CopyTripDialog } from "./CopyTripDialog";
+import { BulkUpdateTripsDialog } from "./BulkUpdateTripsDialog";
 
 const tripTypeLabels: Record<string, string> = {
   seglingsvecka: "Seglingsveckan",
@@ -45,6 +47,8 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
   const queryClient = useQueryClient();
   const [editingTripId, setEditingTripId] = useState<string | null>(null);
   const [copyingTrip, setCopyingTrip] = useState<NonNullable<typeof trips>[0] | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
 
   const { data: trips, isLoading } = useQuery({
     queryKey: ["admin-trips"],
@@ -138,13 +142,45 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
     );
   }
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const allSelected = trips && trips.length > 0 && selectedIds.length === trips.length;
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(trips?.map((t) => t.id) || []);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-serif">Mina resor</CardTitle>
-        <CardDescription>
-          Hantera dina resor som visas för kunder på hemsidan
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="font-serif">Mina resor</CardTitle>
+            <CardDescription>
+              Hantera dina resor som visas för kunder på hemsidan
+            </CardDescription>
+          </div>
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-3">
+              <Badge variant="secondary">{selectedIds.length} valda</Badge>
+              <Button size="sm" onClick={() => setBulkDialogOpen(true)}>
+                <Pencil className="w-4 h-4 mr-1" />
+                Bulkuppdatera
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setSelectedIds([])}>
+                Avmarkera alla
+              </Button>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {trips && trips.length > 0 ? (
@@ -152,6 +188,12 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={toggleAll}
+                    />
+                  </TableHead>
                   <TableHead>Resa</TableHead>
                   <TableHead>Typ</TableHead>
                   <TableHead>Datum</TableHead>
@@ -164,7 +206,13 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
               </TableHeader>
               <TableBody>
                 {trips.map((trip) => (
-                  <TableRow key={trip.id}>
+                  <TableRow key={trip.id} className={selectedIds.includes(trip.id) ? "bg-muted/50" : ""}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.includes(trip.id)}
+                        onCheckedChange={() => toggleSelect(trip.id)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{trip.name}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">
@@ -303,6 +351,13 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
         trip={copyingTrip}
         open={!!copyingTrip}
         onOpenChange={(open) => !open && setCopyingTrip(null)}
+      />
+
+      <BulkUpdateTripsDialog
+        open={bulkDialogOpen}
+        onOpenChange={setBulkDialogOpen}
+        selectedTripIds={selectedIds}
+        onSuccess={() => setSelectedIds([])}
       />
     </Card>
   );
