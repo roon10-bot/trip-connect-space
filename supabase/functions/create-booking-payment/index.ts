@@ -57,16 +57,30 @@ serve(async (req) => {
     let bookingData: { id: string; name: string; description: string };
 
     if (bookingType === "trip") {
-      // Fetch from trip_bookings table
+      // Fetch from trip_bookings table - allow both booker and travelers
       const { data: tripBooking, error: tripError } = await supabaseClient
         .from("trip_bookings")
         .select("*, trips(name, trip_type)")
         .eq("id", bookingId)
-        .eq("user_id", user.id)
         .maybeSingle();
 
       if (tripError || !tripBooking) {
-        throw new Error("Trip booking not found or access denied");
+        throw new Error("Trip booking not found");
+      }
+
+      // Verify user is either the booker or a traveler
+      const isBooker = tripBooking.user_id === user.id;
+      if (!isBooker) {
+        const { data: traveler } = await supabaseClient
+          .from("trip_booking_travelers")
+          .select("id")
+          .eq("trip_booking_id", bookingId)
+          .eq("email", user.email)
+          .maybeSingle();
+        
+        if (!traveler) {
+          throw new Error("Access denied: you are not part of this booking");
+        }
       }
       
       bookingData = {
@@ -74,7 +88,7 @@ serve(async (req) => {
         name: tripBooking.trips?.name || "Resa",
         description: `Bokningsnummer: ${tripBooking.id.slice(0, 8).toUpperCase()} | ${tripBooking.trips?.trip_type || ""}`,
       };
-      logStep("Trip booking verified", { bookingId: tripBooking.id });
+      logStep("Trip booking verified", { bookingId: tripBooking.id, isBooker });
     } else {
       // Fetch from bookings table (legacy destination bookings)
       const { data: booking, error: bookingError } = await supabaseClient

@@ -90,7 +90,7 @@ const Dashboard = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch trip bookings (resebokningar)
+  // Fetch trip bookings (resebokningar) - RLS handles access for both bookers and travelers
   const { data: tripBookings, isLoading: tripBookingsLoading } = useQuery({
     queryKey: ["trip-bookings", user?.id],
     queryFn: async () => {
@@ -117,7 +117,6 @@ const Dashboard = () => {
             final_payment_date
           )
         `)
-        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
