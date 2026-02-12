@@ -8,8 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import type { TravelerInfo } from "@/pages/BookTrip";
+
+const DEPARTURE_LOCATIONS = [
+  "Arlanda",
+  "Landvetter",
+  "Kastrup (CPH)",
+];
 
 interface BookingStep2Props {
   travelersInfo: TravelerInfo[];
@@ -146,15 +153,24 @@ export const BookingStep2 = ({
 
             {/* Departure Location */}
             <div className="space-y-2">
-              <Label htmlFor={`departureLocation-${index}`}>
+              <Label>
                 Avgångsort <span className="text-destructive">*</span>
               </Label>
-              <Input
-                id={`departureLocation-${index}`}
-                placeholder="T.ex. Stockholm, Göteborg, Malmö"
+              <Select
                 value={traveler.departureLocation}
-                onChange={(e) => updateField(index, "departureLocation", e.target.value)}
-              />
+                onValueChange={(value) => updateField(index, "departureLocation", value)}
+              >
+                <SelectTrigger className="w-full h-10">
+                  <SelectValue placeholder="Välj avgångsort" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  {DEPARTURE_LOCATIONS.map((loc) => (
+                    <SelectItem key={loc} value={loc}>
+                      {loc}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
