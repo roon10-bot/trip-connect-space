@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Calendar, Plane, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AccommodationInfoDialog } from "./AccommodationInfoDialog";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Link } from "react-router-dom";
@@ -31,6 +32,11 @@ interface Trip {
   max_persons?: number | null;
   base_price?: number | null;
   is_fullbooked?: boolean;
+  accommodation_rooms?: number | null;
+  accommodation_size_sqm?: number | null;
+  accommodation_facilities?: string[] | null;
+  accommodation_address?: string | null;
+  accommodation_description?: string | null;
 }
 
 interface TripImage {
@@ -181,6 +187,15 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
                         <span className="text-sm">Max {trip.max_persons} personer</span>
                       </div>
                     )}
+
+                    <AccommodationInfoDialog
+                      accommodationRooms={trip.accommodation_rooms}
+                      accommodationSizeSqm={trip.accommodation_size_sqm}
+                      accommodationFacilities={trip.accommodation_facilities}
+                      accommodationAddress={trip.accommodation_address}
+                      accommodationDescription={trip.accommodation_description}
+                      tripName={trip.name}
+                    />
 
                     {trip.description && (
                       <p className="text-sm line-clamp-2 mt-2">
