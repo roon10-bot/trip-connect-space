@@ -29,22 +29,28 @@ export interface TravelerInfo {
   departureLocation: string;
 }
 
+const createEmptyTraveler = (): TravelerInfo => ({
+  firstName: "",
+  lastName: "",
+  email: "",
+  birthDate: undefined,
+  phone: "",
+  departureLocation: "",
+});
+
 const BookTrip = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading, signUp } = useAuth();
   
-  // Track if user started without an account (persists through the booking flow)
   const [startedWithoutAccount, setStartedWithoutAccount] = useState<boolean | null>(null);
   
-  // Set initial state once auth loading is complete
   useEffect(() => {
     if (!authLoading && startedWithoutAccount === null) {
       setStartedWithoutAccount(!user);
     }
   }, [authLoading, user, startedWithoutAccount]);
   
-  // Use the persisted state for step calculation
   const needsAccountStep = startedWithoutAccount === true;
   const totalSteps = needsAccountStep ? 4 : 3;
   
@@ -56,17 +62,21 @@ const BookTrip = () => {
     percent: number | null;
     amount: number | null;
   } | null>(null);
-  const [travelerInfo, setTravelerInfo] = useState<TravelerInfo>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    birthDate: undefined,
-    phone: "",
-    departureLocation: "",
-  });
+  const [travelersInfo, setTravelersInfo] = useState<TravelerInfo[]>([createEmptyTraveler()]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
+
+  // Sync travelersInfo array length with travelers count
+  useEffect(() => {
+    setTravelersInfo((prev) => {
+      if (prev.length === travelers) return prev;
+      if (prev.length < travelers) {
+        return [...prev, ...Array.from({ length: travelers - prev.length }, () => createEmptyTraveler())];
+      }
+      return prev.slice(0, travelers);
+    });
+  }, [travelers]);
 
   const { data: trip, isLoading } = useQuery({
     queryKey: ["trip", id],
@@ -96,7 +106,6 @@ const BookTrip = () => {
   const calculateTotalPrice = () => {
     if (!trip) return 0;
     
-    // For Splitveckan, calculate price based on group size with 20% margin
     let pricePerPerson = trip.price;
     if (trip.trip_type === "splitveckan" && trip.base_price && travelers > 0) {
       pricePerPerson = Math.ceil((Number(trip.base_price) * 1.20) / travelers);
@@ -133,13 +142,11 @@ const BookTrip = () => {
       return;
     }
 
-    // Check if code has reached max uses
     if (data.max_uses && data.current_uses >= data.max_uses) {
       toast.error("Rabattkoden har redan använts maximalt antal gånger");
       return;
     }
 
-    // Check validity dates
     const now = new Date();
     if (data.valid_from && new Date(data.valid_from) > now) {
       toast.error("Rabattkoden är inte aktiv än");
@@ -164,33 +171,35 @@ const BookTrip = () => {
   };
 
   const validateStep2 = () => {
-    const { firstName, lastName, email, birthDate, phone, departureLocation } = travelerInfo;
-    
-    if (!firstName.trim()) {
-      toast.error("Förnamn krävs");
-      return false;
+    for (let i = 0; i < travelersInfo.length; i++) {
+      const t = travelersInfo[i];
+      const label = travelersInfo.length > 1 ? ` (Resenär ${i + 1})` : "";
+      
+      if (!t.firstName.trim()) {
+        toast.error(`Förnamn krävs${label}`);
+        return false;
+      }
+      if (!t.lastName.trim()) {
+        toast.error(`Efternamn krävs${label}`);
+        return false;
+      }
+      if (!t.email.trim() || !t.email.includes("@")) {
+        toast.error(`Giltig e-postadress krävs${label}`);
+        return false;
+      }
+      if (!t.birthDate) {
+        toast.error(`Födelsedatum krävs${label}`);
+        return false;
+      }
+      if (!t.phone.trim()) {
+        toast.error(`Telefonnummer krävs${label}`);
+        return false;
+      }
+      if (!t.departureLocation.trim()) {
+        toast.error(`Avgångsort krävs${label}`);
+        return false;
+      }
     }
-    if (!lastName.trim()) {
-      toast.error("Efternamn krävs");
-      return false;
-    }
-    if (!email.trim() || !email.includes("@")) {
-      toast.error("Giltig e-postadress krävs");
-      return false;
-    }
-    if (!birthDate) {
-      toast.error("Födelsedatum krävs");
-      return false;
-    }
-    if (!phone.trim()) {
-      toast.error("Telefonnummer krävs");
-      return false;
-    }
-    if (!departureLocation.trim()) {
-      toast.error("Avgångsort krävs");
-      return false;
-    }
-    
     return true;
   };
 
@@ -209,13 +218,17 @@ const BookTrip = () => {
         return;
       }
       
-      // Pre-fill traveler info with account data
-      setTravelerInfo((prev) => ({
-        ...prev,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-      }));
+      // Pre-fill first traveler with account data
+      setTravelersInfo((prev) => {
+        const updated = [...prev];
+        updated[0] = {
+          ...updated[0],
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+        };
+        return updated;
+      });
       
       toast.success("Konto skapat! Fortsätt med bokningen.");
       setCurrentStep(2);
@@ -227,7 +240,6 @@ const BookTrip = () => {
   };
 
   const handleNextStep = () => {
-    // Adjust step validation based on whether we have account step
     const travelerInfoStep = needsAccountStep ? 3 : 2;
     const maxStep = totalSteps;
     
@@ -238,40 +250,72 @@ const BookTrip = () => {
   };
 
   const handlePrevStep = () => {
-    const minStep = needsAccountStep ? 2 : 1; // Can't go back to account step once created
+    const minStep = needsAccountStep ? 2 : 1;
     setCurrentStep((prev) => Math.max(prev - 1, minStep));
   };
 
   const handleSubmitBooking = async () => {
-    if (!trip || !travelerInfo.birthDate) return;
+    if (!trip || travelersInfo.length === 0) return;
+    
+    const primaryTraveler = travelersInfo[0];
+    if (!primaryTraveler.birthDate) return;
     
     setIsSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
       const totalPrice = calculateTotalPrice();
-      const baseTotal = trip.price * travelers;
+      
+      let pricePerPerson = trip.price;
+      if (trip.trip_type === "splitveckan" && trip.base_price && travelers > 0) {
+        pricePerPerson = Math.ceil((Number(trip.base_price) * 1.20) / travelers);
+      }
+      const baseTotal = pricePerPerson * travelers;
       const discountAmount = baseTotal - totalPrice;
 
-      const { error } = await supabase
+      // Insert main booking with first traveler as primary contact
+      const { data: booking, error: bookingError } = await supabase
         .from("trip_bookings")
         .insert({
           trip_id: trip.id,
           user_id: user?.id || null,
-          first_name: travelerInfo.firstName,
-          last_name: travelerInfo.lastName,
-          email: travelerInfo.email,
-          birth_date: format(travelerInfo.birthDate, "yyyy-MM-dd"),
-          phone: travelerInfo.phone,
-          departure_location: travelerInfo.departureLocation,
+          first_name: primaryTraveler.firstName,
+          last_name: primaryTraveler.lastName,
+          email: primaryTraveler.email,
+          birth_date: format(primaryTraveler.birthDate, "yyyy-MM-dd"),
+          phone: primaryTraveler.phone,
+          departure_location: primaryTraveler.departureLocation,
           travelers: travelers,
           total_price: totalPrice,
           discount_code: appliedDiscount?.code || null,
           discount_amount: discountAmount > 0 ? discountAmount : 0,
           status: "pending",
-        });
+        })
+        .select("id")
+        .single();
 
-      if (error) throw error;
+      if (bookingError) throw bookingError;
+
+      // Insert all travelers into trip_booking_travelers
+      const travelerRows = travelersInfo.map((t, index) => ({
+        trip_booking_id: booking.id,
+        traveler_index: index,
+        first_name: t.firstName,
+        last_name: t.lastName,
+        email: t.email,
+        birth_date: format(t.birthDate!, "yyyy-MM-dd"),
+        phone: t.phone,
+        departure_location: t.departureLocation,
+      }));
+
+      const { error: travelersError } = await supabase
+        .from("trip_booking_travelers")
+        .insert(travelerRows);
+
+      if (travelersError) {
+        console.error("Error saving travelers:", travelersError);
+        // Booking is still created, just log the error
+      }
       
       setBookingComplete(true);
     } catch (error) {
@@ -368,10 +412,8 @@ const BookTrip = () => {
         <BookingStepIndicator currentStep={currentStep} totalSteps={totalSteps} />
 
         <div className="grid lg:grid-cols-3 gap-8 mt-8">
-          {/* Main Content */}
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
-              {/* Step 1: Account Creation (only for non-logged in users) */}
               {needsAccountStep && currentStep === 1 && (
                 <BookingStepAccount
                   key="step-account"
@@ -380,7 +422,6 @@ const BookTrip = () => {
                 />
               )}
               
-              {/* Step for travelers count (Step 1 for logged in, Step 2 for new users) */}
               {((needsAccountStep && currentStep === 2) || (!needsAccountStep && currentStep === 1)) && (
                 <BookingStep1
                   key="step1"
@@ -395,24 +436,22 @@ const BookTrip = () => {
                 />
               )}
               
-              {/* Step for traveler info (Step 2 for logged in, Step 3 for new users) */}
               {((needsAccountStep && currentStep === 3) || (!needsAccountStep && currentStep === 2)) && (
                 <BookingStep2
                   key="step2"
-                  travelerInfo={travelerInfo}
-                  setTravelerInfo={setTravelerInfo}
+                  travelersInfo={travelersInfo}
+                  setTravelersInfo={setTravelersInfo}
                   onNext={handleNextStep}
                   onPrev={handlePrevStep}
                 />
               )}
               
-              {/* Step for summary (Step 3 for logged in, Step 4 for new users) */}
               {((needsAccountStep && currentStep === 4) || (!needsAccountStep && currentStep === 3)) && (
                 <BookingStep3
                   key="step3"
                   trip={trip}
                   travelers={travelers}
-                  travelerInfo={travelerInfo}
+                  travelersInfo={travelersInfo}
                   appliedDiscount={appliedDiscount}
                   totalPrice={calculateTotalPrice()}
                   formatTripType={formatTripType}
@@ -424,7 +463,6 @@ const BookTrip = () => {
             </AnimatePresence>
           </div>
 
-          {/* Trip Summary Sidebar */}
           <div className="lg:col-span-1">
             <BookingTripSummary
               trip={trip}

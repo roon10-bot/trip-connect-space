@@ -440,6 +440,56 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_booking_travelers: {
+        Row: {
+          birth_date: string
+          created_at: string
+          departure_location: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          traveler_index: number
+          trip_booking_id: string
+          updated_at: string
+        }
+        Insert: {
+          birth_date: string
+          created_at?: string
+          departure_location: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          phone: string
+          traveler_index?: number
+          trip_booking_id: string
+          updated_at?: string
+        }
+        Update: {
+          birth_date?: string
+          created_at?: string
+          departure_location?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string
+          traveler_index?: number
+          trip_booking_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_booking_travelers_trip_booking_id_fkey"
+            columns: ["trip_booking_id"]
+            isOneToOne: false
+            referencedRelation: "trip_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_bookings: {
         Row: {
           birth_date: string

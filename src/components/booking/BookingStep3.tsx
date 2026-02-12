@@ -14,13 +14,14 @@ interface Trip {
   return_date: string;
   departure_location: string;
   price: number;
+  base_price?: number | null;
   description: string | null;
 }
 
 interface BookingStep3Props {
   trip: Trip;
   travelers: number;
-  travelerInfo: TravelerInfo;
+  travelersInfo: TravelerInfo[];
   appliedDiscount: {
     code: string;
     percent: number | null;
@@ -36,7 +37,7 @@ interface BookingStep3Props {
 export const BookingStep3 = ({
   trip,
   travelers,
-  travelerInfo,
+  travelersInfo,
   appliedDiscount,
   totalPrice,
   formatTripType,
@@ -44,7 +45,11 @@ export const BookingStep3 = ({
   onSubmit,
   isSubmitting,
 }: BookingStep3Props) => {
-  const baseTotal = trip.price * travelers;
+  const isSplitVeckan = trip.trip_type === "splitveckan";
+  const pricePerPerson = isSplitVeckan && trip.base_price && travelers > 0
+    ? Math.ceil((Number(trip.base_price) * 1.20) / travelers)
+    : trip.price;
+  const baseTotal = pricePerPerson * travelers;
   const discountAmount = baseTotal - totalPrice;
 
   return (
@@ -55,54 +60,58 @@ export const BookingStep3 = ({
       className="space-y-6"
     >
       {/* Traveler Information Summary */}
-      <Card className="shadow-elegant">
-        <CardHeader>
-          <CardTitle className="font-serif text-xl">Resenärinformation</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3">
-              <User className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">Namn</p>
-                <p className="font-medium">{travelerInfo.firstName} {travelerInfo.lastName}</p>
+      {travelersInfo.map((traveler, index) => (
+        <Card key={index} className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="font-serif text-xl">
+              {travelersInfo.length > 1 ? `Resenär ${index + 1}` : "Resenärinformation"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3">
+                <User className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Namn</p>
+                  <p className="font-medium">{traveler.firstName} {traveler.lastName}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">E-post</p>
+                  <p className="font-medium">{traveler.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Calendar className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Födelsedatum</p>
+                  <p className="font-medium">
+                    {traveler.birthDate
+                      ? format(traveler.birthDate, "d MMMM yyyy", { locale: sv })
+                      : "-"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Telefon</p>
+                  <p className="font-medium">{traveler.phone}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 md:col-span-2">
+                <MapPin className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Avgångsort</p>
+                  <p className="font-medium">{traveler.departureLocation}</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Mail className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">E-post</p>
-                <p className="font-medium">{travelerInfo.email}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">Födelsedatum</p>
-                <p className="font-medium">
-                  {travelerInfo.birthDate
-                    ? format(travelerInfo.birthDate, "d MMMM yyyy", { locale: sv })
-                    : "-"}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Phone className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">Telefon</p>
-                <p className="font-medium">{travelerInfo.phone}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 md:col-span-2">
-              <MapPin className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">Avgångsort</p>
-                <p className="font-medium">{travelerInfo.departureLocation}</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ))}
 
       {/* Trip Overview */}
       <Card className="shadow-elegant">
@@ -127,7 +136,7 @@ export const BookingStep3 = ({
 
           <div className="border-t border-border pt-4 mt-4 space-y-2">
             <div className="flex justify-between text-muted-foreground">
-              <span>{trip.price.toLocaleString("sv-SE")} kr x {travelers} resenärer</span>
+              <span>{pricePerPerson.toLocaleString("sv-SE")} kr x {travelers} resenärer</span>
               <span>{baseTotal.toLocaleString("sv-SE")} kr</span>
             </div>
             
