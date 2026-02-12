@@ -34,15 +34,17 @@ const Auth = () => {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
   const navigate = useNavigate();
 
-  // Detect invite/recovery token in URL hash — sign out any existing session first
+  // Listen for auth events from magic link / recovery token processing
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash && (hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=magiclink"))) {
-      // Sign out current user so the magic link token can be processed cleanly
-      supabase.auth.signOut().then(() => {
-        setIsSettingPassword(true);
-      });
-    }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+        const hash = window.location.hash;
+        if (hash && (hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=magiclink"))) {
+          setIsSettingPassword(true);
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const {
@@ -62,12 +64,12 @@ const Auth = () => {
     }
   }, [shouldRedirect, user, isAdmin, adminLoading, navigate]);
 
-  // Handle already logged in users
+  // Handle already logged in users (but not if setting password via magic link)
   useEffect(() => {
-    if (user && !adminLoading) {
+    if (user && !adminLoading && !isSettingPassword) {
       navigate(isAdmin ? "/admin" : "/dashboard");
     }
-  }, [user, isAdmin, adminLoading, navigate]);
+  }, [user, isAdmin, adminLoading, navigate, isSettingPassword]);
 
   const onSubmit = async (data: AuthFormData) => {
     setIsLoading(true);
