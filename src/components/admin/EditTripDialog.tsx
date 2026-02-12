@@ -346,9 +346,18 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Avgångsort</FormLabel>
-                          <FormControl>
-                            <Input placeholder="t.ex. Stockholm" {...field} />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Välj avgångsort" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="bg-background z-50">
+                              <SelectItem value="Arlanda (ARN)">Arlanda (ARN)</SelectItem>
+                              <SelectItem value="Landvetter (GOT)">Landvetter (GOT)</SelectItem>
+                              <SelectItem value="Kastrup (CPH)">Kastrup (CPH)</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
