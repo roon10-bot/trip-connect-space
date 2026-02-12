@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.send-meeting-confirmation]
 verify_jwt = false
+
+[functions.invite-travelers]
+verify_jwt = false
