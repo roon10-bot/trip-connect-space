@@ -26,9 +26,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Ship, Calendar, Users, Trash2, Edit, MapPin, Eye, EyeOff } from "lucide-react";
+import { Ship, Calendar, Users, Trash2, Edit, MapPin, Eye, EyeOff, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { EditTripDialog } from "./EditTripDialog";
+import { CopyTripDialog } from "./CopyTripDialog";
 
 const tripTypeLabels: Record<string, string> = {
   seglingsvecka: "Seglingsveckan",
@@ -43,6 +44,7 @@ interface TripsListProps {
 export const TripsList = ({ onEditTrip }: TripsListProps) => {
   const queryClient = useQueryClient();
   const [editingTripId, setEditingTripId] = useState<string | null>(null);
+  const [copyingTrip, setCopyingTrip] = useState<NonNullable<typeof trips>[0] | null>(null);
 
   const { data: trips, isLoading } = useQuery({
     queryKey: ["admin-trips"],
@@ -199,6 +201,15 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
                         <Button
                           variant="outline"
                           size="icon"
+                          onClick={() => setCopyingTrip(trip)}
+                          title="Kopiera resa"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => setEditingTripId(trip.id)}
                         >
                           <Edit className="w-4 h-4" />
@@ -251,6 +262,12 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
         tripId={editingTripId}
         open={!!editingTripId}
         onOpenChange={(open) => !open && setEditingTripId(null)}
+      />
+
+      <CopyTripDialog
+        trip={copyingTrip}
+        open={!!copyingTrip}
+        onOpenChange={(open) => !open && setCopyingTrip(null)}
       />
     </Card>
   );
