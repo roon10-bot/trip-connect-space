@@ -280,6 +280,51 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          body_text: string
+          button_text: string
+          footer_text: string
+          heading: string
+          id: string
+          logo_url: string | null
+          name: string
+          primary_color: string
+          subject: string
+          template_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body_text?: string
+          button_text?: string
+          footer_text?: string
+          heading?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          primary_color?: string
+          subject: string
+          template_key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body_text?: string
+          button_text?: string
+          footer_text?: string
+          heading?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          primary_color?: string
+          subject?: string
+          template_key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       meeting_bookings: {
         Row: {
           created_at: string
