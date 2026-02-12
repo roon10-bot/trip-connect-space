@@ -6,6 +6,7 @@ import { sv } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import {
   Carousel,
   CarouselContent,
@@ -29,6 +30,7 @@ interface Trip {
   min_persons?: number | null;
   max_persons?: number | null;
   base_price?: number | null;
+  is_fullbooked?: boolean;
 }
 
 interface TripImage {
@@ -125,14 +127,26 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-xl overflow-hidden shadow-elegant border border-border hover:shadow-lg transition-all duration-300 h-full flex flex-col"
+                className={cn(
+                  "bg-card rounded-xl overflow-hidden shadow-elegant border border-border hover:shadow-lg transition-all duration-300 h-full flex flex-col",
+                  trip.is_fullbooked && "opacity-75"
+                )}
               >
                 {/* Trip Image Carousel */}
-                <TripImageCarousel 
-                  images={imagesByTrip[trip.id] || []}
-                  fallbackImage={trip.image_url}
-                  className="h-52"
-                />
+                <div className="relative">
+                  <TripImageCarousel 
+                    images={imagesByTrip[trip.id] || []}
+                    fallbackImage={trip.image_url}
+                    className="h-52"
+                  />
+                  {trip.is_fullbooked && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <span className="bg-destructive text-destructive-foreground font-bold text-lg px-6 py-2 rounded-full uppercase tracking-wide">
+                        Fullbokat
+                      </span>
+                    </div>
+                  )}
+                </div>
                 
                 <div className="p-5 flex flex-col flex-1">
                   {/* Trip Type Badge */}
@@ -191,11 +205,17 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
                         )}
                       </div>
                       
-                      <Link to={`/book/trip/${trip.id}`}>
-                        <Button className="bg-sunset hover:bg-sunset/90 text-accent-foreground font-semibold px-6">
-                          Boka resa
+                      {trip.is_fullbooked ? (
+                        <Button disabled className="font-semibold px-6" variant="secondary">
+                          Fullbokat
                         </Button>
-                      </Link>
+                      ) : (
+                        <Link to={`/book/trip/${trip.id}`}>
+                          <Button className="bg-sunset hover:bg-sunset/90 text-accent-foreground font-semibold px-6">
+                            Boka resa
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>

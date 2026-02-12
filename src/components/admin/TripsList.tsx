@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Ship, Calendar, Users, Trash2, Edit, MapPin, Eye, EyeOff, Copy } from "lucide-react";
+import { Ship, Calendar, Users, Trash2, Edit, MapPin, Eye, EyeOff, Copy, Ban } from "lucide-react";
 import { toast } from "sonner";
 import { EditTripDialog } from "./EditTripDialog";
 import { CopyTripDialog } from "./CopyTripDialog";
@@ -71,6 +71,24 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
     onSuccess: (_, { isActive }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-trips"] });
       toast.success(isActive ? "Resa aktiverad" : "Resa inaktiverad");
+    },
+    onError: () => {
+      toast.error("Kunde inte uppdatera resan");
+    },
+  });
+
+  const toggleFullbookedMutation = useMutation({
+    mutationFn: async ({ tripId, isFullbooked }: { tripId: string; isFullbooked: boolean }) => {
+      const { error } = await supabase
+        .from("trips")
+        .update({ is_fullbooked: isFullbooked })
+        .eq("id", tripId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, { isFullbooked }) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-trips"] });
+      toast.success(isFullbooked ? "Resa markerad som fullbokad" : "Resa öppnad för bokning");
     },
     onError: () => {
       toast.error("Kunde inte uppdatera resan");
@@ -176,9 +194,14 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
                       {getTotalPrice(trip).toLocaleString("sv-SE")} kr
                     </TableCell>
                     <TableCell>
-                      <Badge variant={trip.is_active ? "default" : "secondary"}>
-                        {trip.is_active ? "Aktiv" : "Inaktiv"}
-                      </Badge>
+                      <div className="flex items-center gap-1">
+                        <Badge variant={trip.is_active ? "default" : "secondary"}>
+                          {trip.is_active ? "Aktiv" : "Inaktiv"}
+                        </Badge>
+                        {trip.is_fullbooked && (
+                          <Badge variant="destructive">Fullbokat</Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -196,6 +219,18 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
                           ) : (
                             <Eye className="w-4 h-4" />
                           )}
+                        </Button>
+
+                        <Button
+                          variant={trip.is_fullbooked ? "destructive" : "outline"}
+                          size="icon"
+                          onClick={() => toggleFullbookedMutation.mutate({
+                            tripId: trip.id,
+                            isFullbooked: !trip.is_fullbooked,
+                          })}
+                          title={trip.is_fullbooked ? "Öppna för bokning" : "Markera fullbokad"}
+                        >
+                          <Ban className="w-4 h-4" />
                         </Button>
 
                         <Button

@@ -555,6 +555,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          is_fullbooked: boolean
           max_persons: number | null
           min_persons: number | null
           name: string
@@ -583,6 +584,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_fullbooked?: boolean
           max_persons?: number | null
           min_persons?: number | null
           name: string
@@ -611,6 +613,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_fullbooked?: boolean
           max_persons?: number | null
           min_persons?: number | null
           name?: string
