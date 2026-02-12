@@ -710,6 +710,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_booking_owner: {
+        Args: { booking_id: string; check_user_id: string }
+        Returns: boolean
+      }
+      is_traveler_on_booking: {
+        Args: { booking_id: string; user_email: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
