@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,9 +28,19 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [isSettingPassword, setIsSettingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
   const { signIn, signUp, user } = useAuth();
   const { isAdmin, isLoading: adminLoading } = useAdmin();
   const navigate = useNavigate();
+
+  // Detect invite/recovery token in URL hash
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && (hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=magiclink"))) {
+      setIsSettingPassword(true);
+    }
+  }, []);
 
   const {
     register,
@@ -85,6 +96,29 @@ const Auth = () => {
         }
       }
     } catch (error) {
+      toast.error("Ett oväntat fel uppstod");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error("Lösenordet måste vara minst 6 tecken");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Lösenord sparat! Du är nu inloggad.");
+        setIsSettingPassword(false);
+        setShouldRedirect(true);
+      }
+    } catch {
       toast.error("Ett oväntat fel uppstod");
     } finally {
       setIsLoading(false);
@@ -148,80 +182,114 @@ const Auth = () => {
 
           <div className="text-center mb-8">
             <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
-              {isLogin ? "Välkommen tillbaka" : "Skapa konto"}
+              {isSettingPassword ? "Välj ditt lösenord" : isLogin ? "Välkommen tillbaka" : "Skapa konto"}
             </h1>
             <p className="text-muted-foreground">
-              {isLogin
+              {isSettingPassword
+                ? "Ange ett lösenord för att aktivera ditt konto"
+                : isLogin
                 ? "Logga in för att hantera dina bokningar"
                 : "Registrera dig för att börja boka resor"}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {!isLogin && (
+          {isSettingPassword ? (
+            <form onSubmit={handleSetPassword} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Namn</Label>
+                <Label htmlFor="newPassword">Nytt lösenord</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Minst 6 tecken"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="h-12 pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+              <Button
+                type="submit"
+                className="w-full h-12 bg-gradient-ocean hover:opacity-90 text-lg font-semibold"
+                disabled={isLoading}
+              >
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Spara lösenord"}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Namn</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Ditt fullständiga namn"
+                    {...register("fullName")}
+                    className="h-12"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email">E-post</Label>
                 <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="Ditt fullständiga namn"
-                  {...register("fullName")}
+                  id="email"
+                  type="email"
+                  placeholder="din@email.se"
+                  {...register("email")}
                   className="h-12"
                 />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                )}
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="email">E-post</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="din@email.se"
-                {...register("email")}
-                className="h-12"
-              />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Lösenord</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  {...register("password")}
-                  className="h-12 pr-12"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+              <div className="space-y-2">
+                <Label htmlFor="password">Lösenord</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...register("password")}
+                    className="h-12 pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password.message}</p>
+                )}
               </div>
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
-              )}
-            </div>
 
-            <Button
-              type="submit"
-              className="w-full h-12 bg-gradient-ocean hover:opacity-90 text-lg font-semibold"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : isLogin ? (
-                "Logga in"
-              ) : (
-                "Skapa konto"
-              )}
-            </Button>
-          </form>
+              <Button
+                type="submit"
+                className="w-full h-12 bg-gradient-ocean hover:opacity-90 text-lg font-semibold"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : isLogin ? (
+                  "Logga in"
+                ) : (
+                  "Skapa konto"
+                )}
+              </Button>
+            </form>
+          )}
 
           <div className="mt-6 text-center">
             <button
