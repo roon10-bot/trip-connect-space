@@ -13,8 +13,8 @@ import { cn } from "@/lib/utils";
 import type { TravelerInfo } from "@/pages/BookTrip";
 
 const DEPARTURE_LOCATIONS = [
-  "Arlanda",
-  "Landvetter",
+  "Arlanda (ARN)",
+  "Landvetter (GOT)",
   "Kastrup (CPH)",
 ];
 
