@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.invite-travelers]
 verify_jwt = false
+
+[functions.manage-users]
+verify_jwt = false

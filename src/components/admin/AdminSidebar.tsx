@@ -1,7 +1,7 @@
-import { Map, PlusCircle, Ticket, LayoutDashboard, ClipboardList, CreditCard, Users, Video } from "lucide-react";
+import { Map, PlusCircle, Ticket, LayoutDashboard, ClipboardList, CreditCard, Users, Video, UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type AdminView = "dashboard" | "trips" | "create-trip" | "discount-codes" | "bookings" | "transactions" | "customers" | "meeting-slots";
+export type AdminView = "dashboard" | "trips" | "create-trip" | "discount-codes" | "bookings" | "transactions" | "customers" | "meeting-slots" | "accounts";
 
 interface AdminSidebarProps {
   currentView: AdminView;
@@ -46,6 +46,11 @@ const menuItems = [
         label: "Kunder",
         value: "customers" as AdminView,
         icon: Users,
+      },
+      {
+        label: "Konton",
+        value: "accounts" as AdminView,
+        icon: UserCog,
       },
       {
         label: "Mötesbokning",
