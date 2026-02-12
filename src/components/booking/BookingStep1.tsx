@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface BookingStep1Props {
   travelers: number;
   setTravelers: (value: number) => void;
+  maxPersons: number;
   discountCode: string;
   setDiscountCode: (value: string) => void;
   appliedDiscount: {
@@ -23,6 +24,7 @@ interface BookingStep1Props {
 export const BookingStep1 = ({
   travelers,
   setTravelers,
+  maxPersons,
   discountCode,
   setDiscountCode,
   appliedDiscount,
@@ -65,8 +67,8 @@ export const BookingStep1 = ({
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => travelers < 10 && setTravelers(travelers + 1)}
-                disabled={travelers >= 10}
+                onClick={() => travelers < maxPersons && setTravelers(travelers + 1)}
+                disabled={travelers >= maxPersons}
                 className="h-12 w-12"
               >
                 +
