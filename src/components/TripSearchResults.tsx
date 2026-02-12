@@ -186,23 +186,12 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <span className="text-xs text-muted-foreground">
-                          {trip.trip_type === "splitveckan" && trip.base_price ? "Pris/person" : "Pris"}
-                        </span>
-                        {trip.trip_type === "splitveckan" && trip.base_price && trip.min_persons && trip.max_persons ? (
-                          <div>
-                            <p className="text-xl font-bold text-primary">
-                              {Math.ceil((Number(trip.base_price) * 1.20) / Number(trip.max_persons)).toLocaleString("sv-SE")} - {Math.ceil((Number(trip.base_price) * 1.20) / Number(trip.min_persons)).toLocaleString("sv-SE")} kr
-                            </p>
-                            <span className="text-xs text-muted-foreground">
-                              {trip.min_persons}-{trip.max_persons} personer
-                            </span>
-                          </div>
-                        ) : (
-                          <p className="text-2xl font-bold text-primary">
-                            {trip.price.toLocaleString("sv-SE")} kr
-                          </p>
-                        )}
+                        <span className="text-xs text-muted-foreground">Pris från</span>
+                        <p className="text-2xl font-bold text-primary">
+                          {trip.trip_type === "splitveckan" && trip.base_price && trip.max_persons
+                            ? Math.ceil((Number(trip.base_price) * 1.20) / Number(trip.max_persons)).toLocaleString("sv-SE")
+                            : trip.price.toLocaleString("sv-SE")} kr
+                        </p>
                       </div>
                       
                       {trip.is_fullbooked ? (
