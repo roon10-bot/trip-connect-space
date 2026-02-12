@@ -51,7 +51,7 @@ const SearchTrips = () => {
     isLoading,
     refetch
   } = useQuery({
-    queryKey: ["trips", departure, tripType],
+    queryKey: ["trips", departure, tripType, selectedMonth?.year, selectedMonth?.month],
     queryFn: async () => {
       let query = supabase.from("trips").select("*").eq("is_active", true).order("departure_date", {
         ascending: true
@@ -61,6 +61,13 @@ const SearchTrips = () => {
       }
       if (departure !== "all") {
         query = query.ilike("departure_location", `%${departure}%`);
+      }
+      if (selectedMonth) {
+        const startDate = `${selectedMonth.year}-${String(selectedMonth.month + 1).padStart(2, "0")}-01`;
+        const endYear = selectedMonth.month === 11 ? selectedMonth.year + 1 : selectedMonth.year;
+        const endMonth = selectedMonth.month === 11 ? 1 : selectedMonth.month + 2;
+        const endDate = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
+        query = query.gte("departure_date", startDate).lt("departure_date", endDate);
       }
       const { data, error } = await query;
       if (error) throw error;
