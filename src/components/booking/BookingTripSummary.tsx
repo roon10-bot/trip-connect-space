@@ -72,6 +72,14 @@ export const BookingTripSummary = ({
           <span className="text-sm">Avgång från {trip.departure_location}</span>
         </div>
 
+        {/* Max persons */}
+        {trip.max_persons && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Users className="w-4 h-4 text-primary" />
+            <span className="text-sm">Max {trip.max_persons} personer</span>
+          </div>
+        )}
+
         <div className="border-t border-border pt-4 space-y-3">
           {/* Price per person */}
           <div className="flex justify-between text-sm">
