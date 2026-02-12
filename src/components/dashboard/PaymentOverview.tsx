@@ -53,7 +53,7 @@ interface Payment {
 }
 
 export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
-  // Fetch all trip bookings
+  // Fetch all trip bookings - RLS handles access for both bookers and travelers
   const { data: tripBookings, isLoading: bookingsLoading } = useQuery({
     queryKey: ["trip-bookings-payment-overview", userId],
     queryFn: async () => {
@@ -62,6 +62,8 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
         .select(`
           id,
           total_price,
+          travelers,
+          user_id,
           status,
           created_at,
           trips (
@@ -77,23 +79,21 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
             final_payment_date
           )
         `)
-        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as TripBookingWithTrip[];
+      return data as (TripBookingWithTrip & { travelers: number; user_id: string })[];
     },
     enabled: !!userId,
   });
 
-  // Fetch all payments
+  // Fetch all payments - RLS handles access
   const { data: payments, isLoading: paymentsLoading } = useQuery({
     queryKey: ["payments-overview", userId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
         .select("*")
-        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -103,6 +103,14 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
   });
 
   // Calculate statistics
+  // Helper: calculate per-person share for a booking
+  const getPersonShare = (booking: TripBookingWithTrip & { travelers: number; user_id: string }) => {
+    const totalPrice = Number(booking.total_price);
+    const travelers = booking.travelers || 1;
+    // If user is the booker, show full amount; if traveler, show per-person share
+    return booking.user_id === userId ? totalPrice : totalPrice / travelers;
+  };
+
   const stats = useMemo(() => {
     if (!tripBookings || !payments) {
       return {
@@ -116,7 +124,7 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
     }
 
     const totalOwed = tripBookings.reduce(
-      (sum, b) => sum + Number(b.total_price),
+      (sum, b) => sum + getPersonShare(b),
       0
     );
 
@@ -137,7 +145,7 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
       completedPayments: completedPayments.length,
       pendingPayments: payments.filter((p) => p.status === "pending").length,
     };
-  }, [tripBookings, payments]);
+  }, [tripBookings, payments, userId]);
 
   // Group payments by booking
   const paymentsByBooking = useMemo(() => {
@@ -170,7 +178,7 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
     tripBookings.forEach((booking) => {
       if (!booking.trips) return;
       
-      const totalPrice = Number(booking.total_price);
+      const totalPrice = getPersonShare(booking);
       const bookingPayments = payments.filter(
         (p) => p.trip_booking_id === booking.id && p.status === "completed"
       );

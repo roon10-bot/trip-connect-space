@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -57,6 +58,7 @@ interface TripBookingDetailsDialogProps {
     discount_amount: number | null;
     status: string;
     created_at: string;
+    user_id?: string | null;
     trips: {
       name: string;
       trip_type: string;
@@ -94,6 +96,18 @@ export const TripBookingDetailsDialog = ({
 }: TripBookingDetailsDialogProps) => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
+  const { user } = useAuth();
+
+  // Determine if user is the booker or a traveler
+  const isBooker = booking?.user_id === user?.id;
+  const travelers = booking?.travelers || 1;
+
+  // Per-person share: if traveler (not booker), divide total by number of travelers
+  const effectiveTotal = useMemo(() => {
+    if (!booking) return 0;
+    const total = Number(booking.total_price);
+    return isBooker ? total : Math.ceil(total / travelers);
+  }, [booking, isBooker, travelers]);
 
   const formatTripType = (type: string) => {
     const types: Record<string, string> = {
@@ -110,7 +124,7 @@ export const TripBookingDetailsDialog = ({
     
     const options: PaymentOption[] = [];
     const trip = booking.trips;
-    const totalPrice = Number(booking.total_price);
+    const totalPrice = effectiveTotal;
     
     if (trip.first_payment_amount && trip.first_payment_amount > 0) {
       const calculatedAmount = calculatePaymentAmount(
@@ -462,11 +476,18 @@ export const TripBookingDetailsDialog = ({
                         </div>
                       )}
                       <div className="flex justify-between items-center py-3 bg-muted/50 rounded-lg px-3">
-                        <span className="font-semibold text-lg">Totalt att betala</span>
+                        <span className="font-semibold text-lg">
+                          {isBooker ? "Totalt att betala" : "Din del att betala"}
+                        </span>
                         <span className="font-bold text-2xl text-ocean">
-                          {Number(booking.total_price).toLocaleString("sv-SE")} kr
+                          {effectiveTotal.toLocaleString("sv-SE")} kr
                         </span>
                       </div>
+                      {!isBooker && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Totalt för bokningen: {Number(booking.total_price).toLocaleString("sv-SE")} kr ({booking.travelers} resenärer)
+                        </p>
+                      )}
                     </div>
 
                     {/* Payment Plan Section */}
