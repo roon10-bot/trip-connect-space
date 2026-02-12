@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CalendarIcon, Minus, Plus, Search } from "lucide-react";
-import { format } from "date-fns";
-import { sv } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +10,7 @@ import { TripSearchResults } from "@/components/TripSearchResults";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
+import { MonthPicker } from "@/components/MonthPicker";
 const departures = [{
   value: "all",
   label: "Alla avgångsorter"
@@ -44,8 +42,9 @@ const SearchTrips = () => {
   const [departure, setDeparture] = useState<string>(searchParams.get("departure") || "all");
   const [tripType, setTripType] = useState<string>(searchParams.get("tripType") || "all");
   const [guests, setGuests] = useState(parseInt(searchParams.get("guests") || "2", 10));
-  const [date, setDate] = useState<Date | undefined>(
-    searchParams.get("date") ? new Date(searchParams.get("date")!) : undefined
+  const monthParam = searchParams.get("month");
+  const [selectedMonth, setSelectedMonth] = useState<{ year: number; month: number } | undefined>(
+    monthParam ? { year: parseInt(monthParam.split("-")[0]), month: parseInt(monthParam.split("-")[1]) - 1 } : undefined
   );
   const {
     data: trips,
@@ -63,22 +62,42 @@ const SearchTrips = () => {
       if (departure !== "all") {
         query = query.ilike("departure_location", `%${departure}%`);
       }
-      const {
-        data,
-        error
-      } = await query;
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     }
   });
+
+  const { data: availableMonths } = useQuery({
+    queryKey: ["available-months"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trips")
+        .select("departure_date")
+        .eq("is_active", true);
+      if (error) throw error;
+      const months = new Set<string>();
+      data?.forEach((t) => {
+        const d = new Date(t.departure_date);
+        months.add(`${d.getFullYear()}-${d.getMonth()}`);
+      });
+      return Array.from(months).map((m) => {
+        const [year, month] = m.split("-").map(Number);
+        return { year, month };
+      });
+    },
+  });
+
+  const MONTH_NAMES_SHORT = ["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"];
+
   const handleSearch = () => {
     const params: Record<string, string> = {
       departure,
       tripType,
       guests: guests.toString(),
     };
-    if (date) {
-      params.date = format(date, "yyyy-MM-dd");
+    if (selectedMonth) {
+      params.month = `${selectedMonth.year}-${String(selectedMonth.month + 1).padStart(2, "0")}`;
     }
     setSearchParams(params);
     refetch();
@@ -98,7 +117,7 @@ const SearchTrips = () => {
             {" · "}
             {tripTypes.find(t => t.value === tripType)?.label || "Alla resor"}
             {" · "}
-            {date ? format(date, "d MMM yyyy", { locale: sv }) : "Alla datum"}
+            {selectedMonth ? `${MONTH_NAMES_SHORT[selectedMonth.month]} ${selectedMonth.year}` : "Alla månader"}
             {" · "}
             {guests} {guests === 1 ? "resenär" : "resenärer"}
           </p>
@@ -139,10 +158,10 @@ const SearchTrips = () => {
             </Select>
           </div>
 
-          {/* Datum */}
+          {/* Månad */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
-              Avresedatum
+              Avresemånad
             </label>
             <Popover>
               <PopoverTrigger asChild>
@@ -150,22 +169,20 @@ const SearchTrips = () => {
                   variant="outline"
                   className={cn(
                     "w-full h-12 justify-start text-left font-normal bg-background",
-                    !date && "text-muted-foreground"
+                    !selectedMonth && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "d MMM yyyy", { locale: sv }) : "Välj datum"}
+                  {selectedMonth
+                    ? `${MONTH_NAMES_SHORT[selectedMonth.month]} ${selectedMonth.year}`
+                    : "Välj månad"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                  locale={sv}
-                  disabled={(d) => d < new Date()}
-                  className="pointer-events-auto"
+                <MonthPicker
+                  selected={selectedMonth}
+                  onSelect={setSelectedMonth}
+                  availableMonths={availableMonths}
                 />
               </PopoverContent>
             </Popover>
