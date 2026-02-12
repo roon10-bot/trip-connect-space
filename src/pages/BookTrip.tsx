@@ -450,6 +450,7 @@ const BookTrip = () => {
                   key="step1"
                   travelers={travelers}
                   setTravelers={setTravelers}
+                  maxPersons={trip.max_persons ?? 10}
                   discountCode={discountCode}
                   setDiscountCode={setDiscountCode}
                   appliedDiscount={appliedDiscount}
