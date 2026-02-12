@@ -1,0 +1,1 @@
+ALTER TABLE public.trips ADD COLUMN is_fullbooked boolean NOT NULL DEFAULT false;

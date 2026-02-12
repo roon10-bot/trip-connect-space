@@ -313,6 +313,24 @@ const BookTrip = () => {
     );
   }
 
+  if (trip.is_fullbooked) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 pt-32 pb-16 text-center">
+          <h1 className="text-3xl font-serif font-bold mb-4">Fullbokat</h1>
+          <p className="text-muted-foreground mb-6">
+            Tyvärr är {trip.name} fullbokad. Kolla gärna efter andra tillgängliga resor.
+          </p>
+          <Link to="/search">
+            <Button>Sök efter andra resor</Button>
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   if (bookingComplete) {
     return (
       <div className="min-h-screen bg-background">
