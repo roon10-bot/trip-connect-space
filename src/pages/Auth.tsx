@@ -34,12 +34,22 @@ const Auth = () => {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
   const navigate = useNavigate();
 
+  // Check if URL contains magic link / invite / recovery hash
+  const hasMagicLinkHash = () => {
+    const hash = window.location.hash;
+    return hash && (hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=magiclink"));
+  };
+
   // Listen for auth events from magic link / recovery token processing
   useEffect(() => {
+    // Set immediately if hash is present (before auth event fires)
+    if (hasMagicLinkHash()) {
+      setIsSettingPassword(true);
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-        const hash = window.location.hash;
-        if (hash && (hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=magiclink"))) {
+        if (hasMagicLinkHash()) {
           setIsSettingPassword(true);
         }
       }
