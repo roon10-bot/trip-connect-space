@@ -34,11 +34,14 @@ const Auth = () => {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
   const navigate = useNavigate();
 
-  // Detect invite/recovery token in URL hash
+  // Detect invite/recovery token in URL hash — sign out any existing session first
   useEffect(() => {
     const hash = window.location.hash;
     if (hash && (hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=magiclink"))) {
-      setIsSettingPassword(true);
+      // Sign out current user so the magic link token can be processed cleanly
+      supabase.auth.signOut().then(() => {
+        setIsSettingPassword(true);
+      });
     }
   }, []);
 
