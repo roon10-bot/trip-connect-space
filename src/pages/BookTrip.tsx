@@ -314,7 +314,30 @@ const BookTrip = () => {
 
       if (travelersError) {
         console.error("Error saving travelers:", travelersError);
-        // Booking is still created, just log the error
+      }
+
+      // Invite all travelers (create accounts + send emails)
+      try {
+        await supabase.functions.invoke("invite-travelers", {
+          body: {
+            travelers: travelersInfo.map((t) => ({
+              firstName: t.firstName,
+              lastName: t.lastName,
+              email: t.email,
+              phone: t.phone,
+            })),
+            tripName: trip.name,
+            tripType: trip.trip_type,
+            departureDate: format(new Date(trip.departure_date), "d MMMM yyyy", { locale: sv }),
+            returnDate: format(new Date(trip.return_date), "d MMMM yyyy", { locale: sv }),
+            bookingId: booking.id,
+            bookerEmail: primaryTraveler.email,
+            siteUrl: window.location.origin,
+          },
+        });
+      } catch (inviteError) {
+        console.error("Error inviting travelers:", inviteError);
+        // Don't block booking completion if invite fails
       }
       
       setBookingComplete(true);
