@@ -46,7 +46,7 @@ export const CopyTripDialog = ({ trip, open, onOpenChange }: CopyTripDialogProps
         .from("trips")
         .insert({
           trip_type: trip.trip_type,
-          name: trip.name + " (kopia)",
+          name: trip.name,
           capacity: trip.capacity,
           min_persons: trip.min_persons,
           max_persons: trip.max_persons,
