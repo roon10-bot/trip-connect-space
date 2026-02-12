@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -87,6 +87,7 @@ interface EditTripDialogProps {
 
 export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogProps) => {
   const queryClient = useQueryClient();
+  const [returnDateOpen, setReturnDateOpen] = useState(false);
 
   const { data: trip, isLoading: tripLoading } = useQuery({
     queryKey: ["trip", tripId],
@@ -394,7 +395,12 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                               <Calendar
                                 mode="single"
                                 selected={field.value}
-                                onSelect={field.onChange}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  if (date) {
+                                    setTimeout(() => setReturnDateOpen(true), 150);
+                                  }
+                                }}
                                 initialFocus
                                 className="p-3 pointer-events-auto"
                               />
@@ -411,7 +417,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
                           <FormLabel>Hemresedatum</FormLabel>
-                          <Popover>
+                          <Popover open={returnDateOpen} onOpenChange={setReturnDateOpen}>
                             <PopoverTrigger asChild>
                               <FormControl>
                                 <Button
@@ -434,7 +440,14 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                               <Calendar
                                 mode="single"
                                 selected={field.value}
-                                onSelect={field.onChange}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  setReturnDateOpen(false);
+                                }}
+                                disabled={(date) => {
+                                  const dep = form.getValues("departure_date");
+                                  return dep ? date <= dep : false;
+                                }}
                                 initialFocus
                                 className="p-3 pointer-events-auto"
                               />
