@@ -27,7 +27,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Ship, Calendar, Users, Trash2, Edit, MapPin, Eye, EyeOff, Copy, Ban, Pencil } from "lucide-react";
+import { Ship, Calendar, Users, Trash2, Edit, MapPin, Eye, EyeOff, Copy, Ban, Pencil, Filter } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { EditTripDialog } from "./EditTripDialog";
 import { CopyTripDialog } from "./CopyTripDialog";
@@ -49,6 +57,13 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
   const [copyingTrip, setCopyingTrip] = useState<NonNullable<typeof trips>[0] | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+
+  // Filters
+  const [filterName, setFilterName] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [filterDeparture, setFilterDeparture] = useState("");
+  const [filterLocation, setFilterLocation] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   const { data: trips, isLoading } = useQuery({
     queryKey: ["admin-trips"],
@@ -142,20 +157,45 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
     );
   }
 
+  // Get unique departure locations for filter
+  const departureLocations = [...new Set(trips?.map((t) => t.departure_location) || [])];
+
+  // Apply filters
+  const filteredTrips = trips?.filter((trip) => {
+    if (filterName && !trip.name.toLowerCase().includes(filterName.toLowerCase())) return false;
+    if (filterType !== "all" && trip.trip_type !== filterType) return false;
+    if (filterDeparture && !trip.departure_date.includes(filterDeparture)) return false;
+    if (filterLocation !== "all" && trip.departure_location !== filterLocation) return false;
+    if (filterStatus === "active" && !trip.is_active) return false;
+    if (filterStatus === "inactive" && trip.is_active) return false;
+    if (filterStatus === "fullbooked" && !trip.is_fullbooked) return false;
+    return true;
+  });
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
-  const allSelected = trips && trips.length > 0 && selectedIds.length === trips.length;
+  const allSelected = filteredTrips && filteredTrips.length > 0 && selectedIds.length === filteredTrips.length;
 
   const toggleAll = () => {
     if (allSelected) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(trips?.map((t) => t.id) || []);
+      setSelectedIds(filteredTrips?.map((t) => t.id) || []);
     }
+  };
+
+  const hasActiveFilters = filterName || filterType !== "all" || filterDeparture || filterLocation !== "all" || filterStatus !== "all";
+
+  const clearFilters = () => {
+    setFilterName("");
+    setFilterType("all");
+    setFilterDeparture("");
+    setFilterLocation("all");
+    setFilterStatus("all");
   };
 
   return (
@@ -184,6 +224,64 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
       </CardHeader>
       <CardContent>
         {trips && trips.length > 0 ? (
+          <>
+            {/* Filters */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+              <Input
+                placeholder="Sök resa..."
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
+              />
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Typ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla typer</SelectItem>
+                  <SelectItem value="seglingsvecka">Seglingsveckan</SelectItem>
+                  <SelectItem value="splitveckan">Splitveckan</SelectItem>
+                  <SelectItem value="studentveckan">Studentveckan</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                type="month"
+                value={filterDeparture}
+                onChange={(e) => setFilterDeparture(e.target.value)}
+                placeholder="Avgångsmånad"
+              />
+              <Select value={filterLocation} onValueChange={setFilterLocation}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Avgångsort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla avgångsorter</SelectItem>
+                  {departureLocations.map((loc) => (
+                    <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla statusar</SelectItem>
+                  <SelectItem value="active">Aktiv</SelectItem>
+                  <SelectItem value="inactive">Inaktiv</SelectItem>
+                  <SelectItem value="fullbooked">Fullbokad</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {hasActiveFilters && (
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm text-muted-foreground">
+                  Visar {filteredTrips?.length} av {trips.length} resor
+                </p>
+                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                  Rensa filter
+                </Button>
+              </div>
+            )}
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -205,7 +303,7 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {trips.map((trip) => (
+                {filteredTrips?.map((trip) => (
                   <TableRow key={trip.id} className={selectedIds.includes(trip.id) ? "bg-muted/50" : ""}>
                     <TableCell>
                       <Checkbox
@@ -330,6 +428,7 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
               </TableBody>
             </Table>
           </div>
+          </>
         ) : (
           <div className="text-center py-12">
             <Ship className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
