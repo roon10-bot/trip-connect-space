@@ -122,8 +122,8 @@ serve(async (req: Request) => {
           continue;
         }
 
-        // Build the magic link URL using the hashed_token
-        const magicLinkUrl = `${siteUrl}/auth#access_token=${linkData.properties.hashed_token}&type=magiclink`;
+        // Use the action_link provided by Supabase (contains the correct verification token)
+        const magicLinkUrl = linkData.properties.action_link;
 
         // Send ONE single email with everything included
         await resend.emails.send({
