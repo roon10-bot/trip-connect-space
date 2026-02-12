@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -88,6 +88,11 @@ interface EditTripDialogProps {
 export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogProps) => {
   const queryClient = useQueryClient();
   const [returnDateOpen, setReturnDateOpen] = useState(false);
+  const [accommodationRooms, setAccommodationRooms] = useState<string>("");
+  const [accommodationSizeSqm, setAccommodationSizeSqm] = useState<string>("");
+  const [accommodationFacilities, setAccommodationFacilities] = useState<string>("");
+  const [accommodationAddress, setAccommodationAddress] = useState<string>("");
+  const [accommodationDescription, setAccommodationDescription] = useState<string>("");
 
   const { data: trip, isLoading: tripLoading } = useQuery({
     queryKey: ["trip", tripId],
@@ -150,6 +155,11 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
         final_payment_type: (trip.final_payment_type as "percent" | "amount") || "amount",
         final_payment_date: trip.final_payment_date ? new Date(trip.final_payment_date) : null,
       });
+      setAccommodationRooms(trip.accommodation_rooms?.toString() || "");
+      setAccommodationSizeSqm(trip.accommodation_size_sqm?.toString() || "");
+      setAccommodationFacilities((trip.accommodation_facilities || []).join(", "));
+      setAccommodationAddress(trip.accommodation_address || "");
+      setAccommodationDescription(trip.accommodation_description || "");
     }
   }, [trip, form]);
 
@@ -180,6 +190,13 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
           final_payment_amount: values.final_payment_amount,
           final_payment_type: values.final_payment_type,
           final_payment_date: values.final_payment_date ? format(values.final_payment_date, "yyyy-MM-dd") : null,
+          accommodation_rooms: accommodationRooms ? parseInt(accommodationRooms) : null,
+          accommodation_size_sqm: accommodationSizeSqm ? parseInt(accommodationSizeSqm) : null,
+          accommodation_facilities: accommodationFacilities
+            ? accommodationFacilities.split(",").map(f => f.trim()).filter(Boolean)
+            : null,
+          accommodation_address: accommodationAddress || null,
+          accommodation_description: accommodationDescription || null,
         })
         .eq("id", tripId);
 
@@ -522,6 +539,65 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                       </FormItem>
                     )}
                   />
+                </div>
+
+                {/* Accommodation Info Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Boendeinformation</h3>
+                  <p className="text-sm text-muted-foreground">Visas för kunder under "Mer information"</p>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Antal rum</label>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="t.ex. 3"
+                        value={accommodationRooms}
+                        onChange={(e) => setAccommodationRooms(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Storlek (m²)</label>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="t.ex. 85"
+                        value={accommodationSizeSqm}
+                        onChange={(e) => setAccommodationSizeSqm(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Faciliteter</label>
+                    <Input
+                      placeholder="t.ex. Pool, WiFi, Balkong, AC (kommaseparerat)"
+                      value={accommodationFacilities}
+                      onChange={(e) => setAccommodationFacilities(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">Separera med komma</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Adress</label>
+                    <Input
+                      placeholder="t.ex. Riva 21000, Split, Kroatien"
+                      value={accommodationAddress}
+                      onChange={(e) => setAccommodationAddress(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">Kunder kan klicka för att öppna i Google Maps</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Beskrivning av boende</label>
+                    <Textarea
+                      placeholder="Kort beskrivning av boendet..."
+                      className="min-h-[80px]"
+                      value={accommodationDescription}
+                      onChange={(e) => setAccommodationDescription(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 {/* Trip Images Section */}

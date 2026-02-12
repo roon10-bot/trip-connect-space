@@ -634,6 +634,11 @@ export type Database = {
       }
       trips: {
         Row: {
+          accommodation_address: string | null
+          accommodation_description: string | null
+          accommodation_facilities: string[] | null
+          accommodation_rooms: number | null
+          accommodation_size_sqm: number | null
           base_price: number | null
           capacity: number
           created_at: string
@@ -663,6 +668,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accommodation_address?: string | null
+          accommodation_description?: string | null
+          accommodation_facilities?: string[] | null
+          accommodation_rooms?: number | null
+          accommodation_size_sqm?: number | null
           base_price?: number | null
           capacity?: number
           created_at?: string
@@ -692,6 +702,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accommodation_address?: string | null
+          accommodation_description?: string | null
+          accommodation_facilities?: string[] | null
+          accommodation_rooms?: number | null
+          accommodation_size_sqm?: number | null
           base_price?: number | null
           capacity?: number
           created_at?: string
