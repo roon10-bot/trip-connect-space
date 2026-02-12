@@ -35,6 +35,7 @@ export const CopyTripDialog = ({ trip, open, onOpenChange }: CopyTripDialogProps
   const queryClient = useQueryClient();
   const [departureDate, setDepartureDate] = useState<Date>();
   const [returnDate, setReturnDate] = useState<Date>();
+  const [returnDateOpen, setReturnDateOpen] = useState(false);
 
   const copyMutation = useMutation({
     mutationFn: async () => {
@@ -135,7 +136,12 @@ export const CopyTripDialog = ({ trip, open, onOpenChange }: CopyTripDialogProps
                 <Calendar
                   mode="single"
                   selected={departureDate}
-                  onSelect={setDepartureDate}
+                  onSelect={(date) => {
+                    setDepartureDate(date);
+                    if (date) {
+                      setTimeout(() => setReturnDateOpen(true), 150);
+                    }
+                  }}
                   disabled={(date) => date < new Date()}
                   initialFocus
                   className="p-3 pointer-events-auto"
@@ -146,7 +152,7 @@ export const CopyTripDialog = ({ trip, open, onOpenChange }: CopyTripDialogProps
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Hemresedatum</label>
-            <Popover>
+            <Popover open={returnDateOpen} onOpenChange={setReturnDateOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -165,7 +171,10 @@ export const CopyTripDialog = ({ trip, open, onOpenChange }: CopyTripDialogProps
                 <Calendar
                   mode="single"
                   selected={returnDate}
-                  onSelect={setReturnDate}
+                  onSelect={(date) => {
+                    setReturnDate(date);
+                    setReturnDateOpen(false);
+                  }}
                   disabled={(date) =>
                     date < new Date() ||
                     (departureDate ? date <= departureDate : false)
