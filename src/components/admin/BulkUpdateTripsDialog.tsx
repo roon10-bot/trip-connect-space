@@ -37,12 +37,14 @@ export const BulkUpdateTripsDialog = ({
   const [updateStatus, setUpdateStatus] = useState(false);
   const [updateFullbooked, setUpdateFullbooked] = useState(false);
   const [updatePrice, setUpdatePrice] = useState(false);
+  const [updateName, setUpdateName] = useState(false);
   const [updateAccommodation, setUpdateAccommodation] = useState(false);
 
   // Field values
   const [isActive, setIsActive] = useState(true);
   const [isFullbooked, setIsFullbooked] = useState(false);
   const [price, setPrice] = useState("");
+  const [name, setName] = useState("");
   const [accommodationRooms, setAccommodationRooms] = useState("");
   const [accommodationSizeSqm, setAccommodationSizeSqm] = useState("");
   const [accommodationAddress, setAccommodationAddress] = useState("");
@@ -56,6 +58,7 @@ export const BulkUpdateTripsDialog = ({
       if (updateStatus) updates.is_active = isActive;
       if (updateFullbooked) updates.is_fullbooked = isFullbooked;
       if (updatePrice && price) updates.price = Number(price);
+      if (updateName && name) updates.name = name;
       if (updateAccommodation) {
         if (accommodationRooms) updates.accommodation_rooms = Number(accommodationRooms);
         if (accommodationSizeSqm) updates.accommodation_size_sqm = Number(accommodationSizeSqm);
@@ -96,10 +99,12 @@ export const BulkUpdateTripsDialog = ({
     setUpdateStatus(false);
     setUpdateFullbooked(false);
     setUpdatePrice(false);
+    setUpdateName(false);
     setUpdateAccommodation(false);
     setIsActive(true);
     setIsFullbooked(false);
     setPrice("");
+    setName("");
     setAccommodationRooms("");
     setAccommodationSizeSqm("");
     setAccommodationAddress("");
@@ -107,7 +112,7 @@ export const BulkUpdateTripsDialog = ({
     setAccommodationFacilities("");
   };
 
-  const hasSelection = updateStatus || updateFullbooked || updatePrice || updateAccommodation;
+  const hasSelection = updateStatus || updateFullbooked || updatePrice || updateName || updateAccommodation;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -121,6 +126,30 @@ export const BulkUpdateTripsDialog = ({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Name */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="bulk-name"
+                checked={updateName}
+                onCheckedChange={(c) => setUpdateName(!!c)}
+              />
+              <Label htmlFor="bulk-name" className="font-semibold">Namn på resan</Label>
+            </div>
+            {updateName && (
+              <div className="ml-6">
+                <Label htmlFor="name-input">Nytt namn</Label>
+                <Input
+                  id="name-input"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex: Splitveckan 2026"
+                />
+              </div>
+            )}
+          </div>
+
+          <Separator />
           {/* Status */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
