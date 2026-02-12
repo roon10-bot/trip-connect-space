@@ -15,6 +15,7 @@ import { AdminTransactionsList } from "@/components/admin/AdminTransactionsList"
 import { AdminCustomersList } from "@/components/admin/AdminCustomersList";
 import { AdminAccountsList } from "@/components/admin/AdminAccountsList";
 import { AdminMeetingSlots } from "@/components/admin/AdminMeetingSlots";
+import { AdminEmailTemplates } from "@/components/admin/AdminEmailTemplates";
 import { Shield } from "lucide-react";
 import { toast } from "sonner";
 
@@ -73,6 +74,8 @@ const Admin = () => {
         return <AdminAccountsList />;
       case "meeting-slots":
         return <AdminMeetingSlots />;
+      case "email-templates":
+        return <AdminEmailTemplates />;
       default:
         return <AdminDashboard isAdmin={isAdmin} userId={user?.id} />;
     }
@@ -107,6 +110,7 @@ const Admin = () => {
               {currentView === "customers" && "Alla kunder som bokat resa"}
               {currentView === "accounts" && "Hantera registrerade konton"}
               {currentView === "meeting-slots" && "Hantera tider för videosamtal"}
+              {currentView === "email-templates" && "Redigera e-postmallar"}
             </p>
           </motion.div>
 

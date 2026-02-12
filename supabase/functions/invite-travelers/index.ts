@@ -17,6 +17,16 @@ interface TravelerData {
   phone: string;
 }
 
+interface EmailTemplate {
+  subject: string;
+  heading: string;
+  body_text: string;
+  button_text: string;
+  footer_text: string;
+  primary_color: string;
+  logo_url: string | null;
+}
+
 function generateTempPassword(): string {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
   let password = "";
@@ -25,6 +35,52 @@ function generateTempPassword(): string {
   }
   return password;
 }
+
+function replacePlaceholders(text: string, vars: Record<string, string>): string {
+  let result = text;
+  for (const [key, value] of Object.entries(vars)) {
+    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
+  }
+  return result;
+}
+
+function buildEmailHtml(template: EmailTemplate, vars: Record<string, string>, actionUrl?: string): string {
+  const color = template.primary_color || "#0c4a6e";
+  const heading = replacePlaceholders(template.heading, vars);
+  const body = replacePlaceholders(template.body_text, vars);
+  const buttonText = replacePlaceholders(template.button_text, vars);
+  const footer = replacePlaceholders(template.footer_text, vars);
+
+  return `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a2e;">
+      ${template.logo_url ? `<img src="${template.logo_url}" alt="Logo" style="max-height: 48px; margin-bottom: 16px;" />` : ""}
+      <h1 style="color: ${color};">${heading}</h1>
+      <p>${body.replace(/\n/g, "<br/>")}</p>
+      ${actionUrl && buttonText ? `
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="${actionUrl}" style="background: ${color}; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
+            ${buttonText}
+          </a>
+        </p>
+        <p style="color: #666; font-size: 14px;">Om knappen inte fungerar, kopiera och klistra in denna länk i din webbläsare:<br/>
+        <a href="${actionUrl}" style="color: ${color}; word-break: break-all;">${actionUrl}</a></p>
+      ` : ""}
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
+      <p style="color: #666; font-size: 14px;">${footer.replace(/\n/g, "<br/>")}</p>
+    </div>
+  `;
+}
+
+// Default template used if DB fetch fails
+const DEFAULT_TEMPLATE: EmailTemplate = {
+  subject: "Välkommen till Studentresor – Aktivera ditt konto",
+  heading: "Välkommen till Studentresor!",
+  body_text: "Du har blivit tillagd som resenär på resan {{trip_name}} ({{trip_type}}), {{departure_date}} – {{return_date}}. Klicka på knappen nedan för att aktivera ditt konto och se dina resedokument.",
+  button_text: "Aktivera mitt konto",
+  footer_text: "Om du inte förväntar dig detta mail kan du ignorera det.",
+  primary_color: "#0c4a6e",
+  logo_url: null,
+};
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -41,6 +97,28 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Fetch email template from DB
+    let template = DEFAULT_TEMPLATE;
+    try {
+      const { data: tplData } = await supabaseAdmin
+        .from("email_templates")
+        .select("subject, heading, body_text, button_text, footer_text, primary_color, logo_url")
+        .eq("template_key", "invite_traveler")
+        .maybeSingle();
+      if (tplData) template = tplData as EmailTemplate;
+    } catch (e) {
+      console.error("Failed to fetch email template, using default:", e);
+    }
+
+    const templateVars = {
+      trip_name: tripName,
+      trip_type: tripType,
+      departure_date: departureDate,
+      return_date: returnDate,
+      site_url: siteUrl,
+      first_name: "", // set per traveler
+    };
+
     const results: { email: string; status: string; error?: string }[] = [];
 
     for (const traveler of travelers as TravelerData[]) {
@@ -50,6 +128,8 @@ serve(async (req: Request) => {
         continue;
       }
 
+      const vars = { ...templateVars, first_name: traveler.firstName };
+
       try {
         // Check if user already exists
         const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
@@ -58,14 +138,13 @@ serve(async (req: Request) => {
         );
 
         if (existingUser) {
-          // User already exists, just send info email
           console.log(`User ${traveler.email} already exists, sending info email`);
 
           await resend.emails.send({
             from: "Studentresor <noreply@kontakt.studentresor.com>",
             to: [traveler.email],
-            subject: `Du är bokad på ${tripName}!`,
-            html: buildInfoEmail(traveler, tripName, tripType, departureDate, returnDate, siteUrl),
+            subject: replacePlaceholders(template.subject, vars),
+            html: buildEmailHtml(template, vars, `${siteUrl}/dashboard`),
           });
 
           results.push({ email: traveler.email, status: "existing_user_notified" });
@@ -111,26 +190,23 @@ serve(async (req: Request) => {
 
         if (linkError) {
           console.error(`Error generating magic link for ${traveler.email}:`, linkError);
-          // Still send email without magic link as fallback
           await resend.emails.send({
             from: "Studentresor <noreply@kontakt.studentresor.com>",
             to: [traveler.email],
-            subject: `Du är bokad på ${tripName}! Aktivera ditt konto`,
-            html: buildInviteEmailFallback(traveler, tripName, tripType, departureDate, returnDate, siteUrl),
+            subject: replacePlaceholders(template.subject, vars),
+            html: buildEmailHtml(template, vars, `${siteUrl}/auth`),
           });
           results.push({ email: traveler.email, status: "created_no_magic_link" });
           continue;
         }
 
-        // Use the action_link provided by Supabase (contains the correct verification token)
         const magicLinkUrl = linkData.properties.action_link;
 
-        // Send ONE single email with everything included
         await resend.emails.send({
           from: "Studentresor <noreply@kontakt.studentresor.com>",
           to: [traveler.email],
-          subject: `Du är bokad på ${tripName}! Aktivera ditt konto`,
-          html: buildInviteEmail(traveler, tripName, tripType, departureDate, returnDate, siteUrl, magicLinkUrl),
+          subject: replacePlaceholders(template.subject, vars),
+          html: buildEmailHtml(template, vars, magicLinkUrl),
         });
 
         results.push({ email: traveler.email, status: "invited" });
@@ -162,87 +238,6 @@ serve(async (req: Request) => {
     });
   }
 });
-
-function buildInviteEmail(
-  traveler: TravelerData,
-  tripName: string,
-  tripType: string,
-  departureDate: string,
-  returnDate: string,
-  siteUrl: string,
-  magicLinkUrl: string
-): string {
-  return `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a2e;">
-      <h1 style="color: #0c4a6e;">Välkommen på resa med Studentresor!</h1>
-      <p>Hej ${traveler.firstName},</p>
-      <p>Du har blivit bokad på resan <strong>${tripName}</strong>. Här är detaljerna:</p>
-      <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #0c4a6e;">
-        <p style="margin: 8px 0;"><strong>Resa:</strong> ${tripName}</p>
-        <p style="margin: 8px 0;"><strong>Datum:</strong> ${departureDate} – ${returnDate}</p>
-      </div>
-      <p>Ett konto har skapats åt dig. Klicka på knappen nedan för att aktivera ditt konto och välja ett lösenord:</p>
-      <p style="text-align: center; margin: 30px 0;">
-        <a href="${magicLinkUrl}" style="background: #0c4a6e; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
-          Aktivera mitt konto
-        </a>
-      </p>
-      <p style="color: #666; font-size: 14px;">Om knappen inte fungerar, kopiera och klistra in denna länk i din webbläsare:<br/>
-      <a href="${magicLinkUrl}" style="color: #0c4a6e; word-break: break-all;">${magicLinkUrl}</a></p>
-      <p>När du har aktiverat ditt konto kan du logga in på <a href="${siteUrl}" style="color: #0c4a6e;">${siteUrl}</a> för att se all information om din resa.</p>
-      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
-      <p style="color: #666; font-size: 14px;">Med vänliga hälsningar,<br/>Studentresor</p>
-    </div>
-  `;
-}
-
-function buildInviteEmailFallback(
-  traveler: TravelerData,
-  tripName: string,
-  tripType: string,
-  departureDate: string,
-  returnDate: string,
-  siteUrl: string
-): string {
-  return `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a2e;">
-      <h1 style="color: #0c4a6e;">Välkommen på resa med Studentresor!</h1>
-      <p>Hej ${traveler.firstName},</p>
-      <p>Du har blivit bokad på resan <strong>${tripName}</strong>.</p>
-      <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #0c4a6e;">
-        <p style="margin: 8px 0;"><strong>Resa:</strong> ${tripName}</p>
-        <p style="margin: 8px 0;"><strong>Datum:</strong> ${departureDate} – ${returnDate}</p>
-      </div>
-      <p>Ett konto har skapats åt dig. Gå till <a href="${siteUrl}/auth" style="color: #0c4a6e;">${siteUrl}/auth</a> och logga in med din e-post för att komma igång.</p>
-      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
-      <p style="color: #666; font-size: 14px;">Med vänliga hälsningar,<br/>Studentresor</p>
-    </div>
-  `;
-}
-
-function buildInfoEmail(
-  traveler: TravelerData,
-  tripName: string,
-  tripType: string,
-  departureDate: string,
-  returnDate: string,
-  siteUrl: string
-): string {
-  return `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a2e;">
-      <h1 style="color: #0c4a6e;">Du är bokad på ${tripName}!</h1>
-      <p>Hej ${traveler.firstName},</p>
-      <p>Du har blivit tillagd på resan <strong>${tripName}</strong>.</p>
-      <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #0c4a6e;">
-        <p style="margin: 8px 0;"><strong>Resa:</strong> ${tripName}</p>
-        <p style="margin: 8px 0;"><strong>Datum:</strong> ${departureDate} – ${returnDate}</p>
-      </div>
-      <p>Logga in på <a href="${siteUrl}" style="color: #0c4a6e;">${siteUrl}</a> för att se all information om din resa.</p>
-      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
-      <p style="color: #666; font-size: 14px;">Med vänliga hälsningar,<br/>Studentresor</p>
-    </div>
-  `;
-}
 
 function buildAdminEmail(
   travelers: TravelerData[],
