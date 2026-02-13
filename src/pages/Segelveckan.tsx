@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { Testimonials } from "@/components/Testimonials";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useSEO } from "@/hooks/useSEO";
 import segelveckanHero from "@/assets/segelveckan-hero.mp4";
 
 const includedItems = [
@@ -34,6 +35,12 @@ const itinerary = [
 const Segelveckan = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useSEO({
+    title: "Segelveckan – Segling på katamaran i Kroatien | Studentresor",
+    description: "Segelveckan är Studentresors mest exklusiva studentresa. Segla på katamaran genom Kroatiens skärgård med flyg, boende och event inkluderat. Boka din plats.",
+    canonical: "https://www.studentresor.se/segelveckan",
+  });
 
   const handleTogglePlay = () => {
     if (videoRef.current) {

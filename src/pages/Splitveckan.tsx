@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useSEO } from "@/hooks/useSEO";
 import splitveckanHero from "@/assets/splitveckan-hero.mp4";
 
 const includedItems = [
@@ -20,6 +21,12 @@ const includedItems = [
 const Splitveckan = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useSEO({
+    title: "Splitveckan – Studentresa till Split, Kroatien | Studentresor",
+    description: "Splitveckan är studentresan till Split med centralt boende, strandliv och nattliv i världsklass. Flyg, boende och event ingår. Boka din plats hos Studentresor.",
+    canonical: "https://www.studentresor.se/splitveckan",
+  });
 
   const handleTogglePlay = () => {
     if (videoRef.current) {

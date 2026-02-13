@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { useSEO } from "@/hooks/useSEO";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useSEO({
+    title: "Kontakta Studentresor – Frågor om studentresor till Kroatien",
+    description: "Kontakta Studentresor för frågor om studentresor till Kroatien. Nå oss via telefon, e-post eller kontaktformulär. Vi hjälper dig gärna.",
+    canonical: "https://www.studentresor.se/kontakt",
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
