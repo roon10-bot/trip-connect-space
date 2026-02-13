@@ -68,7 +68,7 @@ const menuItems = [
 
 export const AdminSidebar = ({ currentView, onViewChange }: AdminSidebarProps) => {
   return (
-    <aside className="w-64 bg-ocean text-white min-h-[calc(100vh-112px)] p-6">
+    <aside className="w-64 bg-ocean text-white min-h-0 p-6 overflow-auto">
       <nav className="space-y-6">
         {menuItems.map((section, idx) => (
           <div key={idx}>

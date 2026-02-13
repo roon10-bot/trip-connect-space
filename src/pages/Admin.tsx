@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { AdminSidebar, AdminView } from "@/components/admin/AdminSidebar";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { TripsList } from "@/components/admin/TripsList";
@@ -16,11 +14,13 @@ import { AdminCustomersList } from "@/components/admin/AdminCustomersList";
 import { AdminAccountsList } from "@/components/admin/AdminAccountsList";
 import { AdminMeetingSlots } from "@/components/admin/AdminMeetingSlots";
 import { AdminEmailTemplates } from "@/components/admin/AdminEmailTemplates";
-import { Shield } from "lucide-react";
+import { Shield, LogOut, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import studentresorLogo from "@/assets/studentresor-logo.svg";
 
 const Admin = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin, isLoading: adminLoading } = useAdmin();
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<AdminView>("dashboard");
@@ -42,9 +42,14 @@ const Admin = () => {
     setCurrentView("trips");
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
   if (authLoading || adminLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
@@ -81,14 +86,54 @@ const Admin = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Header />
+  const viewDescriptions: Record<AdminView, string> = {
+    dashboard: "Översikt och statistik",
+    trips: "Hantera dina resor",
+    "create-trip": "Skapa en ny resa",
+    bookings: "Alla resebokningar",
+    transactions: "Betalningshistorik",
+    "discount-codes": "Hantera rabattkoder",
+    customers: "Alla kunder som bokat resa",
+    accounts: "Hantera registrerade konton",
+    "meeting-slots": "Hantera tider för videosamtal",
+    "email-templates": "Redigera e-postmallar",
+  };
 
-      <div className="pt-14 flex">
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Admin Top Bar */}
+      <header className="h-14 bg-ocean text-white flex items-center justify-between px-6 shrink-0 z-50">
+        <div className="flex items-center gap-3">
+          <img src={studentresorLogo} alt="Studentresor" className="h-7 brightness-0 invert" />
+          <span className="text-xs font-semibold tracking-wider uppercase text-white/50 ml-2">Control Center</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white/70 hover:text-white hover:bg-white/10"
+            onClick={() => window.open("/", "_blank")}
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Visa sajten
+          </Button>
+          <span className="text-sm text-white/50">{user?.email}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white/70 hover:text-white hover:bg-white/10"
+            onClick={handleSignOut}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Logga ut
+          </Button>
+        </div>
+      </header>
+
+      <div className="flex flex-1">
         <AdminSidebar currentView={currentView} onViewChange={setCurrentView} />
         
-        <main className="flex-1 p-10">
+        <main className="flex-1 p-10 overflow-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -101,16 +146,7 @@ const Admin = () => {
               </h1>
             </div>
             <p className="text-muted-foreground text-lg">
-              {currentView === "dashboard" && "Översikt och statistik"}
-              {currentView === "trips" && "Hantera dina resor"}
-              {currentView === "create-trip" && "Skapa en ny resa"}
-              {currentView === "bookings" && "Alla resebokningar"}
-              {currentView === "transactions" && "Betalningshistorik"}
-              {currentView === "discount-codes" && "Hantera rabattkoder"}
-              {currentView === "customers" && "Alla kunder som bokat resa"}
-              {currentView === "accounts" && "Hantera registrerade konton"}
-              {currentView === "meeting-slots" && "Hantera tider för videosamtal"}
-              {currentView === "email-templates" && "Redigera e-postmallar"}
+              {viewDescriptions[currentView]}
             </p>
           </motion.div>
 
@@ -124,8 +160,6 @@ const Admin = () => {
           </motion.div>
         </main>
       </div>
-
-      <Footer />
     </div>
   );
 };
