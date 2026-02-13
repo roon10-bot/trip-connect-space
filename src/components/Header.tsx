@@ -56,281 +56,283 @@ export const Header = () => {
   const useDarkText = !isHomePage || isScrolled;
 
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        useDarkText
-          ? "bg-background/95 backdrop-blur-md shadow-elegant border-b border-border"
-          : "bg-transparent"
-      }`}
-    >
-      <div className="w-full px-6">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo - Far Left */}
-          <Link to="/" className="flex items-center group shrink-0">
-            <img 
-              src={studentresorLogo} 
-              alt="Studentresor" 
-              className={`h-12 w-auto transition-all duration-300 ${useDarkText ? "brightness-0" : ""}`}
-            />
-          </Link>
+    <>
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+          useDarkText
+            ? "bg-background/95 backdrop-blur-md shadow-elegant border-b border-border"
+            : "bg-transparent"
+        }`}
+      >
+        <div className="w-full px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo - Far Left */}
+            <Link to="/" className="flex items-center group shrink-0">
+              <img 
+                src={studentresorLogo} 
+                alt="Studentresor" 
+                className={`h-12 w-auto transition-all duration-300 ${useDarkText ? "brightness-0" : ""}`}
+              />
+            </Link>
 
-          {/* Center - Main Navigation */}
-          <nav className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors outline-none whitespace-nowrap ${
-                useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
-              }`}>
-                Våra resor
-                <ChevronDown className="w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                className="bg-background border border-border shadow-lg z-50"
-                sideOffset={8}
-                align="start"
-              >
-                <DropdownMenuItem asChild>
-                  <Link to="/destinations?trip=segelveckan" className="cursor-pointer">
-                    Segelveckan
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/destinations?trip=studentveckan" className="cursor-pointer">
-                    Studentveckan
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/destinations?trip=splitveckan" className="cursor-pointer">
-                    Splitveckan
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Center - Main Navigation */}
+            <nav className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors outline-none whitespace-nowrap ${
+                  useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                }`}>
+                  Våra resor
+                  <ChevronDown className="w-4 h-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  className="bg-background border border-border shadow-lg z-50"
+                  sideOffset={8}
+                  align="start"
+                >
+                  <DropdownMenuItem asChild>
+                    <Link to="/destinations?trip=segelveckan" className="cursor-pointer">
+                      Segelveckan
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/destinations?trip=studentveckan" className="cursor-pointer">
+                      Studentveckan
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/destinations?trip=splitveckan" className="cursor-pointer">
+                      Splitveckan
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-            <Link
-              to="/om-oss"
-              className={`font-medium transition-colors whitespace-nowrap ${
-                useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
-              }`}
-            >
-              Om Oss
-            </Link>
-            <Link
-              to="/kontakt"
-              className={`font-medium transition-colors whitespace-nowrap ${
-                useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
-              }`}
-            >
-              Kontakt
-            </Link>
-            <Link
-              to="/faq"
-              className={`font-medium transition-colors whitespace-nowrap ${
-                useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
-              }`}
-            >
-              Frågor och Svar
-            </Link>
-            <Link
-              to="/for-skolor"
-              className={`font-medium transition-colors whitespace-nowrap ${
-                useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
-              }`}
-            >
-              För elevkårer & studentkommittéer
-            </Link>
-          </nav>
-
-          {/* Right side - User links + Auth */}
-          <div className="hidden md:flex items-center gap-4">
-            {user && (
               <Link
-                to="/dashboard"
+                to="/om-oss"
                 className={`font-medium transition-colors whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
-                Mina bokningar
+                Om Oss
               </Link>
-            )}
-            {isAdmin && (
               <Link
-                to="/admin"
-                className={`font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
+                to="/kontakt"
+                className={`font-medium transition-colors whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
-                <Shield className="w-4 h-4" />
-                Admin
+                Kontakt
               </Link>
-            )}
+              <Link
+                to="/faq"
+                className={`font-medium transition-colors whitespace-nowrap ${
+                  useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                }`}
+              >
+                Frågor och Svar
+              </Link>
+              <Link
+                to="/for-skolor"
+                className={`font-medium transition-colors whitespace-nowrap ${
+                  useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                }`}
+              >
+                För elevkårer & studentkommittéer
+              </Link>
+            </nav>
 
-            {/* Auth Buttons */}
-            {user ? (
-              <div className="flex items-center gap-3">
-                <Link to="/dashboard">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <UserIcon className="w-4 h-4" />
-                    Mitt konto
-                  </Button>
+            {/* Right side - User links + Auth */}
+            <div className="hidden md:flex items-center gap-4">
+              {user && (
+                <Link
+                  to="/dashboard"
+                  className={`font-medium transition-colors whitespace-nowrap ${
+                    useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                  }`}
+                >
+                  Mina bokningar
                 </Link>
-                <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-2">
-                  <LogOut className="w-4 h-4" />
-                  Logga ut
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm" className={useDarkText ? "" : "text-white hover:text-white/80 hover:bg-white/10"}>
-                    Logga in
-                  </Button>
+              )}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className={`font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
+                    useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                  }`}
+                >
+                  <Shield className="w-4 h-4" />
+                  Admin
                 </Link>
-                <Link to="/auth?mode=signup">
-                  <Button variant="default" size="sm" className="bg-gradient-ocean hover:opacity-90">
-                    Skapa konto
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </div>
+              )}
 
-          {/* Mobile Menu Button */}
-          <button
-            className={`md:hidden p-1.5 z-50 ${isMenuOpen ? "text-white" : useDarkText ? "text-foreground" : "text-white"}`}
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-
-        {/* Mobile Menu - Fullscreen Overlay */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-40 md:hidden bg-accent"
-            >
-              <div className="flex flex-col h-full pt-20 pb-8 px-6 overflow-y-auto">
-                <nav className="flex flex-col gap-1">
-                  {/* Våra resor section */}
-                  <div className="mb-4">
-                    <p className="text-white/50 text-sm uppercase tracking-wider mb-3">Våra resor</p>
-                    <div className="flex flex-col gap-1">
-                      <Link
-                        to="/destinations?trip=segelveckan"
-                        className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Segelveckan
-                      </Link>
-                      <Link
-                        to="/destinations?trip=studentveckan"
-                        className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Studentveckan
-                      </Link>
-                      <Link
-                        to="/destinations?trip=splitveckan"
-                        className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Splitveckan
-                      </Link>
-                    </div>
-                  </div>
-
-                  <div className="h-px bg-white/20 my-4" />
-
-                  <Link
-                    to="/om-oss"
-                    className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Om Oss
-                  </Link>
-                  <Link
-                    to="/kontakt"
-                    className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Kontakt
-                  </Link>
-                  <Link
-                    to="/faq"
-                    className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Frågor och Svar
-                  </Link>
-                  <Link
-                    to="/for-skolor"
-                    className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    För elevkårer & studentkommittéer
-                  </Link>
-
-                  {user && (
-                    <>
-                      <div className="h-px bg-white/20 my-4" />
-                      <Link
-                        to="/dashboard"
-                        className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Mina bokningar
-                      </Link>
-                      {isAdmin && (
-                        <Link
-                          to="/admin"
-                          className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors flex items-center gap-3"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          <Shield className="w-6 h-6" />
-                          Admin
-                        </Link>
-                      )}
-                    </>
-                  )}
-                </nav>
-
-                {/* Auth buttons at bottom */}
-                <div className="mt-auto pt-8">
-                  {user ? (
-                    <Button 
-                      variant="outline" 
-                      onClick={() => { handleSignOut(); setIsMenuOpen(false); }} 
-                      className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logga ut
+              {/* Auth Buttons */}
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <Link to="/dashboard">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <UserIcon className="w-4 h-4" />
+                      Mitt konto
                     </Button>
-                  ) : (
-                    <div className="flex flex-col gap-3">
-                      <Link to="/auth?mode=signup" onClick={() => setIsMenuOpen(false)}>
-                        <Button className="w-full bg-primary hover:bg-primary/90 text-white text-lg py-6">
-                          Skapa konto
-                        </Button>
-                      </Link>
-                      <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
-                        <Button variant="outline" className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white">
-                          Logga in
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
+                  </Link>
+                  <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-2">
+                    <LogOut className="w-4 h-4" />
+                    Logga ut
+                  </Button>
                 </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Link to="/auth">
+                    <Button variant="ghost" size="sm" className={useDarkText ? "" : "text-white hover:text-white/80 hover:bg-white/10"}>
+                      Logga in
+                    </Button>
+                  </Link>
+                  <Link to="/auth?mode=signup">
+                    <Button variant="default" size="sm" className="bg-gradient-ocean hover:opacity-90">
+                      Skapa konto
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className={`md:hidden p-1.5 relative z-[110] ${isMenuOpen ? "text-white" : useDarkText ? "text-foreground" : "text-white"}`}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Mobile Menu - Fullscreen Overlay (outside motion.header to avoid transform containment) */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[100] md:hidden bg-accent"
+          >
+            <div className="flex flex-col h-full pt-20 pb-8 px-6 overflow-y-auto">
+              <nav className="flex flex-col gap-1">
+                {/* Våra resor section */}
+                <div className="mb-4">
+                  <p className="text-white/50 text-sm uppercase tracking-wider mb-3">Våra resor</p>
+                  <div className="flex flex-col gap-1">
+                    <Link
+                      to="/destinations?trip=segelveckan"
+                      className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Segelveckan
+                    </Link>
+                    <Link
+                      to="/destinations?trip=studentveckan"
+                      className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Studentveckan
+                    </Link>
+                    <Link
+                      to="/destinations?trip=splitveckan"
+                      className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Splitveckan
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="h-px bg-white/20 my-4" />
+
+                <Link
+                  to="/om-oss"
+                  className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Om Oss
+                </Link>
+                <Link
+                  to="/kontakt"
+                  className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Kontakt
+                </Link>
+                <Link
+                  to="/faq"
+                  className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Frågor och Svar
+                </Link>
+                <Link
+                  to="/for-skolor"
+                  className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  För elevkårer & studentkommittéer
+                </Link>
+
+                {user && (
+                  <>
+                    <div className="h-px bg-white/20 my-4" />
+                    <Link
+                      to="/dashboard"
+                      className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Mina bokningar
+                    </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/admin"
+                        className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors flex items-center gap-3"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Shield className="w-6 h-6" />
+                        Admin
+                      </Link>
+                    )}
+                  </>
+                )}
+              </nav>
+
+              {/* Auth buttons at bottom */}
+              <div className="mt-auto pt-8">
+                {user ? (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => { handleSignOut(); setIsMenuOpen(false); }} 
+                    className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logga ut
+                  </Button>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    <Link to="/auth?mode=signup" onClick={() => setIsMenuOpen(false)}>
+                      <Button className="w-full bg-primary hover:bg-primary/90 text-white text-lg py-6">
+                        Skapa konto
+                      </Button>
+                    </Link>
+                    <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" className="w-full border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white">
+                        Logga in
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.header>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
