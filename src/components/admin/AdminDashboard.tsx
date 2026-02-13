@@ -185,32 +185,46 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
     }
   };
 
-  const tripBookingsRevenue = tripBookings?.reduce((sum, b) => sum + Number(b.total_price), 0) || 0;
-  const destinationBookingsRevenue = bookings?.reduce((sum, b) => sum + Number(b.total_price), 0) || 0;
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay() + 1);
+  startOfWeek.setHours(0, 0, 0, 0);
 
-  const stats = {
-    totalBookings: bookings?.length || 0,
-    tripBookings: tripBookings?.length || 0,
-    confirmedBookings: bookings?.filter((b) => b.status === "confirmed").length || 0,
-    pendingBookings: bookings?.filter((b) => b.status === "pending").length || 0,
-    totalRevenue: tripBookingsRevenue + destinationBookingsRevenue,
-    activeTrips: trips?.filter((t) => t.is_active).length || 0,
-    totalTrips: trips?.length || 0,
-  };
+  const revenue30d = (tripBookings || [])
+    .filter((b) => new Date(b.created_at) >= thirtyDaysAgo)
+    .reduce((sum, b) => sum + Number(b.total_price), 0);
+
+  const bookingsThisWeek = (tripBookings || []).filter(
+    (b) => new Date(b.created_at) >= startOfWeek
+  ).length;
+
+  const totalTravelers = (tripBookings || []).reduce((sum, b) => sum + (b.travelers || 1), 0);
+
+  const avgFillRate = trips && trips.length > 0
+    ? Math.round(
+        (trips.reduce((sum, t) => {
+          const booked = (tripBookings || []).filter((b) => b.trip_id === t.id).reduce((s, b) => s + (b.travelers || 1), 0);
+          return sum + (booked / t.capacity) * 100;
+        }, 0) / trips.length)
+      )
+    : 0;
 
   return (
     <div className="space-y-8">
       {/* Stats */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="bg-gradient-card shadow-elegant">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-ocean-light">
-                <Ticket className="w-6 h-6 text-ocean" />
+                <TrendingUp className="w-6 h-6 text-ocean" />
               </div>
               <div>
-                <p className="text-3xl font-bold text-foreground">{stats.tripBookings}</p>
-                <p className="text-muted-foreground">Resebokningar</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {revenue30d.toLocaleString("sv-SE")} kr
+                </p>
+                <p className="text-muted-foreground">Omsättning (30 dagar)</p>
               </div>
             </div>
           </CardContent>
@@ -220,11 +234,11 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-palm-light">
-                <Plane className="w-6 h-6 text-palm" />
+                <Ticket className="w-6 h-6 text-palm" />
               </div>
               <div>
-                <p className="text-3xl font-bold text-foreground">{stats.totalBookings}</p>
-                <p className="text-muted-foreground">Destinationsbokningar</p>
+                <p className="text-3xl font-bold text-foreground">{bookingsThisWeek}</p>
+                <p className="text-muted-foreground">Bokningar (denna vecka)</p>
               </div>
             </div>
           </CardContent>
@@ -234,13 +248,11 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-sunset-light">
-                <Ship className="w-6 h-6 text-sunset" />
+                <Users className="w-6 h-6 text-sunset" />
               </div>
               <div>
-                <p className="text-3xl font-bold text-foreground">
-                  {stats.activeTrips}/{stats.totalTrips}
-                </p>
-                <p className="text-muted-foreground">Aktiva resor</p>
+                <p className="text-3xl font-bold text-foreground">{totalTravelers}</p>
+                <p className="text-muted-foreground">Antal resenärer</p>
               </div>
             </div>
           </CardContent>
@@ -250,13 +262,11 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-ocean-light">
-                <TrendingUp className="w-6 h-6 text-ocean" />
+                <Ship className="w-6 h-6 text-ocean" />
               </div>
               <div>
-                <p className="text-3xl font-bold text-foreground">
-                  {stats.totalRevenue.toLocaleString("sv-SE")} kr
-                </p>
-                <p className="text-muted-foreground">Total omsättning</p>
+                <p className="text-3xl font-bold text-foreground">{avgFillRate}%</p>
+                <p className="text-muted-foreground">Fyllnadsgrad per resa</p>
               </div>
             </div>
           </CardContent>
