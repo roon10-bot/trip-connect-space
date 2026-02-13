@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Check, Shield, Users, Plane, Home, Calendar, Phone, Anchor, Sun, Utensils, Wifi, Fuel, MapPin, Compass, Ship } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Testimonials } from "@/components/Testimonials";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import segelveckanHero from "@/assets/segelveckan-hero.mp4";
@@ -423,6 +424,9 @@ const Segelveckan = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Testimonials */}
+      <Testimonials />
 
       {/* Safety Section */}
       <section className="py-20 md:py-28 bg-accent text-accent-foreground">
