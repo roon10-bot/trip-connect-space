@@ -48,7 +48,7 @@ export const Testimonials = () => {
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
           {testimonials.map((t, i) => (
             <motion.div
               key={i}
@@ -56,7 +56,7 @@ export const Testimonials = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
               viewport={{ once: true }}
-              className="bg-card rounded-2xl p-6 shadow-sm flex flex-col"
+              className="bg-card rounded-2xl p-6 shadow-sm flex flex-col min-w-[280px] sm:min-w-[320px] snap-start shrink-0"
             >
               <div className="flex gap-0.5 mb-3">
                 {Array.from({ length: 5 }).map((_, s) => (
