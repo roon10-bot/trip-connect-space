@@ -20,6 +20,7 @@ import FAQ from "./pages/FAQ";
 import Terms from "./pages/Terms";
 import Splitveckan from "./pages/Splitveckan";
 import Segelveckan from "./pages/Segelveckan";
+import Studentveckan from "./pages/Studentveckan";
 import { ChatAssistant } from "./components/ChatAssistant";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="/resevillkor" element={<Terms />} />
               <Route path="/splitveckan" element={<Splitveckan />} />
               <Route path="/segelveckan" element={<Segelveckan />} />
+              <Route path="/studentveckan" element={<Studentveckan />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
