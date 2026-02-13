@@ -63,6 +63,14 @@ serve(async (req: Request) => {
         throw listError;
       }
 
+      // Fetch all admin roles
+      const { data: adminRoles } = await supabaseAdmin
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      const adminUserIds = new Set((adminRoles || []).map((r) => r.user_id));
+
       const users = usersData.users.map((u) => ({
         id: u.id,
         email: u.email,
@@ -70,12 +78,55 @@ serve(async (req: Request) => {
         last_sign_in_at: u.last_sign_in_at,
         full_name: u.user_metadata?.full_name || null,
         email_confirmed: !!u.email_confirmed_at,
+        is_admin: adminUserIds.has(u.id),
       }));
 
       return new Response(JSON.stringify({ users }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (req.method === "POST" && action === "toggle-admin") {
+      const { userId } = await req.json();
+
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "userId required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (userId === caller.id) {
+        return new Response(JSON.stringify({ error: "Cannot change your own admin role" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Check if user already has admin role
+      const { data: existingRole } = await supabaseAdmin
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (existingRole) {
+        // Remove admin role
+        await supabaseAdmin.from("user_roles").delete().eq("id", existingRole.id);
+        return new Response(JSON.stringify({ success: true, isAdmin: false }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } else {
+        // Add admin role
+        await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: "admin" });
+        return new Response(JSON.stringify({ success: true, isAdmin: true }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     if (req.method === "POST" && action === "delete") {
