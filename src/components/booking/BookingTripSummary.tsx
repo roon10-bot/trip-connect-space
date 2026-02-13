@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Calendar, MapPin, Users, Tag } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AccommodationInfoDialog } from "@/components/AccommodationInfoDialog";
 
 interface Trip {
   id: string;
@@ -14,6 +15,11 @@ interface Trip {
   base_price?: number | null;
   min_persons?: number | null;
   max_persons?: number | null;
+  accommodation_rooms?: number | null;
+  accommodation_size_sqm?: number | null;
+  accommodation_facilities?: string[] | null;
+  accommodation_address?: string | null;
+  accommodation_description?: string | null;
 }
 
 interface BookingTripSummaryProps {
@@ -79,6 +85,15 @@ export const BookingTripSummary = ({
             <span className="text-sm">Max {trip.max_persons} personer</span>
           </div>
         )}
+
+        <AccommodationInfoDialog
+          accommodationRooms={trip.accommodation_rooms}
+          accommodationSizeSqm={trip.accommodation_size_sqm}
+          accommodationFacilities={trip.accommodation_facilities}
+          accommodationAddress={trip.accommodation_address}
+          accommodationDescription={trip.accommodation_description}
+          tripName={trip.name}
+        />
 
         <div className="border-t border-border pt-4 space-y-3">
           {/* Price per person */}
