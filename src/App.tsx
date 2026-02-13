@@ -14,6 +14,7 @@ import SearchTrips from "./pages/SearchTrips";
 import NotFound from "./pages/NotFound";
 import ComingSoon from "./pages/ComingSoon";
 import ForElevkarer from "./pages/ForElevkarer";
+import AboutUs from "./pages/AboutUs";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import Terms from "./pages/Terms";
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/search" element={<SearchTrips />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/kontakt" element={<Contact />} />
+              <Route path="/om-oss" element={<AboutUs />} />
               <Route path="/for-skolor" element={<ForElevkarer />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/resevillkor" element={<Terms />} />
