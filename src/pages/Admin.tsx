@@ -97,7 +97,7 @@ const Admin = () => {
             <div className="flex items-center gap-3 mb-2">
               <Shield className="w-8 h-8 text-primary" />
               <h1 className="text-4xl font-serif font-bold text-foreground">
-                Admin Dashboard
+                Studentresor Control Center
               </h1>
             </div>
             <p className="text-muted-foreground text-lg">
