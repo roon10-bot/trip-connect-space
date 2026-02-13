@@ -69,6 +69,11 @@ export const CopyTripDialog = ({ trip, open, onOpenChange }: CopyTripDialogProps
           image_url: trip.image_url,
           is_active: false,
           created_by: user.id,
+          accommodation_rooms: trip.accommodation_rooms,
+          accommodation_size_sqm: trip.accommodation_size_sqm,
+          accommodation_facilities: trip.accommodation_facilities,
+          accommodation_address: trip.accommodation_address,
+          accommodation_description: trip.accommodation_description,
         })
         .select("id")
         .single();
