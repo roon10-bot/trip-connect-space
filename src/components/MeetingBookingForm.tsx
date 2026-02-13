@@ -66,9 +66,8 @@ export const MeetingBookingForm = () => {
 
     setLoading(true);
     try {
-      const { error: bookingError } = await supabase
-        .from("meeting_bookings")
-        .insert({
+      const { data, error: fnError } = await supabase.functions.invoke("create-meeting-booking", {
+        body: {
           slot_id: selectedSlot.id,
           first_name: form.first_name,
           last_name: form.last_name,
@@ -76,15 +75,11 @@ export const MeetingBookingForm = () => {
           phone: form.phone,
           school: form.school,
           message: form.message || null,
-        });
+        },
+      });
 
-      if (bookingError) throw bookingError;
-
-      // Mark slot as booked
-      await supabase
-        .from("meeting_slots")
-        .update({ is_booked: true })
-        .eq("id", selectedSlot.id);
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
 
       // Send confirmation email
       try {
