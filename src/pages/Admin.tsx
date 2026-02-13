@@ -88,7 +88,7 @@ const Admin = () => {
       <div className="pt-14 flex">
         <AdminSidebar currentView={currentView} onViewChange={setCurrentView} />
         
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
