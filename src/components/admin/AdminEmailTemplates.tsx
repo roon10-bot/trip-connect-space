@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Save, Eye, Mail, ArrowLeft, Info } from "lucide-react";
+import DOMPurify from "dompurify";
 import {
   Tooltip,
   TooltipContent,
@@ -255,7 +256,7 @@ export const AdminEmailTemplates = () => {
           <CardContent>
             <div
               className="border rounded-lg p-6 bg-white"
-              dangerouslySetInnerHTML={{ __html: buildPreviewHtml() }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(buildPreviewHtml()) }}
             />
           </CardContent>
         </Card>
