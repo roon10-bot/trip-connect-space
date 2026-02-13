@@ -16,7 +16,7 @@ import { Link } from "react-router-dom";
 
 const authSchema = z.object({
   email: z.string().email("Ange en giltig e-postadress"),
-  password: z.string().min(6, "Lösenordet måste vara minst 6 tecken"),
+  password: z.string().min(8, "Lösenordet måste vara minst 8 tecken"),
   fullName: z.string().optional(),
 });
 
@@ -119,8 +119,8 @@ const Auth = () => {
 
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 6) {
-      toast.error("Lösenordet måste vara minst 6 tecken");
+    if (newPassword.length < 8) {
+      toast.error("Lösenordet måste vara minst 8 tecken");
       return;
     }
     setIsLoading(true);
@@ -216,7 +216,7 @@ const Auth = () => {
                   <Input
                     id="newPassword"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Minst 6 tecken"
+                    placeholder="Minst 8 tecken"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="h-12 pr-12"
