@@ -89,6 +89,11 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [returnDateOpen, setReturnDateOpen] = useState(false);
+  const [accommodationRooms, setAccommodationRooms] = useState<string>("");
+  const [accommodationSizeSqm, setAccommodationSizeSqm] = useState<string>("");
+  const [accommodationFacilities, setAccommodationFacilities] = useState<string>("");
+  const [accommodationAddress, setAccommodationAddress] = useState<string>("");
+  const [accommodationDescription, setAccommodationDescription] = useState<string>("");
 
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripSchema),
@@ -234,6 +239,13 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
         final_payment_type: values.final_payment_type,
         final_payment_date: values.final_payment_date ? format(values.final_payment_date, "yyyy-MM-dd") : null,
         created_by: user.id,
+        accommodation_rooms: accommodationRooms ? parseInt(accommodationRooms) : null,
+        accommodation_size_sqm: accommodationSizeSqm ? parseInt(accommodationSizeSqm) : null,
+        accommodation_facilities: accommodationFacilities
+          ? accommodationFacilities.split(",").map(f => f.trim()).filter(Boolean)
+          : null,
+        accommodation_address: accommodationAddress || null,
+        accommodation_description: accommodationDescription || null,
       }).select('id').single();
 
       if (tripError) throw tripError;
@@ -257,6 +269,11 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       toast.success("Resa skapad!");
       form.reset();
       clearImages();
+      setAccommodationRooms("");
+      setAccommodationSizeSqm("");
+      setAccommodationFacilities("");
+      setAccommodationAddress("");
+      setAccommodationDescription("");
       onSuccess?.();
     },
     onError: (error) => {
@@ -649,6 +666,63 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Accommodation Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold border-b pb-2">Boende / Båtinformation</h3>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Antal rum</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="t.ex. 3"
+                    value={accommodationRooms}
+                    onChange={(e) => setAccommodationRooms(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Storlek (m²)</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="t.ex. 85"
+                    value={accommodationSizeSqm}
+                    onChange={(e) => setAccommodationSizeSqm(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Faciliteter</label>
+                <Input
+                  placeholder="t.ex. Pool, WiFi, Balkong, AC (kommaseparerat)"
+                  value={accommodationFacilities}
+                  onChange={(e) => setAccommodationFacilities(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Separera med komma</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Adress</label>
+                <Input
+                  placeholder="t.ex. Riva 21000, Split, Kroatien"
+                  value={accommodationAddress}
+                  onChange={(e) => setAccommodationAddress(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Beskrivning av boende</label>
+                <Textarea
+                  placeholder="Kort beskrivning av boendet eller båten..."
+                  className="min-h-[80px]"
+                  value={accommodationDescription}
+                  onChange={(e) => setAccommodationDescription(e.target.value)}
+                />
               </div>
             </div>
 
