@@ -1,20 +1,13 @@
-import { useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { useSEO } from "@/hooks/useSEO";
 
 const Terms = () => {
-  useEffect(() => {
-    document.title = "Allmänna resevillkor | Studentresor";
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) {
-      meta.setAttribute("content", "Läs Studentresors allmänna resevillkor för paketresor arrangerade av Studentlife Sweden AB.");
-    } else {
-      const tag = document.createElement("meta");
-      tag.name = "description";
-      tag.content = "Läs Studentresors allmänna resevillkor för paketresor arrangerade av Studentlife Sweden AB.";
-      document.head.appendChild(tag);
-    }
-  }, []);
+  useSEO({
+    title: "Allmänna resevillkor | Studentresor",
+    description: "Läs Studentresors allmänna resevillkor för paketresor arrangerade av Studentlife Sweden AB. Information om betalning, avbokning och resegaranti.",
+    canonical: "https://www.studentresor.se/resevillkor",
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

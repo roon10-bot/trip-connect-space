@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { useSEO } from "@/hooks/useSEO";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
 import { UserCheck, Shield, TrendingUp, Heart, CheckCircle, Users, Calendar, Phone } from "lucide-react";
@@ -43,6 +44,12 @@ const fadeUp = {
 };
 
 const AboutUs = () => {
+  useSEO({
+    title: "Om Studentresor – Studentlife Sweden AB | Studentresor",
+    description: "Lär känna Studentresor och teamet bakom Sveriges studentresor till Kroatien. Vi arrangerar Segelveckan, Splitveckan och Studentveckan med resegaranti.",
+    canonical: "https://www.studentresor.se/om-oss",
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Header />

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Header } from "@/components/Header";
+import { useSEO } from "@/hooks/useSEO";
 import { Footer } from "@/components/Footer";
 import {
   Accordion,
@@ -93,18 +94,38 @@ const faqItems = [
   },
 ];
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqItems
+    .filter((item) => typeof item.answer === "string")
+    .map((item) => ({
+      "@type": "Question",
+      "name": item.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.answer,
+      },
+    })),
+};
+
 const FAQ = () => {
+  useSEO({
+    title: "Frågor och Svar om Studentresor | Studentresor",
+    description: "Vanliga frågor om studentresor till Kroatien. Läs om betalning, avbokning, åldersgräns, resegaranti och vad som ingår i resan.",
+    canonical: "https://www.studentresor.se/faq",
+  });
+
   useEffect(() => {
-    document.title = "Frågor och Svar | Studentresor";
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) {
-      meta.setAttribute("content", "Vanliga frågor om Studentresors resor, bokning, betalning och resevillkor.");
-    } else {
-      const tag = document.createElement("meta");
-      tag.name = "description";
-      tag.content = "Vanliga frågor om Studentresors resor, bokning, betalning och resevillkor.";
-      document.head.appendChild(tag);
-    }
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(faqJsonLd);
+    script.id = "faq-jsonld";
+    document.head.appendChild(script);
+    return () => {
+      const el = document.getElementById("faq-jsonld");
+      if (el) el.remove();
+    };
   }, []);
 
   return (

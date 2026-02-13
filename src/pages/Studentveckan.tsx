@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { Testimonials } from "@/components/Testimonials";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useSEO } from "@/hooks/useSEO";
 import studentveckanHero from "@/assets/studentveckan-hero.mp4";
 
 const includedItems = [
@@ -32,6 +33,12 @@ const highlights = [
 const Studentveckan = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useSEO({
+    title: "Studentveckan – Segla med 150 studenter i Kroatien | Studentresor",
+    description: "Studentveckan är en unik seglingsresa i Kroatien tillsammans med studenter från hela Sverige. Flyg, segelbåt, event och 24/7 service ingår. Boka din hytt idag.",
+    canonical: "https://www.studentresor.se/studentveckan",
+  });
 
   const handleTogglePlay = () => {
     if (videoRef.current) {

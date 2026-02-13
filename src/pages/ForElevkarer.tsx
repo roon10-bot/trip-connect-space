@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { useSEO } from "@/hooks/useSEO";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
 import { Users, Calendar, Gift, CheckCircle, ArrowRight, Video } from "lucide-react";
@@ -42,6 +43,12 @@ const steps = [
 ];
 
 const ForElevkarer = () => {
+  useSEO({
+    title: "Studentresor för elevkårer & studentkommittéer | Studentresor",
+    description: "Planera en studentresa med din elevkår eller studentkommitté. Skräddarsydda gruppresor till Kroatien med Studentresor. Boka ett möte idag.",
+    canonical: "https://www.studentresor.se/for-skolor",
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
