@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.manage-users]
 verify_jwt = false
+
+[functions.create-meeting-booking]
+verify_jwt = false
+
+[functions.create-trip-booking]
+verify_jwt = false
