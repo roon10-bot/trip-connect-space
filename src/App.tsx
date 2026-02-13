@@ -18,6 +18,7 @@ import AboutUs from "./pages/AboutUs";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import Terms from "./pages/Terms";
+import Splitveckan from "./pages/Splitveckan";
 import { ChatAssistant } from "./components/ChatAssistant";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/for-skolor" element={<ForElevkarer />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/resevillkor" element={<Terms />} />
+              <Route path="/splitveckan" element={<Splitveckan />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
