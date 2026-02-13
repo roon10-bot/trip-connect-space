@@ -22,7 +22,7 @@ import { ChatAssistant } from "./components/ChatAssistant";
 const queryClient = new QueryClient();
 
 // Toggle this to show/hide the Coming Soon page
-const COMING_SOON_MODE = true;
+const COMING_SOON_MODE = false;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
