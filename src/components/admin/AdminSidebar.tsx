@@ -68,25 +68,25 @@ const menuItems = [
 
 export const AdminSidebar = ({ currentView, onViewChange }: AdminSidebarProps) => {
   return (
-    <aside className="w-64 bg-card border-r border-border min-h-[calc(100vh-112px)] p-4">
+    <aside className="w-64 bg-ocean text-white min-h-[calc(100vh-112px)] p-6">
       <nav className="space-y-6">
         {menuItems.map((section, idx) => (
           <div key={idx}>
             {"items" in section ? (
               <>
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-4">
                   {section.label}
                 </h3>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {section.items.map((item) => (
                     <button
                       key={item.value}
                       onClick={() => onViewChange(item.value)}
                       className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                         currentView === item.value
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          ? "bg-cyan text-ocean"
+                          : "text-white/70 hover:bg-white/10 hover:text-white"
                       )}
                     >
                       <item.icon className="w-4 h-4" />
@@ -99,10 +99,10 @@ export const AdminSidebar = ({ currentView, onViewChange }: AdminSidebarProps) =
               <button
                 onClick={() => onViewChange(section.value)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   currentView === section.value
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-cyan text-ocean"
+                    : "text-white/70 hover:bg-white/10 hover:text-white"
                 )}
               >
                 <section.icon className="w-4 h-4" />
