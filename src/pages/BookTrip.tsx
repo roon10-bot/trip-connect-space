@@ -262,8 +262,6 @@ const BookTrip = () => {
     
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       const totalPrice = calculateTotalPrice();
       
       let pricePerPerson = trip.price;
@@ -273,48 +271,29 @@ const BookTrip = () => {
       const baseTotal = pricePerPerson * travelers;
       const discountAmount = baseTotal - totalPrice;
 
-      // Insert main booking with first traveler as primary contact
-      const { data: booking, error: bookingError } = await supabase
-        .from("trip_bookings")
-        .insert({
+      // Create booking via edge function (server-side validation)
+      const { data: bookingResult, error: fnError } = await supabase.functions.invoke("create-trip-booking", {
+        body: {
           trip_id: trip.id,
-          user_id: user?.id || null,
-          first_name: primaryTraveler.firstName,
-          last_name: primaryTraveler.lastName,
-          email: primaryTraveler.email,
-          birth_date: format(primaryTraveler.birthDate, "yyyy-MM-dd"),
-          phone: primaryTraveler.phone,
-          departure_location: primaryTraveler.departureLocation,
-          travelers: travelers,
+          travelers,
           total_price: totalPrice,
           discount_code: appliedDiscount?.code || null,
           discount_amount: discountAmount > 0 ? discountAmount : 0,
-          status: "pending",
-        })
-        .select("id")
-        .single();
+          travelers_info: travelersInfo.map((t) => ({
+            first_name: t.firstName,
+            last_name: t.lastName,
+            email: t.email,
+            birth_date: format(t.birthDate!, "yyyy-MM-dd"),
+            phone: t.phone,
+            departure_location: t.departureLocation,
+          })),
+        },
+      });
 
-      if (bookingError) throw bookingError;
+      if (fnError) throw fnError;
+      if (bookingResult?.error) throw new Error(bookingResult.error);
 
-      // Insert all travelers into trip_booking_travelers
-      const travelerRows = travelersInfo.map((t, index) => ({
-        trip_booking_id: booking.id,
-        traveler_index: index,
-        first_name: t.firstName,
-        last_name: t.lastName,
-        email: t.email,
-        birth_date: format(t.birthDate!, "yyyy-MM-dd"),
-        phone: t.phone,
-        departure_location: t.departureLocation,
-      }));
-
-      const { error: travelersError } = await supabase
-        .from("trip_booking_travelers")
-        .insert(travelerRows);
-
-      if (travelersError) {
-        console.error("Error saving travelers:", travelersError);
-      }
+      const bookingId = bookingResult.booking_id;
 
       // Invite all travelers (create accounts + send emails)
       try {
@@ -330,7 +309,7 @@ const BookTrip = () => {
             tripType: trip.trip_type,
             departureDate: format(new Date(trip.departure_date), "d MMMM yyyy", { locale: sv }),
             returnDate: format(new Date(trip.return_date), "d MMMM yyyy", { locale: sv }),
-            bookingId: booking.id,
+            bookingId: bookingId,
             bookerEmail: primaryTraveler.email,
             siteUrl: window.location.origin,
           },
