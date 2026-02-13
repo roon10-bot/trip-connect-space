@@ -23,7 +23,7 @@ export const Header = () => {
   const location = useLocation();
   
   // Only use transparent header with white text on the home page
-  const isHomePage = location.pathname === "/" || location.pathname === "/splitveckan";
+  const isHomePage = location.pathname === "/" || location.pathname === "/splitveckan" || location.pathname === "/segelveckan";
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -92,7 +92,7 @@ export const Header = () => {
                   align="start"
                 >
                   <DropdownMenuItem asChild>
-                    <Link to="/destinations?trip=segelveckan" className="cursor-pointer">
+                    <Link to="/segelveckan" className="cursor-pointer">
                       Segelveckan
                     </Link>
                   </DropdownMenuItem>
@@ -225,7 +225,7 @@ export const Header = () => {
                   <p className="text-white/50 text-sm uppercase tracking-wider mb-3">Våra resor</p>
                   <div className="flex flex-col gap-1">
                     <Link
-                      to="/destinations?trip=segelveckan"
+                      to="/segelveckan"
                       className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
