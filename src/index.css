@@ -226,6 +226,7 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
+    font-feature-settings: "calt" off, "liga" off, "salt" off, "ss01" off, "ss02" off, "ss03" off;
   }
 }
 
