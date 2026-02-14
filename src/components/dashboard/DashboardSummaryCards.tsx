@@ -150,12 +150,12 @@ export const DashboardSummaryCards = ({
                 </p>
               </div>
               <Button
-                variant="ghost"
-                size="icon"
-                className="shrink-0 h-10 w-10 rounded-xl hover:bg-ocean-light"
+                size="sm"
+                className="shrink-0 bg-gradient-ocean hover:opacity-90"
                 onClick={() => setDetailsOpen(true)}
               >
-                <Info className="w-5 h-5 text-ocean" />
+                <Info className="w-4 h-4 mr-1" />
+                Detaljer
               </Button>
             </div>
           ) : (
