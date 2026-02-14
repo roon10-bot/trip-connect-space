@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, File } from "lucide-react";
+import { toast } from "sonner";
 
 interface MyDocumentsProps {
   userId: string;
@@ -28,6 +29,22 @@ export const MyDocuments = ({ userId }: MyDocumentsProps) => {
   const getFileIcon = (fileType?: string | null) => {
     if (fileType?.includes("pdf")) return <FileText className="w-4 h-4 text-destructive" />;
     return <File className="w-4 h-4 text-ocean" />;
+  };
+
+  const handleDownload = async (fileUrl: string) => {
+    // If it's already a full URL (legacy), open directly
+    if (fileUrl.startsWith("http")) {
+      window.open(fileUrl, "_blank");
+      return;
+    }
+    const { data, error } = await supabase.storage
+      .from("booking-attachments")
+      .createSignedUrl(fileUrl, 3600);
+    if (error || !data?.signedUrl) {
+      toast.error("Kunde inte öppna filen");
+      return;
+    }
+    window.open(data.signedUrl, "_blank");
   };
 
   return (
@@ -73,7 +90,7 @@ export const MyDocuments = ({ userId }: MyDocumentsProps) => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(doc.file_url, "_blank")}
+                        onClick={() => handleDownload(doc.file_url)}
                       >
                         <Download className="w-4 h-4 mr-1" />
                         Ladda ner

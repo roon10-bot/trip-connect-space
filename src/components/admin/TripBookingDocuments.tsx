@@ -76,16 +76,12 @@ export const TripBookingDocuments = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from("booking-attachments")
-        .getPublicUrl(filePath);
-
       const { error: dbError } = await supabase
         .from("trip_booking_documents")
         .insert({
           trip_booking_id: selectedBookingId,
           file_name: file.name,
-          file_url: urlData.publicUrl,
+          file_url: filePath,
           file_type: file.type,
           file_size: file.size,
           uploaded_by: user.id,
@@ -178,7 +174,13 @@ export const TripBookingDocuments = () => {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => window.open(doc.file_url, "_blank")}
+                        onClick={async () => {
+                          const { data } = await supabase.storage
+                            .from("booking-attachments")
+                            .createSignedUrl(doc.file_url, 3600);
+                          if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                          else toast.error("Kunde inte öppna filen");
+                        }}
                       >
                         <Download className="w-4 h-4" />
                       </Button>
