@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
@@ -6,8 +6,9 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plane, Calendar, MapPin, CreditCard, CheckCircle, Wallet } from "lucide-react";
+import { Plane, Calendar, MapPin, CreditCard, CheckCircle, Wallet, Info } from "lucide-react";
 import { calculatePaymentAmount, type PaymentValueType } from "@/lib/paymentCalculations";
+import { TripBookingDetailsDialog } from "@/components/TripBookingDetailsDialog";
 
 interface DashboardSummaryCardsProps {
   userId: string;
@@ -29,6 +30,8 @@ export const DashboardSummaryCards = ({
   tripBookings,
   onPayClick,
 }: DashboardSummaryCardsProps) => {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
   // Fetch completed payments
   const { data: payments } = useQuery({
     queryKey: ["dashboard-summary-payments", userId],
@@ -131,7 +134,7 @@ export const DashboardSummaryCards = ({
               <div className="p-3 rounded-xl bg-ocean-light">
                 <Plane className="w-6 h-6 text-ocean" />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-lg font-bold text-foreground">
                   {activeBooking.trips.name} – {formatTripType(activeBooking.trips.trip_type)}
                 </p>
@@ -146,6 +149,14 @@ export const DashboardSummaryCards = ({
                   {activeBooking.departure_location}
                 </p>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0 h-10 w-10 rounded-xl hover:bg-ocean-light"
+                onClick={() => setDetailsOpen(true)}
+              >
+                <Info className="w-5 h-5 text-ocean" />
+              </Button>
             </div>
           ) : (
             <div className="flex items-center gap-4">
@@ -233,6 +244,11 @@ export const DashboardSummaryCards = ({
           </CardContent>
         </Card>
       </div>
+      <TripBookingDetailsDialog
+        booking={activeBooking}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+      />
     </motion.div>
   );
 };
