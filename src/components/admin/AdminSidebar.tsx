@@ -1,7 +1,7 @@
-import { Map, PlusCircle, Ticket, LayoutDashboard, ClipboardList, CreditCard, Users, Video, UserCog, Mail } from "lucide-react";
+import { Map, PlusCircle, Ticket, LayoutDashboard, ClipboardList, CreditCard, Users, Video, UserCog, Mail, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type AdminView = "dashboard" | "trips" | "create-trip" | "discount-codes" | "bookings" | "transactions" | "customers" | "meeting-slots" | "accounts" | "email-templates";
+export type AdminView = "dashboard" | "trips" | "create-trip" | "discount-codes" | "bookings" | "transactions" | "customers" | "meeting-slots" | "accounts" | "email-templates" | "documents";
 
 interface AdminSidebarProps {
   currentView: AdminView;
@@ -61,6 +61,11 @@ const menuItems = [
         label: "E-postmallar",
         value: "email-templates" as AdminView,
         icon: Mail,
+      },
+      {
+        label: "Dokument",
+        value: "documents" as AdminView,
+        icon: FileText,
       },
     ],
   },
