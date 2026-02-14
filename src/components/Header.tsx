@@ -170,7 +170,7 @@ export const Header = () => {
               {/* Auth Buttons */}
               {user ? (
                 <div className="flex items-center gap-3">
-                  <Link to="/dashboard">
+                  <Link to="/settings">
                     <Button variant="ghost" size="sm" className="gap-2">
                       <UserIcon className="w-4 h-4" />
                       Mitt konto
@@ -288,6 +288,13 @@ export const Header = () => {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Mina bokningar
+                    </Link>
+                    <Link
+                      to="/settings"
+                      className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Mitt konto
                     </Link>
                     {isAdmin && (
                       <Link
