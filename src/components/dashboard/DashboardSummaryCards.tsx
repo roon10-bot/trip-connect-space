@@ -215,7 +215,7 @@ export const DashboardSummaryCards = ({
                 <Wallet className="w-6 h-6 text-palm" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">Betalningsförlopp</p>
+                <p className="text-sm font-medium text-foreground">Betalningstatus</p>
                 <p className="text-xs text-muted-foreground">
                   {totalPaid.toLocaleString("sv-SE")} kr av {totalPrice.toLocaleString("sv-SE")} kr
                 </p>
