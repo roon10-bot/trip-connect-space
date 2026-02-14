@@ -119,6 +119,34 @@ export const DashboardSummaryCards = ({
 
   const isOverdue = nextPayment?.dueDate ? new Date(nextPayment.dueDate) < new Date() : false;
 
+  // Calculate completed payments count for badge
+  const paymentProgress = useMemo(() => {
+    if (!activeBooking?.trips || !payments) return null;
+    const trip = activeBooking.trips;
+    const paidTypes = new Set(
+      payments
+        .filter((p) => p.trip_booking_id === activeBooking.id)
+        .map((p) => p.payment_type)
+    );
+    const totalSteps = [trip.first_payment_amount, trip.second_payment_amount, trip.final_payment_amount].filter((a) => a > 0).length;
+    const completedSteps = ["first_payment", "second_payment", "final_payment"].filter((t) => paidTypes.has(t)).length;
+    return { totalSteps, completedSteps };
+  }, [activeBooking, payments]);
+
+  const badgeInfo = useMemo(() => {
+    if (!paymentProgress || !activeBooking) return null;
+    if (isOverdue && nextPayment?.dueDate) {
+      return { color: "bg-destructive/10 text-destructive", label: `Betalning förfallen` };
+    }
+    if (nextPayment?.dueDate) {
+      return { color: "bg-amber-100 text-amber-700", label: `Betalning förfaller ${format(new Date(nextPayment.dueDate), "d MMMM", { locale: sv })}` };
+    }
+    if (paymentProgress.completedSteps === paymentProgress.totalSteps) {
+      return { color: "bg-palm-light text-palm", label: "Allt betalt ✓" };
+    }
+    return { color: "bg-ocean-light text-ocean", label: `${paymentProgress.completedSteps} av ${paymentProgress.totalSteps} betalningar genomförda` };
+  }, [paymentProgress, activeBooking, nextPayment, isOverdue]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -148,6 +176,11 @@ export const DashboardSummaryCards = ({
                   <MapPin className="w-3.5 h-3.5 shrink-0" />
                   {activeBooking.departure_location}
                 </p>
+                {badgeInfo && (
+                  <span className={`inline-flex items-center mt-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full ${badgeInfo.color}`}>
+                    {badgeInfo.label}
+                  </span>
+                )}
               </div>
               <Button
                 size="sm"
@@ -228,7 +261,7 @@ export const DashboardSummaryCards = ({
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">Betalningstatus</p>
                 <p className="text-xs text-muted-foreground">
-                  {totalPaid.toLocaleString("sv-SE")} kr av {totalPrice.toLocaleString("sv-SE")} kr
+                  {totalPaid.toLocaleString("sv-SE")} kr av {totalPrice.toLocaleString("sv-SE")} kr betalt av totalpriset
                 </p>
               </div>
               <span className="text-lg font-bold text-foreground">{paidPercent}%</span>
