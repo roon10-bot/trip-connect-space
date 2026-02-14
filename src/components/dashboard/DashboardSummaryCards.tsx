@@ -185,7 +185,7 @@ export const DashboardSummaryCards = ({
                   )}
                 </div>
               </div>
-              <div className="mt-2 sm:mt-0 flex justify-center">
+              <div className="flex justify-center sm:justify-end">
                 <Button
                   size="sm"
                   className="shrink-0 bg-gradient-ocean hover:opacity-90 min-w-[120px]"
@@ -219,37 +219,39 @@ export const DashboardSummaryCards = ({
         <Card className={`bg-gradient-card shadow-elegant ${isOverdue ? "border-destructive/50" : ""}`}>
           <CardContent className="pt-6">
             {nextPayment ? (
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-xl ${isOverdue ? "bg-destructive/10" : "bg-sunset-light"}`}>
-                  <CreditCard className={`w-6 h-6 ${isOverdue ? "text-destructive" : "text-sunset"}`} />
+              <>
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 rounded-xl ${isOverdue ? "bg-destructive/10" : "bg-sunset-light"}`}>
+                    <CreditCard className={`w-6 h-6 ${isOverdue ? "text-destructive" : "text-sunset"}`} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-2xl font-bold text-foreground">
+                      {nextPayment.amount.toLocaleString("sv-SE")} kr
+                    </p>
+                    <p className={`text-sm ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                      {isOverdue
+                        ? "Förfallen"
+                        : nextPayment.dueDate
+                        ? `Förfaller ${format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv })}`
+                        : "Att betala"}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-2xl font-bold text-foreground">
-                    {nextPayment.amount.toLocaleString("sv-SE")} kr
-                  </p>
-                  <p className={`text-sm ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                    {isOverdue
-                      ? "Förfallen"
-                      : nextPayment.dueDate
-                      ? `Förfaller ${format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv })}`
-                      : "Att betala"}
-                  </p>
-                  {activeBooking && (
-                    <div className="mt-2 flex justify-center">
-                      <Button
-                        size="sm"
-                        className="bg-gradient-ocean hover:opacity-90 min-w-[120px]"
-                        onClick={() => {
-                          setDetailsTab("payment");
-                          setDetailsOpen(true);
-                        }}
-                      >
-                        Betala nu
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
+                {activeBooking && (
+                  <div className="mt-3 flex justify-center">
+                    <Button
+                      size="sm"
+                      className="bg-gradient-ocean hover:opacity-90 min-w-[120px]"
+                      onClick={() => {
+                        setDetailsTab("payment");
+                        setDetailsOpen(true);
+                      }}
+                    >
+                      Betala nu
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-xl bg-palm-light">
