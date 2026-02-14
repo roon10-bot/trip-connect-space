@@ -93,10 +93,10 @@ export const DashboardSummaryCards = ({
     ];
 
     for (const p of plan) {
-      if (p.amount > 0 && p.date && !paidTypes.has(p.type)) {
+      if (p.amount > 0 && !paidTypes.has(p.type)) {
         return {
           amount: calculatePaymentAmount(p.amount, p.payType, totalPrice),
-          dueDate: p.date,
+          dueDate: p.date || null,
         };
       }
     }
@@ -109,7 +109,7 @@ export const DashboardSummaryCards = ({
     return payments.reduce((sum, p) => sum + Number(p.amount), 0);
   }, [payments]);
 
-  const isOverdue = nextPayment ? new Date(nextPayment.dueDate) < new Date() : false;
+  const isOverdue = nextPayment?.dueDate ? new Date(nextPayment.dueDate) < new Date() : false;
 
   return (
     <motion.div
@@ -150,7 +150,9 @@ export const DashboardSummaryCards = ({
                 <p className={`text-sm ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                   {isOverdue
                     ? "Förfallen"
-                    : `Förfaller ${format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv })}`}
+                    : nextPayment.dueDate
+                    ? `Förfaller ${format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv })}`
+                    : "Att betala"}
                 </p>
                 {activeBooking && onPayClick && (
                   <Button

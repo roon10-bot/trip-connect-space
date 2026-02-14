@@ -119,7 +119,7 @@ const getStatusBadge = (status: string) => {
 
 interface NextPayment {
   amount: number;
-  dueDate: string;
+  dueDate: string | null;
   label: string;
 }
 
@@ -162,10 +162,10 @@ function getNextPayment(
   ];
 
   for (const p of plan) {
-    if (p.amount > 0 && p.date && !paidTypes.has(p.type)) {
+    if (p.amount > 0 && !paidTypes.has(p.type)) {
       return {
         amount: calculatePaymentAmount(p.amount, p.payType, totalPrice),
-        dueDate: p.date,
+        dueDate: p.date || null,
         label: p.label,
       };
     }
@@ -250,7 +250,7 @@ export const BookingsList = ({
                 paidByBooking[booking.id] || new Set(),
                 user?.id
               );
-              const isOverdue = nextPayment
+              const isOverdue = nextPayment?.dueDate
                 ? new Date(nextPayment.dueDate) < new Date()
                 : false;
 
@@ -332,7 +332,9 @@ export const BookingsList = ({
                               <p className={`text-sm mt-1 ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                                 {isOverdue
                                   ? "Förfallen"
-                                  : `Förfaller ${format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv })}`}
+                                  : nextPayment.dueDate
+                                  ? `Förfaller ${format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv })}`
+                                  : "Att betala"}
                               </p>
                             </div>
                             <Button
