@@ -32,19 +32,25 @@ export const MyDocuments = ({ userId }: MyDocumentsProps) => {
   };
 
   const handleDownload = async (fileUrl: string) => {
-    // If it's already a full URL (legacy), open directly
-    if (fileUrl.startsWith("http")) {
-      window.open(fileUrl, "_blank");
-      return;
+    let url = fileUrl;
+    if (!fileUrl.startsWith("http")) {
+      const { data, error } = await supabase.storage
+        .from("booking-attachments")
+        .createSignedUrl(fileUrl, 3600);
+      if (error || !data?.signedUrl) {
+        toast.error("Kunde inte öppna filen");
+        return;
+      }
+      url = data.signedUrl;
     }
-    const { data, error } = await supabase.storage
-      .from("booking-attachments")
-      .createSignedUrl(fileUrl, 3600);
-    if (error || !data?.signedUrl) {
-      toast.error("Kunde inte öppna filen");
-      return;
-    }
-    window.open(data.signedUrl, "_blank");
+    // Use anchor element for better mobile compatibility
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   return (
