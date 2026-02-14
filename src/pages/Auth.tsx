@@ -175,18 +175,18 @@ const Auth = () => {
         <img
           src={loginHero}
           alt="Studentresor"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover brightness-50 contrast-75"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/30" />
+        <div className="absolute inset-0 bg-[#0C4D73]/70" />
         <div className="absolute inset-0 flex flex-col justify-between p-16">
           <div>
             <Link to="/" className="flex items-center gap-2 mb-12">
-              <img src={studentresorLogo} alt="Studentresor" className="h-10" />
+              <img src={studentresorLogo} alt="Studentresor" className="h-10 opacity-80" />
             </Link>
-            <h2 className="text-4xl font-serif font-bold text-primary-foreground mb-4">
+            <h2 className="text-3xl font-serif font-semibold text-white/90 mb-4">
               Din resa. Samlad på ett ställe.
             </h2>
-            <p className="text-primary-foreground/80 text-lg mb-8">
+            <p className="text-white/60 text-base mb-8">
               Skapa ett konto för att hantera din bokning, betalningar och viktiga uppdateringar inför resan.
             </p>
             <ul className="space-y-3">
@@ -196,14 +196,14 @@ const Auth = () => {
                 "Fyll i uppgifter & allergier",
                 "Få uppdateringar direkt från oss",
               ].map((item) => (
-                <li key={item} className="flex items-center gap-3 text-primary-foreground/90">
-                  <Check className="w-5 h-5 text-primary-foreground/70 shrink-0" />
+                <li key={item} className="flex items-center gap-3 text-white/60 text-sm">
+                  <Check className="w-4 h-4 text-white/40 shrink-0" />
                   <span>{item}</span>
                 </li>
               ))}
             </ul>
           </div>
-          <p className="text-primary-foreground/50 text-sm">
+          <p className="text-white/30 text-xs">
             Ställd resegaranti hos Kammarkollegiet • Säker betalning via Stripe • 24/7 support under resan
           </p>
         </div>
