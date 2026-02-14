@@ -10,8 +10,7 @@ import { BookingDetailsDialog } from "@/components/BookingDetailsDialog";
 import { TripBookingDetailsDialog } from "@/components/TripBookingDetailsDialog";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
-import { PaymentOverview } from "@/components/dashboard/PaymentOverview";
-import { BookingsList } from "@/components/dashboard/BookingsList";
+import { PaymentHistory } from "@/components/dashboard/PaymentHistory";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -153,6 +152,9 @@ const Dashboard = () => {
             }}
           />
         )}
+
+        {/* Payment History */}
+        {user?.id && <PaymentHistory userId={user.id} />}
 
       </main>
 
