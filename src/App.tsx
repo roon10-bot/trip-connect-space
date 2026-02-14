@@ -21,6 +21,7 @@ import Terms from "./pages/Terms";
 import Splitveckan from "./pages/Splitveckan";
 import Segelveckan from "./pages/Segelveckan";
 import Studentveckan from "./pages/Studentveckan";
+import Settings from "./pages/Settings";
 import { ChatAssistant } from "./components/ChatAssistant";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/splitveckan" element={<Splitveckan />} />
               <Route path="/segelveckan" element={<Segelveckan />} />
               <Route path="/studentveckan" element={<Studentveckan />} />
+              <Route path="/settings" element={<Settings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

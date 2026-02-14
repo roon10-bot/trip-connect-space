@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.create-trip-booking]
 verify_jwt = false
+
+[functions.app-dashboard]
+verify_jwt = false
