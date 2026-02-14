@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[\d\s\-+()]{6,20}$/;
-const VALID_DEPARTURES = ["ARN", "GOT", "CPH"];
+const VALID_DEPARTURES = ["ARN", "GOT", "CPH", "Arlanda (ARN)", "Landvetter (GOT)", "Kastrup (CPH)"];
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
