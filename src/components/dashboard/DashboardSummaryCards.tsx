@@ -31,6 +31,7 @@ export const DashboardSummaryCards = ({
   onPayClick,
 }: DashboardSummaryCardsProps) => {
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsTab, setDetailsTab] = useState("passenger");
 
   // Fetch completed payments
   const { data: payments } = useQuery({
@@ -185,7 +186,10 @@ export const DashboardSummaryCards = ({
               <Button
                 size="sm"
                 className="shrink-0 bg-gradient-ocean hover:opacity-90"
-                onClick={() => setDetailsOpen(true)}
+                onClick={() => {
+                  setDetailsTab("passenger");
+                  setDetailsOpen(true);
+                }}
               >
                 <Info className="w-4 h-4 mr-1" />
                 Detaljer
@@ -226,11 +230,14 @@ export const DashboardSummaryCards = ({
                       ? `Förfaller ${format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv })}`
                       : "Att betala"}
                   </p>
-                  {activeBooking && onPayClick && (
+                  {activeBooking && (
                     <Button
                       size="sm"
                       className="mt-2 bg-gradient-ocean hover:opacity-90"
-                      onClick={() => onPayClick(activeBooking)}
+                      onClick={() => {
+                        setDetailsTab("payment");
+                        setDetailsOpen(true);
+                      }}
                     >
                       Betala nu
                     </Button>
@@ -281,6 +288,7 @@ export const DashboardSummaryCards = ({
         booking={activeBooking}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
+        defaultTab={detailsTab}
       />
     </motion.div>
   );
