@@ -154,8 +154,6 @@ const Dashboard = () => {
           />
         )}
 
-        {/* Payments */}
-        {user?.id && <PaymentOverview userId={user.id} />}
       </main>
 
       <Footer />
