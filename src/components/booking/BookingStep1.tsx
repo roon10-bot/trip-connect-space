@@ -41,7 +41,7 @@ export const BookingStep1 = ({
       <Card className="shadow-elegant">
         <CardHeader>
           <CardTitle className="font-serif text-2xl">
-            Steg 1: Vänligen ange din preferens
+            Välj antal resenärer
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-8">
