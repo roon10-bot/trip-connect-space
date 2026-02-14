@@ -159,33 +159,35 @@ export const DashboardSummaryCards = ({
       <Card className="bg-gradient-card shadow-elegant">
         <CardContent className="pt-6">
           {activeBooking?.trips ? (
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-ocean-light">
-                <Plane className="w-6 h-6 text-ocean" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-lg font-bold text-foreground">
-                  {activeBooking.trips.name} – {formatTripType(activeBooking.trips.trip_type)}
-                </p>
-                <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
-                  <Calendar className="w-3.5 h-3.5 shrink-0" />
-                  {format(new Date(activeBooking.trips.departure_date), "d MMMM", { locale: sv })}
-                  {" – "}
-                  {format(new Date(activeBooking.trips.return_date), "d MMMM yyyy", { locale: sv })}
-                </p>
-                <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                  <MapPin className="w-3.5 h-3.5 shrink-0" />
-                  {activeBooking.departure_location}
-                </p>
-                {badgeInfo && (
-                  <span className={`inline-flex items-center mt-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full ${badgeInfo.color}`}>
-                    {badgeInfo.label}
-                  </span>
-                )}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="p-3 rounded-xl bg-ocean-light shrink-0">
+                  <Plane className="w-6 h-6 text-ocean" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg font-bold text-foreground">
+                    {activeBooking.trips.name} – {formatTripType(activeBooking.trips.trip_type)}
+                  </p>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
+                    <Calendar className="w-3.5 h-3.5 shrink-0" />
+                    {format(new Date(activeBooking.trips.departure_date), "d MMMM", { locale: sv })}
+                    {" – "}
+                    {format(new Date(activeBooking.trips.return_date), "d MMMM yyyy", { locale: sv })}
+                  </p>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                    {activeBooking.departure_location}
+                  </p>
+                  {badgeInfo && (
+                    <span className={`inline-flex items-center mt-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full ${badgeInfo.color}`}>
+                      {badgeInfo.label}
+                    </span>
+                  )}
+                </div>
               </div>
               <Button
                 size="sm"
-                className="shrink-0 bg-gradient-ocean hover:opacity-90"
+                className="shrink-0 bg-gradient-ocean hover:opacity-90 w-full sm:w-auto"
                 onClick={() => {
                   setDetailsTab("passenger");
                   setDetailsOpen(true);
