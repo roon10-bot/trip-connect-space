@@ -11,9 +11,11 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plane, Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import studentresorLogo from "@/assets/studentresor-logo.svg";
+import loginHero from "@/assets/login-hero.png";
 
 const authSchema = z.object({
   email: z.string().email("Ange en giltig e-postadress"),
@@ -171,20 +173,15 @@ const Auth = () => {
       {/* Left Side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative">
         <img
-          src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1200&q=80"
-          alt="Resa"
+          src={loginHero}
+          alt="Studentresor"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/70 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-start p-16">
           <div className="max-w-md">
             <Link to="/" className="flex items-center gap-2 mb-8">
-              <div className="p-2 rounded-xl bg-gradient-ocean">
-                <Plane className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <span className="text-2xl font-serif font-semibold text-primary-foreground">
-                Voyage
-              </span>
+              <img src={studentresorLogo} alt="Studentresor" className="h-10" />
             </Link>
             <h2 className="text-4xl font-serif font-bold text-primary-foreground mb-4">
               Börja din resa idag
@@ -207,12 +204,7 @@ const Auth = () => {
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
             <Link to="/" className="inline-flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-gradient-ocean">
-                <Plane className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <span className="text-2xl font-serif font-semibold text-foreground">
-                Voyage
-              </span>
+              <img src={studentresorLogo} alt="Studentresor" className="h-8" />
             </Link>
           </div>
 
