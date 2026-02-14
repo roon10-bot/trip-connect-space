@@ -103,11 +103,16 @@ export const DashboardSummaryCards = ({
     return null;
   }, [activeBooking, payments, userId]);
 
-  // Calculate total paid
+  // Calculate total paid for active booking
   const totalPaid = useMemo(() => {
-    if (!payments) return 0;
-    return payments.reduce((sum, p) => sum + Number(p.amount), 0);
-  }, [payments]);
+    if (!payments || !activeBooking) return 0;
+    return payments
+      .filter((p) => p.trip_booking_id === activeBooking.id)
+      .reduce((sum, p) => sum + Number(p.amount), 0);
+  }, [payments, activeBooking]);
+
+  const totalPrice = activeBooking ? Number(activeBooking.total_price) : 0;
+  const paidPercent = totalPrice > 0 ? Math.min(Math.round((totalPaid / totalPrice) * 100), 100) : 0;
 
   const isOverdue = nextPayment?.dueDate ? new Date(nextPayment.dueDate) < new Date() : false;
 
@@ -202,19 +207,28 @@ export const DashboardSummaryCards = ({
           </CardContent>
         </Card>
 
-        {/* Total paid */}
+        {/* Payment progress */}
         <Card className="bg-gradient-card shadow-elegant">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mb-3">
               <div className="p-3 rounded-xl bg-palm-light">
                 <Wallet className="w-6 h-6 text-palm" />
               </div>
-              <div>
-                <p className="text-3xl font-bold text-foreground">
-                  {totalPaid.toLocaleString("sv-SE")} kr
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">Betalningsförlopp</p>
+                <p className="text-xs text-muted-foreground">
+                  {totalPaid.toLocaleString("sv-SE")} kr av {totalPrice.toLocaleString("sv-SE")} kr
                 </p>
-                <p className="text-muted-foreground">Totalt betalt</p>
               </div>
+              <span className="text-lg font-bold text-foreground">{paidPercent}%</span>
+            </div>
+            <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full bg-gradient-ocean"
+                initial={{ width: 0 }}
+                animate={{ width: `${paidPercent}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              />
             </div>
           </CardContent>
         </Card>
