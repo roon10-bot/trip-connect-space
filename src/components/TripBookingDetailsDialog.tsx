@@ -79,6 +79,7 @@ interface TripBookingDetailsDialogProps {
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultTab?: string;
 }
 
 interface PaymentOption {
@@ -93,6 +94,7 @@ export const TripBookingDetailsDialog = ({
   booking,
   open,
   onOpenChange,
+  defaultTab = "passenger",
 }: TripBookingDetailsDialogProps) => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
@@ -273,7 +275,7 @@ export const TripBookingDetailsDialog = ({
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="passenger" className="mt-6">
+        <Tabs defaultValue={defaultTab} key={defaultTab} className="mt-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="passenger">
               <Users className="w-4 h-4 mr-2" />
