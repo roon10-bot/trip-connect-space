@@ -11,6 +11,7 @@ import { TripBookingDetailsDialog } from "@/components/TripBookingDetailsDialog"
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { PaymentHistory } from "@/components/dashboard/PaymentHistory";
+import { MyDocuments } from "@/components/dashboard/MyDocuments";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -153,8 +154,13 @@ const Dashboard = () => {
           />
         )}
 
-        {/* Payment History */}
-        {user?.id && <PaymentHistory userId={user.id} />}
+        {/* Payment History & Documents */}
+        {user?.id && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <PaymentHistory userId={user.id} />
+            <MyDocuments userId={user.id} />
+          </div>
+        )}
 
       </main>
 
