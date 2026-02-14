@@ -171,26 +171,45 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Image */}
-      <div className="hidden lg:flex lg:w-1/2 relative">
-        <img
-          src={loginHero}
-          alt="Studentresor"
-          className="w-full h-full object-cover brightness-50 contrast-75"
-        />
-        <div className="absolute inset-0 bg-[#0C4D73]/70" />
-        <div className="absolute inset-0 flex flex-col justify-between p-16">
-          <div>
-            <Link to="/" className="flex items-center gap-2 mb-12">
-              <img src={studentresorLogo} alt="Studentresor" className="h-10 opacity-80" />
-            </Link>
-            <h2 className="text-3xl font-serif font-semibold text-white/90 mb-4">
-              Din resa. Samlad på ett ställe.
-            </h2>
-            <p className="text-white/60 text-base mb-8">
-              Skapa ett konto för att hantera din bokning, betalningar och viktiga uppdateringar inför resan.
-            </p>
+      <div className="hidden lg:flex lg:w-1/2 flex-col">
+        {/* Image section */}
+        <div className="relative flex-1">
+          <img
+            src={loginHero}
+            alt="Studentresor"
+            className="w-full h-full object-cover brightness-50 contrast-75"
+          />
+          <div className="absolute inset-0 bg-[#0C4D73]/70" />
+          <div className="absolute inset-0 flex flex-col justify-between p-16">
+            <div>
+              <Link to="/" className="flex items-center gap-2 mb-12">
+                <img src={studentresorLogo} alt="Studentresor" className="h-10 opacity-80" />
+              </Link>
+              <h2 className="text-3xl font-serif font-semibold text-white/90 mb-4">
+                Din resa. Samlad på ett ställe.
+              </h2>
+              <p className="text-white/60 text-base">
+                Skapa ett konto för att hantera din bokning, betalningar och viktiga uppdateringar inför resan.
+              </p>
+            </div>
           </div>
-          <p className="text-white/30 text-xs">
+        </div>
+        {/* Info section below image */}
+        <div className="bg-[#0a3d5c] px-16 py-6">
+          <ul className="grid grid-cols-2 gap-x-6 gap-y-2">
+            {[
+              "Se och betala dina delbetalningar",
+              "Ladda ner biljetter och dokument",
+              "Fyll i uppgifter & allergier",
+              "Få uppdateringar direkt från oss",
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-2 text-white/50 text-xs">
+                <Check className="w-3.5 h-3.5 text-white/35 shrink-0" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-white/25 text-[10px] mt-4">
             Ställd resegaranti hos Kammarkollegiet • Säker betalning via Stripe • 24/7 support under resan
           </p>
         </div>
