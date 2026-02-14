@@ -11,7 +11,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
@@ -177,19 +177,35 @@ const Auth = () => {
           alt="Studentresor"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-foreground/70 to-transparent" />
-        <div className="absolute inset-0 flex items-center justify-start p-16">
-          <div className="max-w-md">
-            <Link to="/" className="flex items-center gap-2 mb-8">
+        <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 to-foreground/30" />
+        <div className="absolute inset-0 flex flex-col justify-between p-16">
+          <div>
+            <Link to="/" className="flex items-center gap-2 mb-12">
               <img src={studentresorLogo} alt="Studentresor" className="h-10" />
             </Link>
             <h2 className="text-4xl font-serif font-bold text-primary-foreground mb-4">
-              Börja din resa idag
+              Din resa. Samlad på ett ställe.
             </h2>
-            <p className="text-primary-foreground/80 text-lg">
-              Skapa ett konto för att boka dina drömresor och spara dina favoriter.
+            <p className="text-primary-foreground/80 text-lg mb-8">
+              Skapa ett konto för att hantera din bokning, betalningar och viktiga uppdateringar inför resan.
             </p>
+            <ul className="space-y-3">
+              {[
+                "Se och betala dina delbetalningar",
+                "Ladda ner biljetter och dokument",
+                "Fyll i uppgifter & allergier",
+                "Få uppdateringar direkt från oss",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-3 text-primary-foreground/90">
+                  <Check className="w-5 h-5 text-primary-foreground/70 shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
+          <p className="text-primary-foreground/50 text-sm">
+            Ställd resegaranti hos Kammarkollegiet • Säker betalning via Stripe • 24/7 support under resan
+          </p>
         </div>
       </div>
 
@@ -217,7 +233,7 @@ const Auth = () => {
                 ? "Ange ett lösenord för att aktivera ditt konto"
                 : isLogin
                 ? "Logga in för att hantera dina bokningar"
-                : "Registrera dig för att börja boka resor"}
+                : "Använd din e-post för att skapa ett konto och få full kontroll över din resa."}
             </p>
           </div>
 
@@ -253,18 +269,8 @@ const Auth = () => {
             </form>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Namn</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    placeholder="Ditt fullständiga namn"
-                    {...register("fullName")}
-                    className="h-12"
-                  />
-                </div>
-              )}
+
+
 
               <div className="space-y-2">
                 <Label htmlFor="email">E-post</Label>
@@ -365,11 +371,11 @@ const Auth = () => {
             </button>
           </div>
 
-          <div className="mt-8 text-center">
-            <Link to="/" className="text-muted-foreground hover:text-foreground text-sm">
-              ← Tillbaka till startsidan
-            </Link>
-          </div>
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            Genom att skapa konto godkänner du våra{" "}
+            <Link to="/terms" className="underline hover:text-foreground">villkor</Link>{" "}
+            och integritetspolicy.
+          </p>
         </motion.div>
       </div>
     </div>
