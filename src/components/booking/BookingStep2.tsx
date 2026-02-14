@@ -128,7 +128,7 @@ export const BookingStep2 = ({
                       disabled={(date) => date > new Date()}
                       initialFocus
                       className="pointer-events-auto"
-                      captionLayout="dropdown-buttons"
+                      captionLayout="dropdown"
                       fromYear={1940}
                       toYear={new Date().getFullYear()}
                     />
