@@ -116,79 +116,18 @@ export const DashboardSummaryCards = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="grid md:grid-cols-3 gap-6 mb-12"
+      className="space-y-6 mb-12"
     >
-      {/* Card 1: Total paid */}
-      <Card className="bg-gradient-card shadow-elegant">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-palm-light">
-              <Wallet className="w-6 h-6 text-palm" />
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-foreground">
-                {totalPaid.toLocaleString("sv-SE")} kr
-              </p>
-              <p className="text-muted-foreground">Totalt betalt</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Card 2: Next payment */}
-      <Card className={`bg-gradient-card shadow-elegant ${isOverdue ? "border-destructive/50" : ""}`}>
-        <CardContent className="pt-6">
-          {nextPayment ? (
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-xl ${isOverdue ? "bg-destructive/10" : "bg-sunset-light"}`}>
-                <CreditCard className={`w-6 h-6 ${isOverdue ? "text-destructive" : "text-sunset"}`} />
-              </div>
-              <div className="flex-1">
-                <p className="text-2xl font-bold text-foreground">
-                  {nextPayment.amount.toLocaleString("sv-SE")} kr
-                </p>
-                <p className={`text-sm ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                  {isOverdue
-                    ? "Förfallen"
-                    : nextPayment.dueDate
-                    ? `Förfaller ${format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv })}`
-                    : "Att betala"}
-                </p>
-                {activeBooking && onPayClick && (
-                  <Button
-                    size="sm"
-                    className="mt-2 bg-gradient-ocean hover:opacity-90"
-                    onClick={() => onPayClick(activeBooking)}
-                  >
-                    Betala nu
-                  </Button>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-palm-light">
-                <CheckCircle className="w-6 h-6 text-palm" />
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-palm">Allt betalt</p>
-                <p className="text-muted-foreground">Inga kommande betalningar</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Card 3: Booked trip info */}
+      {/* Full-width trip info card */}
       <Card className="bg-gradient-card shadow-elegant">
         <CardContent className="pt-6">
           {activeBooking?.trips ? (
-            <div className="flex items-start gap-4">
+            <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-ocean-light">
                 <Plane className="w-6 h-6 text-ocean" />
               </div>
               <div className="min-w-0">
-                <p className="text-lg font-bold text-foreground truncate">
+                <p className="text-lg font-bold text-foreground">
                   {activeBooking.trips.name} – {formatTripType(activeBooking.trips.trip_type)}
                 </p>
                 <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
@@ -216,6 +155,70 @@ export const DashboardSummaryCards = ({
           )}
         </CardContent>
       </Card>
+
+      {/* Payment cards row */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Total paid */}
+        <Card className="bg-gradient-card shadow-elegant">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-palm-light">
+                <Wallet className="w-6 h-6 text-palm" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-foreground">
+                  {totalPaid.toLocaleString("sv-SE")} kr
+                </p>
+                <p className="text-muted-foreground">Totalt betalt</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Next payment */}
+        <Card className={`bg-gradient-card shadow-elegant ${isOverdue ? "border-destructive/50" : ""}`}>
+          <CardContent className="pt-6">
+            {nextPayment ? (
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-xl ${isOverdue ? "bg-destructive/10" : "bg-sunset-light"}`}>
+                  <CreditCard className={`w-6 h-6 ${isOverdue ? "text-destructive" : "text-sunset"}`} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-2xl font-bold text-foreground">
+                    {nextPayment.amount.toLocaleString("sv-SE")} kr
+                  </p>
+                  <p className={`text-sm ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                    {isOverdue
+                      ? "Förfallen"
+                      : nextPayment.dueDate
+                      ? `Förfaller ${format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv })}`
+                      : "Att betala"}
+                  </p>
+                  {activeBooking && onPayClick && (
+                    <Button
+                      size="sm"
+                      className="mt-2 bg-gradient-ocean hover:opacity-90"
+                      onClick={() => onPayClick(activeBooking)}
+                    >
+                      Betala nu
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-palm-light">
+                  <CheckCircle className="w-6 h-6 text-palm" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-palm">Allt betalt</p>
+                  <p className="text-muted-foreground">Inga kommande betalningar</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </motion.div>
   );
 };
