@@ -226,15 +226,15 @@ const Auth = () => {
 
           <div className="text-center mb-8">
             <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
-              {isSettingPassword ? "Välj ditt lösenord" : isLogin ? "Välkommen tillbaka" : "Skapa konto"}
+              {isSettingPassword ? "Välj ditt lösenord" : isLogin ? "Logga in" : "Skapa konto"}
             </h1>
-            <p className="text-muted-foreground">
-              {isSettingPassword
-                ? "Ange ett lösenord för att aktivera ditt konto"
-                : isLogin
-                ? "Logga in för att hantera dina bokningar"
-                : "Använd din e-post för att skapa ett konto och få full kontroll över din resa."}
-            </p>
+            {(isSettingPassword || !isLogin) && (
+              <p className="text-muted-foreground">
+                {isSettingPassword
+                  ? "Ange ett lösenord för att aktivera ditt konto"
+                  : "Använd din e-post för att skapa ett konto och få full kontroll över din resa."}
+              </p>
+            )}
           </div>
 
           {isSettingPassword ? (
