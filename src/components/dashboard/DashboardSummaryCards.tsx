@@ -158,23 +158,6 @@ export const DashboardSummaryCards = ({
 
       {/* Payment cards row */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Total paid */}
-        <Card className="bg-gradient-card shadow-elegant">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-palm-light">
-                <Wallet className="w-6 h-6 text-palm" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-foreground">
-                  {totalPaid.toLocaleString("sv-SE")} kr
-                </p>
-                <p className="text-muted-foreground">Totalt betalt</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Next payment */}
         <Card className={`bg-gradient-card shadow-elegant ${isOverdue ? "border-destructive/50" : ""}`}>
           <CardContent className="pt-6">
@@ -216,6 +199,23 @@ export const DashboardSummaryCards = ({
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Total paid */}
+        <Card className="bg-gradient-card shadow-elegant">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-palm-light">
+                <Wallet className="w-6 h-6 text-palm" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-foreground">
+                  {totalPaid.toLocaleString("sv-SE")} kr
+                </p>
+                <p className="text-muted-foreground">Totalt betalt</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
