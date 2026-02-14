@@ -187,7 +187,7 @@ export const DashboardSummaryCards = ({
               </div>
               <Button
                 size="sm"
-                className="shrink-0 bg-gradient-ocean hover:opacity-90 w-full sm:w-auto"
+                className="shrink-0 bg-gradient-ocean hover:opacity-90 sm:w-auto"
                 onClick={() => {
                   setDetailsTab("passenger");
                   setDetailsOpen(true);
