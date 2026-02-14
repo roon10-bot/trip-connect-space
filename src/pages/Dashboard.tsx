@@ -6,22 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { BookingDetailsDialog } from "@/components/BookingDetailsDialog";
 import { TripBookingDetailsDialog } from "@/components/TripBookingDetailsDialog";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
+import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { PaymentOverview } from "@/components/dashboard/PaymentOverview";
 import { BookingsList } from "@/components/dashboard/BookingsList";
 import { toast } from "sonner";
-import {
-  Plane,
-  Calendar,
-  MapPin,
-  Clock,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
@@ -125,34 +116,6 @@ const Dashboard = () => {
     enabled: !!user?.id,
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return (
-          <Badge className="bg-palm text-palm-foreground">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Bekräftad
-          </Badge>
-        );
-      case "pending":
-        return (
-          <Badge variant="secondary">
-            <Clock className="w-3 h-3 mr-1" />
-            Väntar
-          </Badge>
-        );
-      case "cancelled":
-        return (
-          <Badge variant="destructive">
-            <XCircle className="w-3 h-3 mr-1" />
-            Avbokad
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -179,63 +142,17 @@ const Dashboard = () => {
           </p>
         </motion.div>
 
-        {/* Quick Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid md:grid-cols-3 gap-6 mb-12"
-        >
-          <Card className="bg-gradient-card shadow-elegant">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-ocean-light">
-                  <Plane className="w-6 h-6 text-ocean" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-foreground">
-                    {(bookings?.length || 0) + (tripBookings?.length || 0)}
-                  </p>
-                  <p className="text-muted-foreground">Totala bokningar</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-card shadow-elegant">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-sunset-light">
-                  <Calendar className="w-6 h-6 text-sunset" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-foreground">
-                    {(bookings?.filter((b) => b.status === "confirmed").length || 0) + 
-                     (tripBookings?.filter((b) => b.status === "confirmed").length || 0)}
-                  </p>
-                  <p className="text-muted-foreground">Bekräftade resor</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-card shadow-elegant">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-palm-light">
-                  <MapPin className="w-6 h-6 text-palm" />
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-foreground">
-                    {(new Set(bookings?.map((b) => b.destination_id)).size || 0) + 
-                     (new Set(tripBookings?.map((b) => b.trip_id)).size || 0)}
-                  </p>
-                  <p className="text-muted-foreground">Unika resor</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        {/* Summary Cards */}
+        {user?.id && (
+          <DashboardSummaryCards
+            userId={user.id}
+            tripBookings={tripBookings}
+            onPayClick={(booking) => {
+              setSelectedTripBooking(booking);
+              setTripDetailsOpen(true);
+            }}
+          />
+        )}
 
         {/* Dashboard Tabs */}
         <DashboardTabs
