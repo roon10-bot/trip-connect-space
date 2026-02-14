@@ -189,19 +189,6 @@ const Auth = () => {
             <p className="text-white/60 text-base mb-8">
               Skapa ett konto för att hantera din bokning, betalningar och viktiga uppdateringar inför resan.
             </p>
-            <ul className="space-y-3">
-              {[
-                "Se och betala dina delbetalningar",
-                "Ladda ner biljetter och dokument",
-                "Fyll i uppgifter & allergier",
-                "Få uppdateringar direkt från oss",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-3 text-white/60 text-sm">
-                  <Check className="w-4 h-4 text-white/40 shrink-0" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
           </div>
           <p className="text-white/30 text-xs">
             Ställd resegaranti hos Kammarkollegiet • Säker betalning via Stripe • 24/7 support under resan
