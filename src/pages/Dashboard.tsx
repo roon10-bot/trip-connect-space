@@ -154,29 +154,8 @@ const Dashboard = () => {
           />
         )}
 
-        {/* Dashboard Tabs */}
-        <DashboardTabs
-          bookingsContent={
-            <BookingsList
-              tripBookings={tripBookings}
-              tripBookingsLoading={tripBookingsLoading}
-              destinationBookings={bookings}
-              onTripBookingClick={(booking) => {
-                setSelectedTripBooking(booking);
-                setTripDetailsOpen(true);
-              }}
-              onDestinationBookingClick={(booking) => {
-                setSelectedBooking(booking);
-                setDetailsOpen(true);
-              }}
-            />
-          }
-          paymentsContent={
-            user?.id ? (
-              <PaymentOverview userId={user.id} />
-            ) : null
-          }
-        />
+        {/* Payments */}
+        {user?.id && <PaymentOverview userId={user.id} />}
       </main>
 
       <Footer />
