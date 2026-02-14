@@ -185,10 +185,10 @@ export const DashboardSummaryCards = ({
                   )}
                 </div>
               </div>
-              <div className="mt-2 sm:mt-0">
+              <div className="mt-2 sm:mt-0 flex justify-center">
                 <Button
                   size="sm"
-                  className="shrink-0 bg-gradient-ocean hover:opacity-90"
+                  className="shrink-0 bg-gradient-ocean hover:opacity-90 min-w-[120px]"
                   onClick={() => {
                     setDetailsTab("passenger");
                     setDetailsOpen(true);
@@ -235,16 +235,18 @@ export const DashboardSummaryCards = ({
                       : "Att betala"}
                   </p>
                   {activeBooking && (
-                    <Button
-                      size="sm"
-                      className="mt-2 bg-gradient-ocean hover:opacity-90"
-                      onClick={() => {
-                        setDetailsTab("payment");
-                        setDetailsOpen(true);
-                      }}
-                    >
-                      Betala nu
-                    </Button>
+                    <div className="mt-2 flex justify-center">
+                      <Button
+                        size="sm"
+                        className="bg-gradient-ocean hover:opacity-90 min-w-[120px]"
+                        onClick={() => {
+                          setDetailsTab("payment");
+                          setDetailsOpen(true);
+                        }}
+                      >
+                        Betala nu
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
