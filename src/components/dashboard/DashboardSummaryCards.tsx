@@ -185,17 +185,19 @@ export const DashboardSummaryCards = ({
                   )}
                 </div>
               </div>
-              <Button
-                size="sm"
-                className="shrink-0 bg-gradient-ocean hover:opacity-90 sm:w-auto"
-                onClick={() => {
-                  setDetailsTab("passenger");
-                  setDetailsOpen(true);
-                }}
-              >
-                <Info className="w-4 h-4 mr-1" />
-                Detaljer
-              </Button>
+              <div className="mt-2 sm:mt-0">
+                <Button
+                  size="sm"
+                  className="shrink-0 bg-gradient-ocean hover:opacity-90"
+                  onClick={() => {
+                    setDetailsTab("passenger");
+                    setDetailsOpen(true);
+                  }}
+                >
+                  <Info className="w-4 h-4 mr-1" />
+                  Detaljer
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="flex items-center gap-4">
