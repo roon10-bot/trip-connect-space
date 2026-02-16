@@ -49,14 +49,6 @@ export const AdminAccountsList = () => {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
 
-      const { data, error } = await supabase.functions.invoke("manage-users", {
-        headers: { Authorization: `Bearer ${token}` },
-        method: "GET",
-        body: null,
-      });
-
-      // supabase.functions.invoke uses POST by default, we need query params
-      // Let's use fetch directly
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-users?action=list`,
         {
