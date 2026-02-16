@@ -142,7 +142,7 @@ export const AdminEmailTemplates = () => {
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a2e;">
         ${editForm.logo_url ? `<img src="${editForm.logo_url}" alt="Logo" style="max-height: 48px; margin-bottom: 16px;" />` : ""}
         <h1 style="color: ${color};">${editForm.heading || ""}</h1>
-        <p>${(editForm.body_text || "").replace(/\n/g, "<br/>")}</p>
+        <p>${(editForm.body_text || "").replace(/\\n/g, "\n").replace(/\n/g, "<br/>")}</p>
         ${editForm.button_text ? `
           <p style="text-align: center; margin: 30px 0;">
             <a href="#" style="background: ${color}; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
@@ -151,7 +151,7 @@ export const AdminEmailTemplates = () => {
           </p>
         ` : ""}
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
-        <p style="color: #666; font-size: 14px;">${(editForm.footer_text || "").replace(/\n/g, "<br/>")}</p>
+        <p style="color: #666; font-size: 14px;">${(editForm.footer_text || "").replace(/\\n/g, "\n").replace(/\n/g, "<br/>")}</p>
       </div>
     `;
   };
