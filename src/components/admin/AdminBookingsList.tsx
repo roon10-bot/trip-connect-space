@@ -61,6 +61,7 @@ export const AdminBookingsList = () => {
   const queryClient = useQueryClient();
   const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set());
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ bookingId: string; status: string; bookingName: string } | null>(null);
 
   const { data: tripBookings, isLoading: bookingsLoading } = useQuery({
     queryKey: ["admin-trip-bookings-with-payments"],
@@ -427,12 +428,15 @@ export const AdminBookingsList = () => {
                     <div className="flex items-center gap-2">
                       <Select
                         value={booking.status}
-                        onValueChange={(value) =>
-                          updateStatusMutation.mutate({
-                            bookingId: booking.id,
-                            status: value,
-                          })
-                        }
+                        onValueChange={(value) => {
+                          if (value !== booking.status) {
+                            setPendingStatusChange({
+                              bookingId: booking.id,
+                              status: value,
+                              bookingName: `${booking.first_name} ${booking.last_name}`,
+                            });
+                          }
+                        }}
                       >
                         <SelectTrigger className="w-40">
                           <SelectValue />
@@ -524,6 +528,43 @@ export const AdminBookingsList = () => {
           payments={payments || []}
         />
       )}
+
+      <AlertDialog open={!!pendingStatusChange} onOpenChange={(open) => { if (!open) setPendingStatusChange(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bekräfta statusändring</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingStatusChange && (
+                <>
+                  Vill du ändra status för <strong>{pendingStatusChange.bookingName}</strong> till{" "}
+                  <strong>
+                    {{ pending: "Väntar", confirmed: "Bekräftad", cancelled: "Avbokad" }[pendingStatusChange.status] || pendingStatusChange.status}
+                  </strong>?
+                  {(pendingStatusChange.status === "confirmed" || pendingStatusChange.status === "cancelled") && (
+                    <span className="block mt-2 text-sm">Ett automatiskt e-postmeddelande kommer att skickas till kunden.</span>
+                  )}
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingStatusChange) {
+                  updateStatusMutation.mutate({
+                    bookingId: pendingStatusChange.bookingId,
+                    status: pendingStatusChange.status,
+                  });
+                  setPendingStatusChange(null);
+                }
+              }}
+            >
+              Bekräfta
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
