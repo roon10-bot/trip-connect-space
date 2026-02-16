@@ -1,10 +1,17 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -13,13 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,19 +31,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
-  Users,
-  TrendingUp,
-  Ship,
-  Ticket,
   Plane,
+  Users,
   CheckCircle,
   XCircle,
   Clock,
   Trash2,
+  TrendingUp,
+  Ship,
+  Ticket,
 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AdminBookingDetailDialog } from "@/components/admin/AdminBookingDetailDialog";
+import { TripBookingsList } from "./TripBookingsList";
 
 interface AdminDashboardProps {
   isAdmin: boolean;
@@ -51,6 +53,28 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
+  const queryClient = useQueryClient();
+
+  const { data: bookings, isLoading: bookingsLoading } = useQuery({
+    queryKey: ["admin-bookings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(`
+          *,
+          destinations (
+            name,
+            country
+          )
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAdmin,
+  });
+
   const { data: trips } = useQuery({
     queryKey: ["admin-trips"],
     queryFn: async () => {
@@ -70,15 +94,7 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trip_bookings")
-        .select(`
-          *,
-          trips (
-            name,
-            trip_type,
-            departure_date,
-            return_date
-          )
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -87,37 +103,87 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
     enabled: isAdmin,
   });
 
-  const queryClient = useQueryClient();
+  const { data: profiles } = useQuery({
+    queryKey: ["admin-profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_id, full_name");
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAdmin,
+  });
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ bookingId, status }: { bookingId: string; status: string }) => {
       const { error } = await supabase
-        .from("trip_bookings")
+        .from("bookings")
         .update({ status })
         .eq("id", bookingId);
+
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-trip-bookings"] });
-      toast.success("Status uppdaterad");
+      queryClient.invalidateQueries({ queryKey: ["admin-bookings"] });
+      toast.success("Bokningsstatus uppdaterad");
     },
-    onError: () => toast.error("Kunde inte uppdatera status"),
+    onError: () => {
+      toast.error("Kunde inte uppdatera status");
+    },
   });
 
   const deleteBookingMutation = useMutation({
     mutationFn: async (bookingId: string) => {
       const { error } = await supabase
-        .from("trip_bookings")
+        .from("bookings")
         .delete()
         .eq("id", bookingId);
+
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-trip-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-bookings"] });
       toast.success("Bokning borttagen");
     },
-    onError: () => toast.error("Kunde inte ta bort bokningen"),
+    onError: () => {
+      toast.error("Kunde inte ta bort bokningen");
+    },
   });
+
+  const getProfileName = (profileUserId: string) => {
+    const profile = profiles?.find((p) => p.user_id === profileUserId);
+    return profile?.full_name || "Okänd användare";
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "confirmed":
+        return (
+          <Badge className="bg-palm text-palm-foreground">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Bekräftad
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge variant="secondary">
+            <Clock className="w-3 h-3 mr-1" />
+            Väntar
+          </Badge>
+        );
+      case "cancelled":
+        return (
+          <Badge variant="destructive">
+            <XCircle className="w-3 h-3 mr-1" />
+            Avbokad
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
 
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -143,28 +209,6 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
         }, 0) / trips.length)
       )
     : 0;
-
-  const formatTripType = (type: string) => {
-    const types: Record<string, string> = {
-      seglingsvecka: "Seglingsvecka",
-      splitveckan: "Splitveckan",
-      studentveckan: "Studentveckan",
-    };
-    return types[type] || type;
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return <Badge className="bg-palm text-palm-foreground"><CheckCircle className="w-3 h-3 mr-1" />Bekräftad</Badge>;
-      case "pending":
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Väntar</Badge>;
-      case "cancelled":
-        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Avbokad</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
 
   return (
     <div className="space-y-10">
@@ -229,62 +273,52 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
         </Card>
       </div>
 
-      {/* Trip Bookings Table */}
+      {/* Bookings Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="font-serif">Resebokningar</CardTitle>
-          <CardDescription>Hantera bokningar för resor (Seglingsvecka, Splitveckan, Studentveckan)</CardDescription>
+          <CardTitle className="font-serif">Senaste bokningar</CardTitle>
+          <CardDescription>
+            Hantera och uppdatera bokningsstatus
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {!tripBookings ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
+          {bookingsLoading ? (
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
             </div>
-          ) : tripBookings.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Plane className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Inga resebokningar ännu</p>
-            </div>
-          ) : (
+          ) : bookings && bookings.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Kund</TableHead>
-                    <TableHead>Resa</TableHead>
+                    <TableHead>Destination</TableHead>
                     <TableHead>Datum</TableHead>
-                    <TableHead>Resenärer</TableHead>
+                    <TableHead>Gäster</TableHead>
                     <TableHead>Pris</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Åtgärder</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tripBookings.map((booking) => (
+                  {bookings.slice(0, 10).map((booking) => (
                     <TableRow key={booking.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{booking.first_name} {booking.last_name}</p>
-                          <p className="text-sm text-muted-foreground">{booking.email}</p>
-                        </div>
+                      <TableCell className="font-medium">
+                        {getProfileName(booking.user_id)}
                       </TableCell>
                       <TableCell>
-                        <div>
-                          <p className="font-medium">{booking.trips?.name}</p>
-                          <p className="text-sm text-ocean">{booking.trips?.trip_type && formatTripType(booking.trips.trip_type)}</p>
-                        </div>
+                        {booking.destinations?.name}, {booking.destinations?.country}
                       </TableCell>
                       <TableCell>
-                        {booking.trips?.departure_date && booking.trips?.return_date && (
-                          <span className="text-sm">
-                            {format(new Date(booking.trips.departure_date), "d MMM", { locale: sv })} – {format(new Date(booking.trips.return_date), "d MMM", { locale: sv })}
-                          </span>
-                        )}
+                        {format(new Date(booking.check_in), "d MMM", { locale: sv })} -{" "}
+                        {format(new Date(booking.check_out), "d MMM", { locale: sv })}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4 text-muted-foreground" />
-                          {booking.travelers}
+                          <Users className="w-4 h-4" />
+                          {booking.guests}
                         </div>
                       </TableCell>
                       <TableCell className="font-semibold">
@@ -295,9 +329,14 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
                         <div className="flex items-center gap-2">
                           <Select
                             value={booking.status}
-                            onValueChange={(value) => updateStatusMutation.mutate({ bookingId: booking.id, status: value })}
+                            onValueChange={(value) =>
+                              updateStatusMutation.mutate({
+                                bookingId: booking.id,
+                                status: value,
+                              })
+                            }
                           >
-                            <SelectTrigger className="w-[120px]">
+                            <SelectTrigger className="w-32">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -306,6 +345,7 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
                               <SelectItem value="cancelled">Avbokad</SelectItem>
                             </SelectContent>
                           </Select>
+
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="destructive" size="icon">
@@ -316,12 +356,16 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Ta bort bokning?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Denna åtgärd kan inte ångras. Bokningen för {booking.first_name} {booking.last_name} kommer att tas bort permanent.
+                                  Är du säker på att du vill ta bort denna bokning? Denna åtgärd
+                                  kan inte ångras.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteBookingMutation.mutate(booking.id)}>
+                                <AlertDialogAction
+                                  onClick={() => deleteBookingMutation.mutate(booking.id)}
+                                  className="bg-destructive text-destructive-foreground"
+                                >
                                   Ta bort
                                 </AlertDialogAction>
                               </AlertDialogFooter>
@@ -334,9 +378,17 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
                 </TableBody>
               </Table>
             </div>
+          ) : (
+            <div className="text-center py-12">
+              <Plane className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">Inga bokningar ännu</p>
+            </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Trip Bookings */}
+      <TripBookingsList />
     </div>
   );
 };
