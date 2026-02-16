@@ -41,7 +41,7 @@ function buildEmailHtml(template: EmailTemplate, vars: Record<string, string>, a
         <div style="background: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
           ${template.logo_url ? `<img src="${template.logo_url}" alt="Studentresor" style="max-height: 48px; margin-bottom: 24px;" />` : ""}
           <h1 style="color: ${color}; font-size: 24px; margin: 0 0 20px 0;">${heading}</h1>
-          <div style="color: #333; font-size: 16px; line-height: 1.6;">${body.replace(/\n/g, "<br/>")}</div>
+          <div style="color: #333; font-size: 16px; line-height: 1.6;">${body.replace(/\\n/g, "<br/>").replace(/\n/g, "<br/>")}</div>
           ${actionUrl && buttonText ? `
             <p style="text-align: center; margin: 30px 0;">
               <a href="${actionUrl}" style="background: ${color}; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
@@ -50,7 +50,7 @@ function buildEmailHtml(template: EmailTemplate, vars: Record<string, string>, a
             </p>
           ` : ""}
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
-          <p style="color: #999; font-size: 13px; line-height: 1.5;">${footer.replace(/\n/g, "<br/>")}</p>
+          <p style="color: #999; font-size: 13px; line-height: 1.5;">${footer.replace(/\\n/g, "<br/>").replace(/\n/g, "<br/>")}</p>
         </div>
       </div>
     </body>
