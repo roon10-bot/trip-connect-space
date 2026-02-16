@@ -40,6 +40,23 @@ const PLACEHOLDER_INFO: Record<string, string[]> = {
     "{{return_date}} – Hemresedatum",
     "{{site_url}} – Webbplatsens URL",
   ],
+  welcome: [
+    "{{first_name}} – Användarens förnamn",
+  ],
+  booking_confirmation: [
+    "{{first_name}} – Bokningsansvarigs förnamn",
+    "{{trip_name}} – Resans namn",
+    "{{departure_date}} – Avresedatum",
+    "{{return_date}} – Hemresedatum",
+    "{{travelers}} – Antal resenärer",
+    "{{total_price}} – Totalpris i SEK",
+  ],
+  booking_cancelled: [
+    "{{first_name}} – Bokningsansvarigs förnamn",
+    "{{trip_name}} – Resans namn",
+    "{{departure_date}} – Avresedatum",
+    "{{return_date}} – Hemresedatum",
+  ],
   meeting_confirmation: [
     "{{first_name}} – Besökarens förnamn",
     "{{date}} – Mötesdatum",

@@ -47,6 +47,22 @@ export const useAuth = () => {
         user_id: data.user.id,
         full_name: fullName,
       });
+
+      // Send welcome email (fire-and-forget)
+      try {
+        await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            template_key: "welcome",
+            to_email: email,
+            variables: {
+              first_name: fullName?.split(" ")[0] || "",
+            },
+            action_url: `${window.location.origin}/destinations`,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to send welcome email:", e);
+      }
     }
 
     return { data, error };

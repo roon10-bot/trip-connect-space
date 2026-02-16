@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.app-dashboard]
 verify_jwt = false
+
+[functions.send-transactional-email]
+verify_jwt = false
