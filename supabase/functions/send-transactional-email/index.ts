@@ -1,0 +1,133 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { Resend } from "npm:resend@2.0.0";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+interface EmailTemplate {
+  subject: string;
+  heading: string;
+  body_text: string;
+  button_text: string;
+  footer_text: string;
+  primary_color: string;
+  logo_url: string | null;
+}
+
+function replacePlaceholders(text: string, vars: Record<string, string>): string {
+  let result = text;
+  for (const [key, value] of Object.entries(vars)) {
+    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
+  }
+  return result;
+}
+
+function buildEmailHtml(template: EmailTemplate, vars: Record<string, string>, actionUrl?: string): string {
+  const color = template.primary_color || "#0c4a6e";
+  const heading = replacePlaceholders(template.heading, vars);
+  const body = replacePlaceholders(template.body_text, vars);
+  const buttonText = replacePlaceholders(template.button_text, vars);
+  const footer = replacePlaceholders(template.footer_text, vars);
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <body style="margin: 0; padding: 0; background-color: #f5f5f5;">
+      <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="background: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+          ${template.logo_url ? `<img src="${template.logo_url}" alt="Studentresor" style="max-height: 48px; margin-bottom: 24px;" />` : ""}
+          <h1 style="color: ${color}; font-size: 24px; margin: 0 0 20px 0;">${heading}</h1>
+          <div style="color: #333; font-size: 16px; line-height: 1.6;">${body.replace(/\n/g, "<br/>")}</div>
+          ${actionUrl && buttonText ? `
+            <p style="text-align: center; margin: 30px 0;">
+              <a href="${actionUrl}" style="background: ${color}; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
+                ${buttonText}
+              </a>
+            </p>
+          ` : ""}
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
+          <p style="color: #999; font-size: 13px; line-height: 1.5;">${footer.replace(/\n/g, "<br/>")}</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    const resendKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendKey) throw new Error("RESEND_API_KEY is not set");
+    const resend = new Resend(resendKey);
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const { template_key, to_email, variables, action_url } = await req.json();
+
+    if (!template_key || !to_email) {
+      return new Response(JSON.stringify({ error: "template_key and to_email are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`[SEND-EMAIL] Sending ${template_key} to ${to_email}`);
+
+    // Fetch template from DB
+    const { data: tplData, error: tplError } = await supabaseAdmin
+      .from("email_templates")
+      .select("subject, heading, body_text, button_text, footer_text, primary_color, logo_url")
+      .eq("template_key", template_key)
+      .maybeSingle();
+
+    if (tplError || !tplData) {
+      console.error("[SEND-EMAIL] Template not found:", template_key, tplError);
+      return new Response(JSON.stringify({ error: `Template '${template_key}' not found` }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const template = tplData as EmailTemplate;
+    const vars = variables || {};
+
+    const subject = replacePlaceholders(template.subject, vars);
+    const html = buildEmailHtml(template, vars, action_url);
+
+    const { error: sendError } = await resend.emails.send({
+      from: "Studentresor <noreply@kontakt.studentresor.com>",
+      to: [to_email],
+      subject,
+      html,
+    });
+
+    if (sendError) {
+      console.error("[SEND-EMAIL] Resend error:", sendError);
+      throw new Error(`Failed to send email: ${JSON.stringify(sendError)}`);
+    }
+
+    console.log(`[SEND-EMAIL] Successfully sent ${template_key} to ${to_email}`);
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("[SEND-EMAIL] Error:", error);
+    return new Response(JSON.stringify({ error: error.message || "Internal server error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});

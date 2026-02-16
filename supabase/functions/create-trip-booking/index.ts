@@ -164,6 +164,43 @@ serve(async (req: Request) => {
       // Don't fail the whole booking
     }
 
+    // Send booking confirmation email (fire-and-forget)
+    try {
+      const { data: tripData } = await supabaseAdmin
+        .from("trips")
+        .select("name, departure_date, return_date")
+        .eq("id", trip_id)
+        .maybeSingle();
+
+      if (tripData) {
+        const siteUrl = Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", "") 
+          ? "https://trip-connect-space.lovable.app" : "https://trip-connect-space.lovable.app";
+
+        await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-transactional-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({
+            template_key: "booking_confirmation",
+            to_email: (primary.email as string).trim().toLowerCase(),
+            variables: {
+              first_name: (primary.first_name as string).trim(),
+              trip_name: tripData.name,
+              departure_date: tripData.departure_date,
+              return_date: tripData.return_date,
+              travelers: String(travelers),
+              total_price: String(total_price),
+            },
+            action_url: `${siteUrl}/dashboard`,
+          }),
+        });
+      }
+    } catch (emailErr) {
+      console.error("Failed to send booking confirmation email:", emailErr);
+    }
+
     return new Response(JSON.stringify({ success: true, booking_id: booking.id }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

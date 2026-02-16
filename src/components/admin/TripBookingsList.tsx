@@ -75,6 +75,37 @@ export const TripBookingsList = () => {
         .eq("id", bookingId);
 
       if (error) throw error;
+
+      // Send email on confirmed or cancelled
+      if (status === "confirmed" || status === "cancelled") {
+        const booking = tripBookings?.find(b => b.id === bookingId);
+        if (booking) {
+          const templateKey = status === "confirmed" ? "booking_confirmation" : "booking_cancelled";
+          const trip = booking.trips as { name: string; departure_date: string; return_date: string } | null;
+          
+          try {
+            await supabase.functions.invoke("send-transactional-email", {
+              body: {
+                template_key: templateKey,
+                to_email: booking.email,
+                variables: {
+                  first_name: booking.first_name,
+                  trip_name: trip?.name || "",
+                  departure_date: trip?.departure_date || "",
+                  return_date: trip?.return_date || "",
+                  travelers: String(booking.travelers),
+                  total_price: String(booking.total_price),
+                },
+                action_url: status === "confirmed" 
+                  ? `${window.location.origin}/dashboard`
+                  : `${window.location.origin}/contact`,
+              },
+            });
+          } catch (emailErr) {
+            console.error("Failed to send status email:", emailErr);
+          }
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-trip-bookings"] });
