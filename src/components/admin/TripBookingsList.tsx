@@ -101,6 +101,15 @@ export const TripBookingsList = () => {
                   : `${window.location.origin}/contact`,
               },
             });
+
+            // Log email sent to activity log
+            const emailLabel = status === "confirmed" ? "Bokningsbekräftelse" : "Avbokning";
+            await supabase.from("booking_activity_log").insert({
+              trip_booking_id: bookingId,
+              activity_type: "email_sent",
+              description: `${emailLabel} skickad till ${booking.email}`,
+              metadata: { template: templateKey, to: booking.email },
+            });
           } catch (emailErr) {
             console.error("Failed to send status email:", emailErr);
           }
