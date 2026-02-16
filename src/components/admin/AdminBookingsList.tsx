@@ -108,6 +108,15 @@ export const AdminBookingsList = () => {
         .eq("id", bookingId);
 
       if (error) throw error;
+
+      // Log status change
+      const statusLabels: Record<string, string> = { pending: "Väntar", confirmed: "Bekräftad", cancelled: "Avbokad" };
+      await supabase.from("booking_activity_log").insert({
+        trip_booking_id: bookingId,
+        activity_type: "status_change",
+        description: `Status ändrad till: ${statusLabels[status] || status}`,
+        metadata: { new_status: status },
+      }).throwOnError();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-trip-bookings-with-payments"] });
