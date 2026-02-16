@@ -83,8 +83,9 @@ export const TripBookingsList = () => {
           const templateKey = status === "confirmed" ? "booking_confirmation" : "booking_cancelled";
           const trip = booking.trips as { name: string; departure_date: string; return_date: string } | null;
           
+          const emailLabel = status === "confirmed" ? "Bokningsbekräftelse" : "Avbokning";
           try {
-            await supabase.functions.invoke("send-transactional-email", {
+            const { error: invokeError } = await supabase.functions.invoke("send-transactional-email", {
               body: {
                 template_key: templateKey,
                 to_email: booking.email,
@@ -102,16 +103,34 @@ export const TripBookingsList = () => {
               },
             });
 
-            // Log email sent to activity log
-            const emailLabel = status === "confirmed" ? "Bokningsbekräftelse" : "Avbokning";
-            await supabase.from("booking_activity_log").insert({
-              trip_booking_id: bookingId,
-              activity_type: "email_sent",
-              description: `${emailLabel} skickad till ${booking.email}`,
-              metadata: { template: templateKey, to: booking.email },
-            });
-          } catch (emailErr) {
+            if (invokeError) {
+              console.error("Edge function error:", invokeError);
+              // Log failed email
+              await supabase.from("booking_activity_log").insert({
+                trip_booking_id: bookingId,
+                activity_type: "email_failed",
+                description: `${emailLabel} misslyckades till ${booking.email}: ${invokeError.message || "Okänt fel"}`,
+                metadata: { template: templateKey, to: booking.email, error: String(invokeError.message) },
+              });
+            } else {
+              // Log successful email
+              await supabase.from("booking_activity_log").insert({
+                trip_booking_id: bookingId,
+                activity_type: "email_sent",
+                description: `${emailLabel} skickad till ${booking.email}`,
+                metadata: { template: templateKey, to: booking.email },
+              });
+            }
+          } catch (emailErr: any) {
             console.error("Failed to send status email:", emailErr);
+            try {
+              await supabase.from("booking_activity_log").insert({
+                trip_booking_id: bookingId,
+                activity_type: "email_failed",
+                description: `${emailLabel} misslyckades till ${booking.email}: ${emailErr?.message || "Okänt fel"}`,
+                metadata: { template: templateKey, to: booking.email, error: String(emailErr?.message) },
+              });
+            } catch (_) { /* ignore logging failure */ }
           }
         }
       }

@@ -555,6 +555,7 @@ export const AdminBookingDetailDialog = ({
                 {activityLog.map((log) => {
                   const iconMap: Record<string, React.ReactNode> = {
                     email_sent: <Mail className="w-4 h-4 text-primary" />,
+                    email_failed: <Mail className="w-4 h-4 text-destructive" />,
                     payment: <CreditCard className="w-4 h-4 text-primary" />,
                     status_change: <Bell className="w-4 h-4 text-destructive" />,
                     detail_change: <Edit className="w-4 h-4 text-accent-foreground" />,
@@ -562,6 +563,7 @@ export const AdminBookingDetailDialog = ({
                   };
                   const labelMap: Record<string, string> = {
                     email_sent: "E-post",
+                    email_failed: "E-post misslyckad",
                     payment: "Betalning",
                     status_change: "Statusändring",
                     detail_change: "Ändring",
