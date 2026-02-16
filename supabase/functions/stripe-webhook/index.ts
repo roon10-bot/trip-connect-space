@@ -146,27 +146,41 @@ serve(async (req) => {
           .maybeSingle();
 
         if (tripBooking) {
-          const { data: allPayments } = await supabaseClient
-            .from("payments")
-            .select("amount")
-            .eq("trip_booking_id", bookingId)
-            .eq("status", "completed");
+          // First payment → confirmed, stays confirmed after that
+          await supabaseClient
+            .from("trip_bookings")
+            .update({ status: "confirmed" })
+            .eq("id", bookingId);
+          logStep("Trip booking marked as confirmed");
 
-          const totalPaid = allPayments?.reduce((sum, p) => sum + p.amount, 0) || 0;
-          const totalPrice = tripBooking.total_price;
+          // Send booking confirmation email
+          try {
+            const tripData = tripBooking.trips as { name?: string; departure_date?: string; return_date?: string } | null;
+            const siteUrl = "https://trip-connect-space.lovable.app";
 
-          if (totalPaid >= totalPrice) {
-            await supabaseClient
-              .from("trip_bookings")
-              .update({ status: "paid" })
-              .eq("id", bookingId);
-            logStep("Trip booking marked as fully paid");
-          } else {
-            await supabaseClient
-              .from("trip_bookings")
-              .update({ status: "partial_payment" })
-              .eq("id", bookingId);
-            logStep("Trip booking marked as partial payment", { totalPaid, totalPrice });
+            await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-transactional-email`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+              },
+              body: JSON.stringify({
+                template_key: "booking_confirmation",
+                to_email: tripBooking.email,
+                variables: {
+                  first_name: tripBooking.first_name,
+                  trip_name: tripData?.name || "",
+                  departure_date: tripData?.departure_date || "",
+                  return_date: tripData?.return_date || "",
+                  travelers: String(tripBooking.travelers),
+                  total_price: String(tripBooking.total_price),
+                },
+                action_url: `${siteUrl}/dashboard`,
+              }),
+            });
+            logStep("Booking confirmation email sent");
+          } catch (emailErr) {
+            logStep("Failed to send confirmation email", { error: String(emailErr) });
           }
         }
       } else {
