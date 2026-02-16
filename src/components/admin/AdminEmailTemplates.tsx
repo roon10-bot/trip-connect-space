@@ -57,6 +57,13 @@ const PLACEHOLDER_INFO: Record<string, string[]> = {
     "{{departure_date}} – Avresedatum",
     "{{return_date}} – Hemresedatum",
   ],
+  payment_confirmation: [
+    "{{first_name}} – Bokningsansvarigs förnamn",
+    "{{trip_name}} – Resans namn",
+    "{{amount}} – Betalt belopp i SEK",
+    "{{departure_date}} – Avresedatum",
+    "{{return_date}} – Hemresedatum",
+  ],
   meeting_confirmation: [
     "{{first_name}} – Besökarens förnamn",
     "{{date}} – Mötesdatum",
