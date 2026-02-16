@@ -55,10 +55,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { AdminBookingDetailDialog } from "./AdminBookingDetailDialog";
 
 export const AdminBookingsList = () => {
   const queryClient = useQueryClient();
   const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set());
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
   const { data: tripBookings, isLoading: bookingsLoading } = useQuery({
     queryKey: ["admin-trip-bookings-with-payments"],
@@ -278,6 +280,16 @@ export const AdminBookingsList = () => {
                           </div>
                         </div>
                         {getStatusBadge(booking.status)}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedBooking(booking);
+                          }}
+                        >
+                          Öppna
+                        </Button>
                         {isExpanded ? (
                           <ChevronUp className="w-5 h-5 text-muted-foreground" />
                         ) : (
@@ -435,6 +447,15 @@ export const AdminBookingsList = () => {
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      {selectedBooking && (
+        <AdminBookingDetailDialog
+          booking={selectedBooking}
+          open={!!selectedBooking}
+          onOpenChange={(open) => { if (!open) setSelectedBooking(null); }}
+          payments={payments || []}
+        />
+      )}
     </Card>
   );
 };
