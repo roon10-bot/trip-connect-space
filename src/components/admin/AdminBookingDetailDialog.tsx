@@ -50,6 +50,9 @@ import {
   Calendar,
   CreditCard,
   Loader2,
+  History,
+  Edit,
+  Bell,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -122,6 +125,41 @@ export const AdminBookingDetailDialog = ({
     enabled: open,
   });
 
+  // Activity log
+  const { data: activityLog } = useQuery({
+    queryKey: ["admin-booking-activity", booking.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("booking_activity_log")
+        .select("*")
+        .eq("trip_booking_id", booking.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
+  // Log activity helper
+  const logActivity = async (
+    activityType: string,
+    description: string,
+    metadata: Record<string, any> = {}
+  ) => {
+    try {
+      await supabase.from("booking_activity_log").insert({
+        trip_booking_id: booking.id,
+        activity_type: activityType,
+        description,
+        metadata,
+        created_by: user?.id || null,
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-booking-activity", booking.id] });
+    } catch (err) {
+      console.error("Failed to log activity:", err);
+    }
+  };
+
   // Update booking details
   const updateBookingMutation = useMutation({
     mutationFn: async (data: typeof editData) => {
@@ -132,6 +170,16 @@ export const AdminBookingDetailDialog = ({
       if (error) throw error;
     },
     onSuccess: () => {
+      // Log changes
+      const changes: string[] = [];
+      if (editData.first_name !== booking.first_name) changes.push(`Förnamn: ${booking.first_name} → ${editData.first_name}`);
+      if (editData.last_name !== booking.last_name) changes.push(`Efternamn: ${booking.last_name} → ${editData.last_name}`);
+      if (editData.email !== booking.email) changes.push(`E-post: ${booking.email} → ${editData.email}`);
+      if (editData.phone !== booking.phone) changes.push(`Telefon: ${booking.phone} → ${editData.phone}`);
+      if (editData.departure_location !== booking.departure_location) changes.push(`Avreseort: ${booking.departure_location} → ${editData.departure_location}`);
+      if (changes.length > 0) {
+        logActivity("detail_change", changes.join(", "), { changes });
+      }
       queryClient.invalidateQueries({ queryKey: ["admin-trip-bookings-with-payments"] });
       toast.success("Kunduppgifter uppdaterade");
     },
@@ -186,6 +234,7 @@ export const AdminBookingDetailDialog = ({
 
       queryClient.invalidateQueries({ queryKey: ["admin-booking-documents", booking.id] });
       queryClient.invalidateQueries({ queryKey: ["admin-trip-booking-documents"] });
+      await logActivity("document_upload", `Dokument uppladdat: ${file.name}`, { file_name: file.name });
       toast.success("Dokument uppladdat!");
     } catch (err: any) {
       toast.error("Kunde inte ladda upp: " + err.message);
@@ -215,6 +264,7 @@ export const AdminBookingDetailDialog = ({
       });
 
       if (error) throw error;
+      await logActivity("email_sent", `Betalningspåminnelse skickad till ${booking.email}`, { template: "payment_reminder", to: booking.email });
       toast.success(`Påminnelse skickad till ${booking.email}`);
     } catch (err: any) {
       toast.error("Kunde inte skicka påminnelse: " + (err.message || "Okänt fel"));
@@ -241,11 +291,12 @@ export const AdminBookingDetailDialog = ({
         </DialogHeader>
 
         <Tabs defaultValue="details" className="mt-2 flex flex-col">
-          <TabsList className="w-full grid grid-cols-4">
+          <TabsList className="w-full grid grid-cols-5">
             <TabsTrigger value="details">Kundinfo</TabsTrigger>
             <TabsTrigger value="travelers">Resenärer</TabsTrigger>
             <TabsTrigger value="payments">Betalning</TabsTrigger>
             <TabsTrigger value="documents">Dokument</TabsTrigger>
+            <TabsTrigger value="history">Historik</TabsTrigger>
           </TabsList>
 
           {/* KUNDINFO */}
@@ -493,6 +544,53 @@ export const AdminBookingDetailDialog = ({
               <div className="text-center py-6 text-muted-foreground">
                 <FileText className="w-10 h-10 mx-auto mb-2" />
                 <p>Inga dokument uppladdade</p>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* HISTORIK */}
+          <TabsContent value="history" className="mt-4 min-h-[400px]">
+            {activityLog && activityLog.length > 0 ? (
+              <div className="space-y-3">
+                {activityLog.map((log) => {
+                  const iconMap: Record<string, React.ReactNode> = {
+                    email_sent: <Mail className="w-4 h-4 text-primary" />,
+                    payment: <CreditCard className="w-4 h-4 text-primary" />,
+                    status_change: <Bell className="w-4 h-4 text-destructive" />,
+                    detail_change: <Edit className="w-4 h-4 text-accent-foreground" />,
+                    document_upload: <Upload className="w-4 h-4 text-secondary-foreground" />,
+                  };
+                  const labelMap: Record<string, string> = {
+                    email_sent: "E-post",
+                    payment: "Betalning",
+                    status_change: "Statusändring",
+                    detail_change: "Ändring",
+                    document_upload: "Dokument",
+                  };
+                  return (
+                    <div key={log.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20">
+                      <div className="mt-0.5">
+                        {iconMap[log.activity_type] || <History className="w-4 h-4 text-muted-foreground" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {labelMap[log.activity_type] || log.activity_type}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(log.created_at), "d MMM yyyy HH:mm", { locale: sv })}
+                          </span>
+                        </div>
+                        <p className="text-sm mt-1">{log.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <History className="w-10 h-10 mx-auto mb-2" />
+                <p>Ingen historik ännu</p>
               </div>
             )}
           </TabsContent>

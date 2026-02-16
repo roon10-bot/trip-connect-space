@@ -64,6 +64,44 @@ export type Database = {
           },
         ]
       }
+      booking_activity_log: {
+        Row: {
+          activity_type: string
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          metadata: Json | null
+          trip_booking_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          metadata?: Json | null
+          trip_booking_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          metadata?: Json | null
+          trip_booking_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_activity_log_trip_booking_id_fkey"
+            columns: ["trip_booking_id"]
+            isOneToOne: false
+            referencedRelation: "trip_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_attachments: {
         Row: {
           booking_id: string
