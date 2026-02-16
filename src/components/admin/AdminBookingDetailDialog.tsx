@@ -240,7 +240,7 @@ export const AdminBookingDetailDialog = ({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="details" className="mt-2">
+        <Tabs defaultValue="details" className="mt-2 flex flex-col">
           <TabsList className="w-full grid grid-cols-4">
             <TabsTrigger value="details">Kundinfo</TabsTrigger>
             <TabsTrigger value="travelers">Resenärer</TabsTrigger>
@@ -249,7 +249,7 @@ export const AdminBookingDetailDialog = ({
           </TabsList>
 
           {/* KUNDINFO */}
-          <TabsContent value="details" className="space-y-4 mt-4">
+          <TabsContent value="details" className="space-y-4 mt-4 min-h-[400px]">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Förnamn</Label>
@@ -322,7 +322,7 @@ export const AdminBookingDetailDialog = ({
           </TabsContent>
 
           {/* RESENÄRER */}
-          <TabsContent value="travelers" className="mt-4">
+          <TabsContent value="travelers" className="mt-4 min-h-[400px]">
             {travelers && travelers.length > 0 ? (
               <Table>
                 <TableHeader>
@@ -359,7 +359,7 @@ export const AdminBookingDetailDialog = ({
           </TabsContent>
 
           {/* BETALNING */}
-          <TabsContent value="payments" className="mt-4 space-y-4">
+          <TabsContent value="payments" className="mt-4 space-y-4 min-h-[400px]">
             <div className="rounded-lg border p-4 space-y-3">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Totalpris</span>
@@ -404,7 +404,7 @@ export const AdminBookingDetailDialog = ({
           </TabsContent>
 
           {/* DOKUMENT */}
-          <TabsContent value="documents" className="mt-4 space-y-4">
+          <TabsContent value="documents" className="mt-4 space-y-4 min-h-[400px]">
             <div className="flex items-center gap-3 p-4 rounded-lg border border-dashed border-border">
               <input
                 ref={fileInputRef}
