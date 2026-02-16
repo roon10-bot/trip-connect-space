@@ -117,6 +117,65 @@ export const AdminBookingsList = () => {
         description: `Status ändrad till: ${statusLabels[status] || status}`,
         metadata: { new_status: status },
       }).throwOnError();
+
+      // Send email on confirmed or cancelled
+      if (status === "confirmed" || status === "cancelled") {
+        const booking = tripBookings?.find(b => b.id === bookingId);
+        if (booking) {
+          const templateKey = status === "confirmed" ? "booking_confirmation" : "booking_cancelled";
+          const trip = booking.trips as { name: string; departure_date: string; return_date: string } | null;
+          const emailLabel = status === "confirmed" ? "Bokningsbekräftelse" : "Avbokning";
+
+          try {
+            const { error: invokeError } = await supabase.functions.invoke("send-transactional-email", {
+              body: {
+                template_key: templateKey,
+                to_email: booking.email,
+                variables: {
+                  first_name: booking.first_name,
+                  trip_name: trip?.name || "",
+                  departure_date: trip?.departure_date || "",
+                  return_date: trip?.return_date || "",
+                  travelers: String(booking.travelers),
+                  total_price: String(booking.total_price),
+                },
+                action_url: status === "confirmed"
+                  ? `${window.location.origin}/dashboard`
+                  : `${window.location.origin}/contact`,
+              },
+            });
+
+            if (invokeError) {
+              console.error("Edge function error:", invokeError);
+              await supabase.from("booking_activity_log").insert({
+                trip_booking_id: bookingId,
+                activity_type: "email_failed",
+                description: `${emailLabel} misslyckades till ${booking.email}: ${invokeError.message || "Okänt fel"}`,
+                metadata: { template: templateKey, to: booking.email, error: String(invokeError.message) },
+              });
+              toast.warning(`E-post kunde inte skickas till ${booking.email}`);
+            } else {
+              await supabase.from("booking_activity_log").insert({
+                trip_booking_id: bookingId,
+                activity_type: "email_sent",
+                description: `${emailLabel} skickad till ${booking.email}`,
+                metadata: { template: templateKey, to: booking.email },
+              });
+            }
+          } catch (emailErr: any) {
+            console.error("Failed to send status email:", emailErr);
+            try {
+              await supabase.from("booking_activity_log").insert({
+                trip_booking_id: bookingId,
+                activity_type: "email_failed",
+                description: `${emailLabel} misslyckades till ${booking.email}: ${emailErr?.message || "Okänt fel"}`,
+                metadata: { template: templateKey, to: booking.email, error: String(emailErr?.message) },
+              });
+            } catch (_) { /* ignore logging failure */ }
+            toast.warning(`E-post kunde inte skickas till ${booking.email}`);
+          }
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-trip-bookings-with-payments"] });
