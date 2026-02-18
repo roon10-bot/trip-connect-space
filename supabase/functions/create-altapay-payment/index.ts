@@ -26,9 +26,15 @@ serve(async (req) => {
     const terminalName = Deno.env.get("ALTAPAY_TERMINAL_NAME");
 
     if (!gatewayUrl || !apiUsername || !apiPassword || !terminalName) {
-      throw new Error("AltaPay configuration is incomplete");
+      throw new Error(`AltaPay configuration is incomplete: gw=${!!gatewayUrl}, user=${!!apiUsername}, pass=${!!apiPassword}, term=${!!terminalName}`);
     }
-    logStep("AltaPay config verified");
+    logStep("AltaPay config debug", {
+      gatewayUrl,
+      terminalName,
+      usernameLength: apiUsername.length,
+      usernamePrefix: apiUsername.substring(0, 4),
+      passwordLength: apiPassword.length,
+    });
 
     // Create Supabase client with service role to bypass RLS
     const supabaseClient = createClient(
