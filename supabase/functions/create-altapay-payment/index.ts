@@ -20,7 +20,7 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const gatewayUrl = Deno.env.get("ALTAPAY_GATEWAY_URL");
+    const gatewayUrl = (Deno.env.get("ALTAPAY_GATEWAY_URL") || "").trim().replace(/\/+$/, "");
     const apiUsername = Deno.env.get("ALTAPAY_API_USERNAME");
     const apiPassword = Deno.env.get("ALTAPAY_API_PASSWORD");
     const terminalName = Deno.env.get("ALTAPAY_TERMINAL_NAME");
