@@ -118,7 +118,8 @@ serve(async (req) => {
       logStep("Booking verified", { bookingId: booking.id });
     }
 
-    const origin = req.headers.get("origin") || "https://localhost:3000";
+    // Always use the published domain for callbacks (required by AltaPay whitelisting)
+    const callbackBase = "https://trip-connect-space.lovable.app";
 
     // Generate a unique order ID for AltaPay
     const shopOrderId = `${bookingData.id.slice(0, 8)}-${Date.now()}`;
@@ -131,10 +132,10 @@ serve(async (req) => {
     formData.append("shop_orderid", shopOrderId);
     formData.append("amount", String(amount));
     formData.append("currency", "SEK");
-    formData.append("config[callback_form]", `${origin}/dashboard?payment=form&booking=${bookingId}`);
-    formData.append("config[callback_ok]", `${origin}/dashboard?payment=success&booking=${bookingId}`);
-    formData.append("config[callback_fail]", `${origin}/dashboard?payment=failed&booking=${bookingId}`);
-    formData.append("config[callback_redirect]", `${origin}/dashboard?payment=success&booking=${bookingId}`);
+    formData.append("config[callback_form]", `${callbackBase}/dashboard?payment=form&booking=${bookingId}`);
+    formData.append("config[callback_ok]", `${callbackBase}/dashboard?payment=success&booking=${bookingId}`);
+    formData.append("config[callback_fail]", `${callbackBase}/dashboard?payment=failed&booking=${bookingId}`);
+    formData.append("config[callback_redirect]", `${callbackBase}/dashboard?payment=success&booking=${bookingId}`);
     formData.append("customer_info[email]", user.email);
     formData.append("orderLines[0][description]", `Resa: ${bookingData.name}`);
     formData.append("orderLines[0][itemId]", bookingData.id.slice(0, 8));
