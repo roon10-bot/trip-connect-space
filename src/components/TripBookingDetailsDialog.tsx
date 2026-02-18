@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -27,6 +27,7 @@ import {
   Mail,
   Cake,
   Tag,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { calculatePaymentAmount, type PaymentValueType } from "@/lib/paymentCalculations";
@@ -98,6 +99,7 @@ export const TripBookingDetailsDialog = ({
 }: TripBookingDetailsDialogProps) => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
+  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "altapay">("stripe");
   const { user } = useAuth();
 
   // Determine if user is the booker or a traveler
@@ -210,8 +212,12 @@ export const TripBookingDetailsDialog = ({
     setIsProcessingPayment(true);
 
     try {
+      const functionName = paymentMethod === "altapay" 
+        ? "create-altapay-payment" 
+        : "create-booking-payment";
+
       const { data, error } = await supabase.functions.invoke(
-        "create-booking-payment",
+        functionName,
         {
           body: {
             bookingId: booking.id,
@@ -581,6 +587,49 @@ export const TripBookingDetailsDialog = ({
                               </p>
                             </div>
                           )}
+
+                          {/* Payment Method Selector */}
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-foreground">Välj betalningsmetod</p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <label
+                                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                                  paymentMethod === "stripe"
+                                    ? "border-ocean bg-ocean/5"
+                                    : "border-border hover:border-ocean/50"
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="paymentMethod"
+                                  value="stripe"
+                                  checked={paymentMethod === "stripe"}
+                                  onChange={() => setPaymentMethod("stripe")}
+                                  className="sr-only"
+                                />
+                                <CreditCard className="w-6 h-6 text-ocean" />
+                                <span className="text-sm font-medium">Kort</span>
+                              </label>
+                              <label
+                                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                                  paymentMethod === "altapay"
+                                    ? "border-ocean bg-ocean/5"
+                                    : "border-border hover:border-ocean/50"
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="paymentMethod"
+                                  value="altapay"
+                                  checked={paymentMethod === "altapay"}
+                                  onChange={() => setPaymentMethod("altapay")}
+                                  className="sr-only"
+                                />
+                                <Wallet className="w-6 h-6 text-ocean" />
+                                <span className="text-sm font-medium">MobilePay / Swish</span>
+                              </label>
+                            </div>
+                          </div>
                           
                           {hasPaymentPlan ? (
                             <Button
