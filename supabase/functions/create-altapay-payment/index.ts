@@ -150,7 +150,27 @@ serve(async (req) => {
     logStep("Calling AltaPay API", { url: altapayApiUrl, shopOrderId });
 
     // Make request to AltaPay with Basic Auth
-    const basicAuth = btoa(`${apiUsername}:${apiPassword}`);
+    // Use TextEncoder to handle special characters in credentials
+    const encoder = new TextEncoder();
+    const credBytes = encoder.encode(`${apiUsername}:${apiPassword}`);
+    const basicAuth = btoa(String.fromCharCode(...credBytes));
+    
+    // First test connectivity with getTerminals
+    const testUrl = `${gatewayUrl}/merchant/API/getTerminals`;
+    logStep("Testing AltaPay connectivity", { testUrl });
+    const testResponse = await fetch(testUrl, {
+      method: "GET",
+      headers: {
+        "Authorization": `Basic ${basicAuth}`,
+      },
+    });
+    const testBody = await testResponse.text();
+    logStep("AltaPay test response", { status: testResponse.status, body: testBody.substring(0, 300) });
+    
+    if (!testResponse.ok) {
+      throw new Error(`AltaPay auth test failed: ${testResponse.status} - credentials are invalid`);
+    }
+
     const altapayResponse = await fetch(altapayApiUrl, {
       method: "POST",
       headers: {
