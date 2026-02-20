@@ -1,8 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause } from "lucide-react";
 import heroVideo from "@/assets/hero-video.mp4";
-import { BookingWidget } from "./BookingWidget";
+
+// Lazy-load BookingWidget so it's not in the critical JS bundle
+const BookingWidget = lazy(() => import("./BookingWidget").then(m => ({ default: m.BookingWidget })));
 
 export const Hero = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -112,7 +114,9 @@ export const Hero = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <BookingWidget />
+          <Suspense fallback={null}>
+            <BookingWidget />
+          </Suspense>
         </motion.div>
       </div>
     </section>
