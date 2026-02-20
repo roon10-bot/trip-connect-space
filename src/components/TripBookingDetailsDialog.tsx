@@ -261,7 +261,16 @@ export const TripBookingDetailsDialog = ({
       if (error) throw error;
 
       if (data?.url) {
-        window.open(data.url, "_blank");
+        // Open as centered popup window for a modal-like experience
+        const width = 500;
+        const height = 700;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
+        window.open(
+          data.url,
+          "altapay_payment",
+          `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
+        );
       } else {
         throw new Error("Ingen betalnings-URL mottogs");
       }
