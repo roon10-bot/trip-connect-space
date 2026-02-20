@@ -114,6 +114,10 @@ const FAQ = () => {
     title: "Frågor och Svar om Studentresor | Studentresor",
     description: "Vanliga frågor om studentresor till Kroatien. Läs om betalning, avbokning, åldersgräns, resegaranti och vad som ingår i resan.",
     canonical: "https://www.studentresor.se/faq",
+    breadcrumbs: [
+      { name: "Hem", url: "https://www.studentresor.se/" },
+      { name: "FAQ", url: "https://www.studentresor.se/faq" },
+    ],
   });
 
   useEffect(() => {

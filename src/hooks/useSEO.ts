@@ -1,11 +1,17 @@
 import { useEffect } from "react";
 
+interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
 interface UseSEOProps {
   title: string;
   description: string;
   canonical?: string;
   ogImage?: string;
   noindex?: boolean;
+  breadcrumbs?: BreadcrumbItem[];
 }
 
 const setOrCreateMeta = (attr: string, key: string, content: string) => {
@@ -20,7 +26,7 @@ const setOrCreateMeta = (attr: string, key: string, content: string) => {
   }
 };
 
-export const useSEO = ({ title, description, canonical, ogImage, noindex }: UseSEOProps) => {
+export const useSEO = ({ title, description, canonical, ogImage, noindex, breadcrumbs }: UseSEOProps) => {
   useEffect(() => {
     // Title
     document.title = title;
@@ -56,5 +62,31 @@ export const useSEO = ({ title, description, canonical, ogImage, noindex }: UseS
     setOrCreateMeta("name", "twitter:title", title);
     setOrCreateMeta("name", "twitter:description", description);
     if (ogImage) setOrCreateMeta("name", "twitter:image", ogImage);
-  }, [title, description, canonical, ogImage, noindex]);
+
+    // BreadcrumbList JSON-LD
+    let breadcrumbScript: HTMLScriptElement | null = null;
+    if (breadcrumbs && breadcrumbs.length > 0) {
+      const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": breadcrumbs.map((item, index) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "name": item.name,
+          "item": item.url,
+        })),
+      };
+      breadcrumbScript = document.createElement("script");
+      breadcrumbScript.type = "application/ld+json";
+      breadcrumbScript.setAttribute("data-seo", "breadcrumb");
+      breadcrumbScript.textContent = JSON.stringify(jsonLd);
+      document.head.appendChild(breadcrumbScript);
+    }
+
+    return () => {
+      if (breadcrumbScript) {
+        document.head.removeChild(breadcrumbScript);
+      }
+    };
+  }, [title, description, canonical, ogImage, noindex, breadcrumbs]);
 };

@@ -39,6 +39,11 @@ const Studentveckan = () => {
     description: "Studentveckan är en unik seglingsresa i Kroatien tillsammans med studenter från hela Sverige. Flyg, segelbåt, event och 24/7 service ingår. Boka din hytt idag.",
     canonical: "https://www.studentresor.se/studentveckan",
     ogImage: "https://www.studentresor.se/images/studentveckan-og.jpg",
+    breadcrumbs: [
+      { name: "Hem", url: "https://www.studentresor.se/" },
+      { name: "Resor", url: "https://www.studentresor.se/search" },
+      { name: "Studentveckan", url: "https://www.studentresor.se/studentveckan" },
+    ],
   });
 
   useEffect(() => {

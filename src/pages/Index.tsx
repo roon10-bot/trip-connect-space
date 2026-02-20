@@ -12,6 +12,9 @@ const Index = () => {
     description: "Boka din studentresa till Kroatien. Segelveckan, Splitveckan och Studentveckan – sol, segling och oförglömliga upplevelser. Resegaranti ingår.",
     canonical: "https://www.studentresor.se/",
     ogImage: "https://www.studentresor.se/images/studentresor-og.jpg",
+    breadcrumbs: [
+      { name: "Hem", url: "https://www.studentresor.se/" },
+    ],
   });
   return (
     <div className="min-h-screen bg-background">
