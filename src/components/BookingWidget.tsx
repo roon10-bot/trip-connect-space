@@ -77,11 +77,11 @@ export const BookingWidget = () => {
     <div className="bg-background/10 backdrop-blur-sm rounded-2xl shadow-elegant border border-white/20 p-6 grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
       {/* Avreseort */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-muted-foreground">
+        <label htmlFor="departure-select" className="text-sm font-medium text-muted-foreground">
           Avreseort
         </label>
         <Select value={departure} onValueChange={setDeparture}>
-          <SelectTrigger className="w-full h-12 bg-background">
+          <SelectTrigger id="departure-select" className="w-full h-12 bg-background" aria-label="Välj avreseort">
             <SelectValue placeholder="Välj flygplats" />
           </SelectTrigger>
           <SelectContent className="bg-background z-50">
@@ -96,11 +96,11 @@ export const BookingWidget = () => {
 
       {/* Våra resor */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-muted-foreground">
+        <label htmlFor="trip-type-select" className="text-sm font-medium text-muted-foreground">
           Våra resor
         </label>
         <Select value={tripType} onValueChange={setTripType}>
-          <SelectTrigger className="w-full h-12 bg-background">
+          <SelectTrigger id="trip-type-select" className="w-full h-12 bg-background" aria-label="Välj resa">
             <SelectValue placeholder="Alla resor" />
           </SelectTrigger>
           <SelectContent className="bg-background z-50">
@@ -156,10 +156,11 @@ export const BookingWidget = () => {
             className="h-full rounded-r-none"
             onClick={decrementGuests}
             disabled={guests <= 1}
+            aria-label="Minska antal resenärer"
           >
             <Minus className="h-4 w-4" />
           </Button>
-          <span className="flex-1 text-center font-medium">{guests}</span>
+          <span className="flex-1 text-center font-medium" aria-live="polite" aria-label={`${guests} resenärer`}>{guests}</span>
           <Button
             type="button"
             variant="ghost"
@@ -167,6 +168,7 @@ export const BookingWidget = () => {
             className="h-full rounded-l-none"
             onClick={incrementGuests}
             disabled={guests >= 10}
+            aria-label="Öka antal resenärer"
           >
             <Plus className="h-4 w-4" />
           </Button>
