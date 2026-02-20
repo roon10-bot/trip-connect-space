@@ -174,7 +174,7 @@ const Auth = () => {
       <div className="hidden lg:flex lg:w-1/2 relative">
         <img
           src={loginHero}
-          alt="Studentresor"
+           alt="Studenter seglar i Kroatiens skärgård"
           className="w-full h-full object-cover brightness-50 contrast-75"
         />
         <div className="absolute inset-0 bg-[#0C4D73]/70" />
