@@ -89,7 +89,7 @@ const Splitveckan = () => {
             loop
             muted
             playsInline
-            preload="auto"
+            preload="none"
             className="w-full h-full object-cover"
             style={{ backgroundColor: "hsl(var(--foreground))" }}
           />
