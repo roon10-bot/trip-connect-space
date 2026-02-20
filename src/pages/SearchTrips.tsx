@@ -10,6 +10,7 @@ import { TripSearchResults } from "@/components/TripSearchResults";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
+import { useSEO } from "@/hooks/useSEO";
 import { MonthPicker } from "@/components/MonthPicker";
 const departures = [{
   value: "all",
@@ -38,6 +39,15 @@ const tripTypes = [{
   label: "Studentveckan"
 }];
 const SearchTrips = () => {
+  useSEO({
+    title: "Sök resor till Kroatien | Studentresor",
+    description: "Hitta och boka din studentresa till Kroatien. Filtrera på destination, avgångsort och datum.",
+    canonical: "https://www.studentresor.se/search",
+    breadcrumbs: [
+      { name: "Hem", url: "https://www.studentresor.se/" },
+      { name: "Resor", url: "https://www.studentresor.se/search" },
+    ],
+  });
   const [searchParams, setSearchParams] = useSearchParams();
   const [departure, setDeparture] = useState<string>(searchParams.get("departure") || "all");
   const [tripType, setTripType] = useState<string>(searchParams.get("tripType") || "all");

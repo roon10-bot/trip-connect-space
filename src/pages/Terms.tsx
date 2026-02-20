@@ -7,6 +7,10 @@ const Terms = () => {
     title: "Allmänna resevillkor | Studentresor",
     description: "Läs Studentresors allmänna resevillkor för paketresor arrangerade av Studentlife Sweden AB. Information om betalning, avbokning och resegaranti.",
     canonical: "https://www.studentresor.se/resevillkor",
+    breadcrumbs: [
+      { name: "Hem", url: "https://www.studentresor.se/" },
+      { name: "Resevillkor", url: "https://www.studentresor.se/resevillkor" },
+    ],
   });
 
   return (
