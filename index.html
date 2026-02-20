@@ -93,7 +93,66 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Critical skeleton: shown instantly, replaced by React -->
+      <style>
+        .skeleton-hero {
+          min-height: 85vh;
+          background: #222020;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem 1rem;
+          position: relative;
+          overflow: hidden;
+        }
+        .skeleton-hero::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to bottom, rgba(34,32,32,0.6), rgba(34,32,32,0.4), #f8f8f8);
+        }
+        .skeleton-nav {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 50;
+          padding: 1rem 2rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .skeleton-logo {
+          width: 140px;
+          height: 32px;
+          background: rgba(255,255,255,0.15);
+          border-radius: 6px;
+        }
+        .skeleton-h1 {
+          font-family: 'Tropika', sans-serif;
+          color: white;
+          font-size: clamp(1.5rem, 5vw, 3rem);
+          text-align: center;
+          z-index: 1;
+          opacity: 0.9;
+        }
+        .skeleton-p {
+          color: rgba(255,255,255,0.8);
+          font-family: 'Glacial Indifference', sans-serif;
+          text-align: center;
+          z-index: 1;
+          margin-top: 0.75rem;
+          font-size: clamp(0.875rem, 2vw, 1.125rem);
+        }
+      </style>
+      <div class="skeleton-nav"><div class="skeleton-logo"></div></div>
+      <div class="skeleton-hero">
+        <h1 class="skeleton-h1">Drömmer ni om en oförglömlig studentresa?</h1>
+        <p class="skeleton-p">Ert livs äventyr väntar runt hörnet, boka din resa redan idag.</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
