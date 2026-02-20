@@ -40,6 +40,7 @@ const Segelveckan = () => {
     title: "Segelveckan – Segling på katamaran i Kroatien | Studentresor",
     description: "Segelveckan är Studentresors mest exklusiva studentresa. Segla på katamaran genom Kroatiens skärgård med flyg, boende och event inkluderat. Boka din plats.",
     canonical: "https://www.studentresor.se/segelveckan",
+    ogImage: "https://www.studentresor.se/images/segelveckan-og.jpg",
   });
 
   const handleTogglePlay = () => {
