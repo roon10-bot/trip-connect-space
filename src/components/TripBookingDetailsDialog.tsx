@@ -1,4 +1,4 @@
-import { useState, useMemo, type ReactNode } from "react";
+import { useState, useMemo, useCallback, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
@@ -14,6 +14,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -231,8 +241,10 @@ export const TripBookingDetailsDialog = ({
     setSelectedPayments(new Set(paymentOptions.map((opt) => opt.id)));
   };
 
+  const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
+
   const handlePayment = async () => {
-    if (!booking || selectedAmount <= 0) return;
+    setShowPaymentConfirm(false);
     setIsProcessingPayment(true);
 
     try {
@@ -289,6 +301,12 @@ export const TripBookingDetailsDialog = ({
 
   const isPaid = isFullyPaid;
   const hasPaymentPlan = paymentOptions.length > 0;
+  const confirmPaymentAmount = hasPaymentPlan ? selectedAmount : Number(booking?.total_price || 0);
+
+  const handlePaymentClick = () => {
+    if (!booking || confirmPaymentAmount <= 0) return;
+    setShowPaymentConfirm(true);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -678,7 +696,7 @@ export const TripBookingDetailsDialog = ({
                           
                           {hasPaymentPlan ? (
                             <Button
-                              onClick={handlePayment}
+                              onClick={handlePaymentClick}
                               className="w-full bg-gradient-ocean hover:opacity-90 h-12 text-lg font-semibold"
                               disabled={isProcessingPayment || selectedPayments.size === 0}
                             >
@@ -701,7 +719,7 @@ export const TripBookingDetailsDialog = ({
                             </Button>
                           ) : (
                             <Button
-                              onClick={handlePayment}
+                              onClick={handlePaymentClick}
                               className="w-full bg-gradient-ocean hover:opacity-90 h-12 text-lg font-semibold"
                               disabled={isProcessingPayment}
                             >
@@ -718,6 +736,23 @@ export const TripBookingDetailsDialog = ({
                               )}
                             </Button>
                           )}
+
+                          <AlertDialog open={showPaymentConfirm} onOpenChange={setShowPaymentConfirm}>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Bekräfta betalning</AlertDialogTitle>
+                                <AlertDialogDescription asChild>
+                                  <div>
+                                    Du kommer att betala <strong>{confirmPaymentAmount.toLocaleString("sv-SE")} kr</strong> via {paymentMethod === "altapay" ? "MobilePay / Swish" : "kortbetalning"}. Vill du fortsätta?
+                                  </div>
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                                <AlertDialogAction onClick={handlePayment}>Ja, betala</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       )}
                     </div>
