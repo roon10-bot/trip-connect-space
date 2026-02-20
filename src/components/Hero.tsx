@@ -33,7 +33,9 @@ export const Hero = () => {
           preload="none"
           className="w-full h-full object-cover"
           style={{ backgroundColor: 'hsl(var(--foreground))' }}
-        />
+        >
+          <track kind="captions" srcLang="sv" label="Svenska" default />
+        </video>
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/60 via-foreground/40 to-background" />
       </div>
 

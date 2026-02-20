@@ -77,7 +77,7 @@ export const BookingWidget = () => {
     <div className="bg-background/10 backdrop-blur-sm rounded-2xl shadow-elegant border border-white/20 p-6 grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
       {/* Avreseort */}
       <div className="space-y-2">
-        <label htmlFor="departure-select" className="text-sm font-medium text-muted-foreground">
+        <label htmlFor="departure-select" className="text-sm font-medium text-foreground/80">
           Avreseort
         </label>
         <Select value={departure} onValueChange={setDeparture}>
@@ -96,7 +96,7 @@ export const BookingWidget = () => {
 
       {/* Våra resor */}
       <div className="space-y-2">
-        <label htmlFor="trip-type-select" className="text-sm font-medium text-muted-foreground">
+        <label htmlFor="trip-type-select" className="text-sm font-medium text-foreground/80">
           Våra resor
         </label>
         <Select value={tripType} onValueChange={setTripType}>
@@ -115,7 +115,7 @@ export const BookingWidget = () => {
 
       {/* Månad */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-muted-foreground">
+        <label className="text-sm font-medium text-foreground/80">
           Avresemånad
         </label>
         <Popover>
@@ -145,7 +145,7 @@ export const BookingWidget = () => {
 
       {/* Antal */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-muted-foreground">
+        <label className="text-sm font-medium text-foreground/80">
           Antal resenärer
         </label>
         <div className="flex items-center h-12 border rounded-md bg-background">
