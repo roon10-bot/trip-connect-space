@@ -42,6 +42,8 @@ export const BookingWidget = () => {
 
   const { data: availableMonths } = useQuery({
     queryKey: ["available-months"],
+    staleTime: 1000 * 60 * 60, // Cache i 1 timme – data ändras sällan
+    gcTime: 1000 * 60 * 60 * 24, // Behåll i cache 24h
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trips")
