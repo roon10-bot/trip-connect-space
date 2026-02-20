@@ -1,10 +1,14 @@
 import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 const AltapayCallback = () => {
-  const { status } = useParams();
+  const { status: pathStatus } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // Support both /altapay/:status and /payment/return?status=ok
+  const status = pathStatus || searchParams.get("status") || "";
 
   useEffect(() => {
     if (status === "ok" || status === "redirect") {

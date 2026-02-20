@@ -61,6 +61,7 @@ const App = () => (
               <Route path="/studentveckan" element={<Studentveckan />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/altapay/:status" element={<AltapayCallback />} />
+              <Route path="/payment/return" element={<AltapayCallback />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
