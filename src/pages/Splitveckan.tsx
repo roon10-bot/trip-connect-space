@@ -26,6 +26,7 @@ const Splitveckan = () => {
     title: "Splitveckan – Studentresa till Split, Kroatien | Studentresor",
     description: "Splitveckan är studentresan till Split med centralt boende, strandliv och nattliv i världsklass. Flyg, boende och event ingår. Boka din plats hos Studentresor.",
     canonical: "https://www.studentresor.se/splitveckan",
+    ogImage: "https://www.studentresor.se/images/splitveckan-og.jpg",
   });
 
   const handleTogglePlay = () => {
