@@ -132,10 +132,13 @@ serve(async (req) => {
     formData.append("shop_orderid", shopOrderId);
     formData.append("amount", String(amount));
     formData.append("currency", "SEK");
+    formData.append("type", "paymentAndCapture");
     formData.append("config[callback_form]", `${callbackBase}/dashboard?payment=form&booking=${bookingId}`);
     formData.append("config[callback_ok]", `${callbackBase}/dashboard?payment=success&booking=${bookingId}`);
     formData.append("config[callback_fail]", `${callbackBase}/dashboard?payment=failed&booking=${bookingId}`);
     formData.append("config[callback_redirect]", `${callbackBase}/dashboard?payment=success&booking=${bookingId}`);
+    formData.append("config[callback_notification]", `${callbackBase}/api/altapay/notification`);
+    formData.append("return_url", `${callbackBase}/dashboard?payment=return&booking=${bookingId}`);
     formData.append("customer_info[email]", user.email);
     formData.append("orderLines[0][description]", `Resa: ${bookingData.name}`);
     formData.append("orderLines[0][itemId]", bookingData.id.slice(0, 8));
