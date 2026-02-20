@@ -118,8 +118,9 @@ serve(async (req) => {
       logStep("Booking verified", { bookingId: booking.id });
     }
 
-    // Always use the published domain for callbacks (required by AltaPay whitelisting)
-    const callbackBase = "https://trip-connect-space.lovable.app";
+    // Use studentresor.com backend endpoints for callbacks (guaranteed 200 OK, no 404s)
+    const callbackBackend = "https://studentresor.com/api/altapay";
+    const callbackFrontend = "https://studentresor.com";
 
     // Generate a unique order ID for AltaPay
     const shopOrderId = `${bookingData.id.slice(0, 8)}-${Date.now()}`;
@@ -135,11 +136,11 @@ serve(async (req) => {
     formData.append("currency", "SEK");
     formData.append("type", "paymentAndCapture");
     // A/B test: no callback_form, clean URLs without query strings
-    formData.append("config[callback_ok]", `${callbackBase}/altapay/ok`);
-    formData.append("config[callback_fail]", `${callbackBase}/altapay/fail`);
-    formData.append("config[callback_redirect]", `${callbackBase}/altapay/redirect`);
-    formData.append("config[callback_notification]", `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`);
-    formData.append("return_url", `${callbackBase}/altapay/return`);
+    formData.append("config[callback_ok]", `${callbackBackend}/ok`);
+    formData.append("config[callback_fail]", `${callbackBackend}/fail`);
+    formData.append("config[callback_redirect]", `${callbackBackend}/redirect`);
+    formData.append("config[callback_notification]", `${callbackBackend}/notification`);
+    formData.append("return_url", `${callbackFrontend}/payment/return?booking=${bookingId}`);
     formData.append("customer_info[email]", user.email);
     formData.append("orderLines[0][description]", `Resa: ${bookingData.name}`);
     formData.append("orderLines[0][itemId]", bookingData.id.slice(0, 8));
@@ -159,11 +160,11 @@ serve(async (req) => {
       amount: amountInSEK,
       currency: "SEK",
       type: "paymentAndCapture",
-      return_url: `${callbackBase}/altapay/return`,
-      "config[callback_ok]": `${callbackBase}/altapay/ok`,
-      "config[callback_fail]": `${callbackBase}/altapay/fail`,
-      "config[callback_redirect]": `${callbackBase}/altapay/redirect`,
-      "config[callback_notification]": `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`,
+      return_url: `${callbackFrontend}/payment/return?booking=${bookingId}`,
+      "config[callback_ok]": `${callbackBackend}/ok`,
+      "config[callback_fail]": `${callbackBackend}/fail`,
+      "config[callback_redirect]": `${callbackBackend}/redirect`,
+      "config[callback_notification]": `${callbackBackend}/notification`,
       "customer_info[email]": user.email,
       "orderLines[0][description]": `Resa: ${bookingData.name}`,
       "orderLines[0][unitPrice]": amountInSEK,
