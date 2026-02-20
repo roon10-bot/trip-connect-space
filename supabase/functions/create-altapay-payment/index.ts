@@ -151,6 +151,23 @@ serve(async (req) => {
     formData.append("transaction_info[booking_type]", bookingType || "destination");
     formData.append("transaction_info[user_id]", user.id);
 
+    // Debug: log entire request payload (excluding auth)
+    logStep("REQUEST PAYLOAD", {
+      terminal: terminalName,
+      shop_orderid: shopOrderId,
+      amount: String(amount),
+      currency: "SEK",
+      type: "paymentAndCapture",
+      return_url: `${callbackBase}/dashboard?payment=return&booking=${bookingId}`,
+      "config[callback_form]": `${callbackBase}/dashboard?payment=form&booking=${bookingId}`,
+      "config[callback_ok]": `${callbackBase}/dashboard?payment=success&booking=${bookingId}`,
+      "config[callback_fail]": `${callbackBase}/dashboard?payment=failed&booking=${bookingId}`,
+      "config[callback_redirect]": `${callbackBase}/dashboard?payment=success&booking=${bookingId}`,
+      "config[callback_notification]": `${callbackBase}/api/altapay/notification`,
+      "customer_info[email]": user.email,
+      "orderLines[0][description]": `Resa: ${bookingData.name}`,
+      "orderLines[0][unitPrice]": String(amount),
+    });
     logStep("Calling AltaPay API", { url: altapayApiUrl, shopOrderId });
 
     // Make request to AltaPay with Basic Auth
@@ -185,6 +202,17 @@ serve(async (req) => {
     });
 
     const responseText = await altapayResponse.text();
+    // Debug: log full XML response (mask sensitive parts)
+    logStep("FULL XML RESPONSE", { body: responseText.substring(0, 2000) });
+    
+    // Extract key XML fields for debug
+    const resultDebug = responseText.match(/<Result>(.*?)<\/Result>/)?.[1] || "N/A";
+    const errorCodeDebug = responseText.match(/<ErrorCode>(.*?)<\/ErrorCode>/)?.[1] || "N/A";
+    const errorMsgDebug = responseText.match(/<ErrorMessage>(.*?)<\/ErrorMessage>/)?.[1] || "N/A";
+    const merchantErrorDebug = responseText.match(/<MerchantErrorMessage>(.*?)<\/MerchantErrorMessage>/)?.[1] || "N/A";
+    const urlDebug = responseText.match(/<Url>(.*?)<\/Url>/)?.[1] || "N/A";
+    logStep("PARSED XML FIELDS", { Result: resultDebug, ErrorCode: errorCodeDebug, ErrorMessage: errorMsgDebug, MerchantErrorMessage: merchantErrorDebug, Url: urlDebug });
+    
     logStep("AltaPay response status", { status: altapayResponse.status });
 
     if (!altapayResponse.ok) {
