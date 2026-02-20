@@ -47,6 +47,7 @@ const ForElevkarer = () => {
     title: "Studentresor för elevkårer & studentkommittéer | Studentresor",
     description: "Planera en studentresa med din elevkår eller studentkommitté. Skräddarsydda gruppresor till Kroatien med Studentresor. Boka ett möte idag.",
     canonical: "https://www.studentresor.se/for-skolor",
+    ogImage: "https://www.studentresor.se/images/elevkarer-og.jpg",
   });
 
   return (
