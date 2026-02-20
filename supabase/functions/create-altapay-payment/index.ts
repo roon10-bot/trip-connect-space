@@ -156,7 +156,7 @@ serve(async (req) => {
     logStep("REQUEST PAYLOAD", {
       terminal: terminalName,
       shop_orderid: shopOrderId,
-      amount: String(amount),
+      amount: String(amountInOre),
       currency: "SEK",
       type: "paymentAndCapture",
       return_url: `${callbackBase}/dashboard?payment=return&booking=${bookingId}`,
@@ -167,7 +167,7 @@ serve(async (req) => {
       "config[callback_notification]": `${callbackBase}/api/altapay/notification`,
       "customer_info[email]": user.email,
       "orderLines[0][description]": `Resa: ${bookingData.name}`,
-      "orderLines[0][unitPrice]": String(amount),
+      "orderLines[0][unitPrice]": String(amountInOre),
     });
     logStep("Calling AltaPay API", { url: altapayApiUrl, shopOrderId });
 
