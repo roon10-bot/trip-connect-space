@@ -130,7 +130,8 @@ serve(async (req) => {
     const formData = new URLSearchParams();
     formData.append("terminal", terminalName);
     formData.append("shop_orderid", shopOrderId);
-    formData.append("amount", String(amount));
+    const amountInOre = Math.round(Number(amount) * 100);
+    formData.append("amount", String(amountInOre));
     formData.append("currency", "SEK");
     formData.append("type", "paymentAndCapture");
     formData.append("config[callback_form]", `${callbackBase}/dashboard?payment=form&booking=${bookingId}`);
@@ -143,7 +144,7 @@ serve(async (req) => {
     formData.append("orderLines[0][description]", `Resa: ${bookingData.name}`);
     formData.append("orderLines[0][itemId]", bookingData.id.slice(0, 8));
     formData.append("orderLines[0][quantity]", "1");
-    formData.append("orderLines[0][unitPrice]", String(amount));
+    formData.append("orderLines[0][unitPrice]", String(amountInOre));
     formData.append("orderLines[0][goodsType]", "item");
 
     // Transaction info for tracking
