@@ -222,9 +222,9 @@ serve(async (req) => {
       throw new Error(`AltaPay API error: ${altapayResponse.status}`);
     }
 
-    // Parse XML response to extract payment URL
-    // AltaPay returns XML with <Url> element
+    // Parse XML response to extract payment URL and embedded URL
     const urlMatch = responseText.match(/<Url>(.*?)<\/Url>/);
+    const dynamicJsUrlMatch = responseText.match(/<DynamicJavascriptUrl>(.*?)<\/DynamicJavascriptUrl>/);
     const resultMatch = responseText.match(/<Result>(.*?)<\/Result>/);
 
     if (resultMatch && resultMatch[1] !== "Success") {
@@ -238,7 +238,8 @@ serve(async (req) => {
     }
 
     const paymentUrl = urlMatch[1].trim();
-    logStep("Payment URL obtained", { url: paymentUrl });
+    const embeddedUrl = dynamicJsUrlMatch?.[1]?.trim() || null;
+    logStep("Payment URL obtained", { url: paymentUrl, embeddedUrl });
 
     // Extract payment ID for tracking
     const paymentIdMatch = responseText.match(/<PaymentId>(.*?)<\/PaymentId>/);
@@ -253,14 +254,14 @@ serve(async (req) => {
         amount: Number(amount),
         payment_type: "altapay_payment",
         status: "pending",
-        stripe_session_id: altapayPaymentId, // Reusing field for AltaPay payment ID
+        stripe_session_id: altapayPaymentId,
       });
 
     if (paymentInsertError) {
       logStep("Warning: Could not create payment record", { error: paymentInsertError.message });
     }
 
-    return new Response(JSON.stringify({ url: paymentUrl }), {
+    return new Response(JSON.stringify({ url: paymentUrl, embeddedUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
