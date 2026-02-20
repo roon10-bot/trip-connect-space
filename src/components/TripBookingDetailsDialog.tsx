@@ -463,7 +463,7 @@ export const TripBookingDetailsDialog = ({
                           Pris per person
                         </span>
                         <span className="font-medium">
-                          {booking.trips?.price?.toLocaleString("sv-SE")} kr
+                          {Math.ceil(Number(booking.total_price) / (booking.travelers || 1)).toLocaleString("sv-SE")} kr
                         </span>
                       </div>
                       <div className="flex justify-between items-center py-2 border-b">
