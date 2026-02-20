@@ -54,19 +54,21 @@ export const TripPackages = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group bg-card rounded-xl p-8 shadow-elegant hover:shadow-lg transition-all duration-300 border border-border flex flex-col cursor-pointer"
             >
-              <Link to={pkg.href} className="flex flex-col flex-1 no-underline">
+              <Link
+                to={pkg.href}
+                className="group block bg-card rounded-xl p-8 shadow-elegant hover:shadow-lg transition-all duration-300 border border-border"
+              >
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
                   <pkg.icon className="w-7 h-7 text-primary" />
                 </div>
                 <h3 className="text-2xl font-serif font-bold text-foreground mb-4">
                   {pkg.title}
                 </h3>
-                <p className="text-muted-foreground leading-relaxed flex-1">
+                <p className="text-muted-foreground leading-relaxed mb-6">
                   {pkg.description}
                 </p>
-                <span className="mt-6 text-primary font-semibold text-sm group-hover:underline">
+                <span className="text-primary font-semibold text-sm group-hover:underline">
                   Mer info →
                 </span>
               </Link>
