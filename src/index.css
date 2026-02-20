@@ -1,7 +1,8 @@
 /* Custom fonts - Tropika and Glacial Indifference */
 @font-face {
   font-family: 'Tropika';
-  src: url('/fonts/Tropika.otf') format('opentype');
+  src: url('/fonts/Tropika.woff2') format('woff2'),
+       url('/fonts/Tropika.otf') format('opentype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
