@@ -35,7 +35,7 @@ const Studentveckan = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useSEO({
-    title: "Studentveckan – Segla med 150 studenter i Kroatien | Studentresor",
+    title: "Studentveckan – Segla med 150 studenter i Kroatien",
     description: "Studentveckan är en unik seglingsresa i Kroatien tillsammans med studenter från hela Sverige. Flyg, segelbåt, event och 24/7 service ingår. Boka din hytt idag.",
     canonical: "https://www.studentresor.se/studentveckan",
   });
