@@ -7,6 +7,10 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png" />
 
+    <!-- Preconnect to backend API to eliminate DNS/TCP/TLS latency from critical chain -->
+    <link rel="preconnect" href="https://toxucscjfmaoayircihp.supabase.co" crossorigin="anonymous" />
+    <link rel="dns-prefetch" href="https://toxucscjfmaoayircihp.supabase.co" />
+
     <!-- Preload critical font to reduce LCP -->
     <link rel="preload" href="/fonts/Tropika.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
     
