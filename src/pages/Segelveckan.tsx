@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Check, Shield, Users, Plane, Home, Calendar, Phone, Anchor, Sun, Utensils, Wifi, Fuel, MapPin, Compass, Ship } from "lucide-react";
 import { Header } from "@/components/Header";
@@ -42,6 +42,36 @@ const Segelveckan = () => {
     canonical: "https://www.studentresor.se/segelveckan",
     ogImage: "https://www.studentresor.se/images/segelveckan-og.jpg",
   });
+
+  useEffect(() => {
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "TouristTrip",
+      "name": "Segelveckan – Segling på katamaran i Kroatien",
+      "description": "Segla på katamaran genom Kroatiens skärgård med flyg, boende, mat och event inkluderat.",
+      "touristType": "Studentresa",
+      "itinerary": {
+        "@type": "Place",
+        "name": "Kroatien",
+        "address": { "@type": "PostalAddress", "addressCountry": "HR" }
+      },
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": "SEK",
+        "url": "https://www.studentresor.se/segelveckan"
+      },
+      "provider": {
+        "@type": "TravelAgency",
+        "name": "Studentresor",
+        "url": "https://www.studentresor.se"
+      }
+    };
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(jsonLd);
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, []);
 
   const handleTogglePlay = () => {
     if (videoRef.current) {

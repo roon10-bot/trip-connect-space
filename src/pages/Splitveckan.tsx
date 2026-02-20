@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Check, Shield, Users, Plane, Home, Calendar, Phone, MapPin } from "lucide-react";
 import { Header } from "@/components/Header";
@@ -28,6 +28,36 @@ const Splitveckan = () => {
     canonical: "https://www.studentresor.se/splitveckan",
     ogImage: "https://www.studentresor.se/images/splitveckan-og.jpg",
   });
+
+  useEffect(() => {
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "TouristTrip",
+      "name": "Splitveckan – Studentresa till Split, Kroatien",
+      "description": "En vecka i Split med centralt boende, strandliv och nattliv i världsklass. Flyg, boende och event ingår.",
+      "touristType": "Studentresa",
+      "itinerary": {
+        "@type": "Place",
+        "name": "Split, Kroatien",
+        "address": { "@type": "PostalAddress", "addressCountry": "HR" }
+      },
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": "SEK",
+        "url": "https://www.studentresor.se/splitveckan"
+      },
+      "provider": {
+        "@type": "TravelAgency",
+        "name": "Studentresor",
+        "url": "https://www.studentresor.se"
+      }
+    };
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(jsonLd);
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, []);
 
   const handleTogglePlay = () => {
     if (videoRef.current) {
