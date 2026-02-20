@@ -1,4 +1,5 @@
 import { useState, useMemo, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -101,6 +102,28 @@ export const TripBookingDetailsDialog = ({
   const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "altapay">("stripe");
   const { user } = useAuth();
+
+  // Fetch completed payments for this booking
+  const { data: completedPayments } = useQuery({
+    queryKey: ["booking-completed-payments", booking?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payments")
+        .select("amount")
+        .eq("trip_booking_id", booking!.id)
+        .eq("status", "completed");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!booking?.id && open,
+  });
+
+  const totalPaid = useMemo(() => {
+    if (!completedPayments) return 0;
+    return completedPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+  }, [completedPayments]);
+
+  const isFullyPaid = totalPaid >= Number(booking?.total_price || 0) && totalPaid > 0;
 
   // Determine if user is the booker or a traveler
   const isBooker = booking?.user_id === user?.id;
@@ -242,7 +265,7 @@ export const TripBookingDetailsDialog = ({
 
   if (!booking) return null;
 
-  const isPaid = booking.status === "confirmed";
+  const isPaid = isFullyPaid;
   const hasPaymentPlan = paymentOptions.length > 0;
 
   return (
