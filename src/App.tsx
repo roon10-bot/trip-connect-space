@@ -22,6 +22,7 @@ import Splitveckan from "./pages/Splitveckan";
 import Segelveckan from "./pages/Segelveckan";
 import Studentveckan from "./pages/Studentveckan";
 import Settings from "./pages/Settings";
+import AltapayCallback from "./pages/AltapayCallback";
 import { ChatAssistant } from "./components/ChatAssistant";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/segelveckan" element={<Segelveckan />} />
               <Route path="/studentveckan" element={<Studentveckan />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/altapay/:status" element={<AltapayCallback />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

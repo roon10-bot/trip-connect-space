@@ -134,12 +134,12 @@ serve(async (req) => {
     formData.append("amount", String(amountInOre));
     formData.append("currency", "SEK");
     formData.append("type", "paymentAndCapture");
-    formData.append("config[callback_form]", `${callbackBase}/dashboard?payment=form&booking=${bookingId}`);
-    formData.append("config[callback_ok]", `${callbackBase}/dashboard?payment=success&booking=${bookingId}`);
-    formData.append("config[callback_fail]", `${callbackBase}/dashboard?payment=failed&booking=${bookingId}`);
-    formData.append("config[callback_redirect]", `${callbackBase}/dashboard?payment=success&booking=${bookingId}`);
-    formData.append("config[callback_notification]", `${callbackBase}/api/altapay/notification`);
-    formData.append("return_url", `${callbackBase}/dashboard?payment=return&booking=${bookingId}`);
+    // A/B test: no callback_form, clean URLs without query strings
+    formData.append("config[callback_ok]", `${callbackBase}/altapay/ok`);
+    formData.append("config[callback_fail]", `${callbackBase}/altapay/fail`);
+    formData.append("config[callback_redirect]", `${callbackBase}/altapay/redirect`);
+    formData.append("config[callback_notification]", `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`);
+    formData.append("return_url", `${callbackBase}/altapay/return`);
     formData.append("customer_info[email]", user.email);
     formData.append("orderLines[0][description]", `Resa: ${bookingData.name}`);
     formData.append("orderLines[0][itemId]", bookingData.id.slice(0, 8));
@@ -159,12 +159,11 @@ serve(async (req) => {
       amount: String(amountInOre),
       currency: "SEK",
       type: "paymentAndCapture",
-      return_url: `${callbackBase}/dashboard?payment=return&booking=${bookingId}`,
-      "config[callback_form]": `${callbackBase}/dashboard?payment=form&booking=${bookingId}`,
-      "config[callback_ok]": `${callbackBase}/dashboard?payment=success&booking=${bookingId}`,
-      "config[callback_fail]": `${callbackBase}/dashboard?payment=failed&booking=${bookingId}`,
-      "config[callback_redirect]": `${callbackBase}/dashboard?payment=success&booking=${bookingId}`,
-      "config[callback_notification]": `${callbackBase}/api/altapay/notification`,
+      return_url: `${callbackBase}/altapay/return`,
+      "config[callback_ok]": `${callbackBase}/altapay/ok`,
+      "config[callback_fail]": `${callbackBase}/altapay/fail`,
+      "config[callback_redirect]": `${callbackBase}/altapay/redirect`,
+      "config[callback_notification]": `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`,
       "customer_info[email]": user.email,
       "orderLines[0][description]": `Resa: ${bookingData.name}`,
       "orderLines[0][unitPrice]": String(amountInOre),
