@@ -235,6 +235,13 @@ export const TripBookingDetailsDialog = ({
     setIsProcessingPayment(true);
 
     try {
+      // Verify session is still valid before attempting payment
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        toast.error("Din session har gått ut. Logga in igen för att betala.");
+        return;
+      }
+
       const functionName = paymentMethod === "altapay" 
         ? "create-altapay-payment" 
         : "create-booking-payment";
@@ -254,10 +261,15 @@ export const TripBookingDetailsDialog = ({
 
       if (data?.url) {
         window.open(data.url, "_blank");
+      } else {
+        throw new Error("Ingen betalnings-URL mottogs");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Payment error:", error);
-      toast.error("Kunde inte starta betalningen. Försök igen.");
+      const msg = error?.message?.includes("Auth session missing")
+        ? "Din session har gått ut. Logga in igen för att betala."
+        : "Kunde inte starta betalningen. Försök igen.";
+      toast.error(msg);
     } finally {
       setIsProcessingPayment(false);
     }
