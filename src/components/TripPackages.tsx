@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Anchor, MapPin, Ship } from "lucide-react";
+import { Anchor, MapPin, Ship, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const packages = [
   {
@@ -7,18 +8,21 @@ const packages = [
     description:
       "Följ med på en episk vecka till havs där du bor på båt, hoppar mellan öar och festar i solnedgången. Seglingsveckan är för dig som vill ha frihet, vackra vyer och ett helt unikt äventyr.",
     icon: Anchor,
+    href: "/segelveckan",
   },
   {
     title: "Splitveckan",
     description:
       "Bo mitt i Split med gångavstånd till både strand och nattliv. Här blandas beachhäng, dagsfester och klubbar i ett oslagbart tempo. Splitveckan är för dig som vill ha allt – på ett och samma ställe.",
     icon: MapPin,
+    href: "/splitveckan",
   },
   {
     title: "Studentveckan",
     description:
       "Tillsammans med Yacht Days bjuder Studentresor in dig till en vecka du aldrig glömmer. Segla genom Kroatiens övärld med sol, bad, fester och nya vänner tillsammans med 150 studenter från hela Sverige.",
     icon: Ship,
+    href: "/studentveckan",
   },
 ];
 
@@ -50,7 +54,7 @@ export const TripPackages = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group bg-card rounded-xl p-8 shadow-elegant hover:shadow-lg transition-all duration-300 border border-border"
+              className="group bg-card rounded-xl p-8 shadow-elegant hover:shadow-lg transition-all duration-300 border border-border flex flex-col"
             >
               <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
                 <pkg.icon className="w-7 h-7 text-primary" />
@@ -58,9 +62,16 @@ export const TripPackages = () => {
               <h3 className="text-2xl font-serif font-bold text-foreground mb-4">
                 {pkg.title}
               </h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed flex-1">
                 {pkg.description}
               </p>
+              <Link
+                to={pkg.href}
+                className="mt-6 inline-flex items-center gap-2 text-primary font-semibold text-sm hover:gap-3 transition-all duration-200"
+              >
+                Mer info
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </motion.div>
           ))}
         </div>
