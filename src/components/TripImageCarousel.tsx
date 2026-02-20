@@ -5,12 +5,14 @@ import { cn } from "@/lib/utils";
 interface TripImageCarouselProps {
   images: { id: string; image_url: string }[];
   fallbackImage?: string | null;
+  tripName?: string;
   className?: string;
 }
 
 export const TripImageCarousel = ({ 
   images, 
   fallbackImage,
+  tripName,
   className 
 }: TripImageCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -46,7 +48,7 @@ export const TripImageCarousel = ({
     <div className={cn("relative group overflow-hidden", className)}>
       <img
         src={allImages[currentIndex].image_url}
-        alt={`Resebild ${currentIndex + 1}`}
+        alt={tripName ? `${tripName} – Resebild ${currentIndex + 1}` : `Resebild ${currentIndex + 1}`}
         className="w-full h-full object-cover"
         loading="lazy"
         style={{ willChange: 'auto' }}
