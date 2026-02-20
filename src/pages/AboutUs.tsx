@@ -48,6 +48,7 @@ const AboutUs = () => {
     title: "Om Studentresor – Studentlife Sweden AB | Studentresor",
     description: "Lär känna Studentresor och teamet bakom Sveriges studentresor till Kroatien. Vi arrangerar Segelveckan, Splitveckan och Studentveckan med resegaranti.",
     canonical: "https://www.studentresor.se/om-oss",
+    ogImage: "https://www.studentresor.se/images/om-oss-og.jpg",
   });
 
   return (
