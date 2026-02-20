@@ -139,7 +139,7 @@ serve(async (req) => {
     formData.append("config[callback_ok]", `${callbackBackend}/ok`);
     formData.append("config[callback_fail]", `${callbackBackend}/fail`);
     formData.append("config[callback_redirect]", `${callbackBackend}/redirect`);
-    formData.append("config[callback_notification]", `${callbackBackend}/notification`);
+    formData.append("config[callback_notification]", `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`);
     formData.append("return_url", `${callbackFrontend}/payment/return?booking=${bookingId}`);
     formData.append("customer_info[email]", user.email);
     formData.append("orderLines[0][description]", `Resa: ${bookingData.name}`);
@@ -164,7 +164,7 @@ serve(async (req) => {
       "config[callback_ok]": `${callbackBackend}/ok`,
       "config[callback_fail]": `${callbackBackend}/fail`,
       "config[callback_redirect]": `${callbackBackend}/redirect`,
-      "config[callback_notification]": `${callbackBackend}/notification`,
+      "config[callback_notification]": `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`,
       "customer_info[email]": user.email,
       "orderLines[0][description]": `Resa: ${bookingData.name}`,
       "orderLines[0][unitPrice]": amountInSEK,
