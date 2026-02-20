@@ -8,8 +8,8 @@ import { useSEO } from "@/hooks/useSEO";
 
 const Index = () => {
   useSEO({
-    title: "Studentresor – Studentresor till Kroatien | Segelveckan, Splitveckan & Studentveckan",
-    description: "Boka din studentresa till Kroatien med Studentresor. Segelveckan, Splitveckan och Studentveckan – sol, segling och oförglömliga upplevelser för studenter. Resegaranti hos Kammarkollegiet.",
+    title: "Studentresor – Studentresa till Kroatien 2026",
+    description: "Boka din studentresa till Kroatien. Segelveckan, Splitveckan och Studentveckan – sol, segling och oförglömliga upplevelser. Resegaranti ingår.",
     canonical: "https://www.studentresor.se/",
   });
   return (
