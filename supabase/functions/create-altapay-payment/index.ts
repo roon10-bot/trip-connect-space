@@ -130,8 +130,8 @@ serve(async (req) => {
     const formData = new URLSearchParams();
     formData.append("terminal", terminalName);
     formData.append("shop_orderid", shopOrderId);
-    const amountInOre = Math.round(Number(amount) * 100);
-    formData.append("amount", String(amountInOre));
+    const amountInSEK = String(Math.round(Number(amount)));
+    formData.append("amount", amountInSEK);
     formData.append("currency", "SEK");
     formData.append("type", "paymentAndCapture");
     // A/B test: no callback_form, clean URLs without query strings
@@ -144,7 +144,7 @@ serve(async (req) => {
     formData.append("orderLines[0][description]", `Resa: ${bookingData.name}`);
     formData.append("orderLines[0][itemId]", bookingData.id.slice(0, 8));
     formData.append("orderLines[0][quantity]", "1");
-    formData.append("orderLines[0][unitPrice]", String(amountInOre));
+    formData.append("orderLines[0][unitPrice]", amountInSEK);
     formData.append("orderLines[0][goodsType]", "item");
 
     // Transaction info for tracking
@@ -156,7 +156,7 @@ serve(async (req) => {
     logStep("REQUEST PAYLOAD", {
       terminal: terminalName,
       shop_orderid: shopOrderId,
-      amount: String(amountInOre),
+      amount: amountInSEK,
       currency: "SEK",
       type: "paymentAndCapture",
       return_url: `${callbackBase}/altapay/return`,
@@ -166,7 +166,7 @@ serve(async (req) => {
       "config[callback_notification]": `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`,
       "customer_info[email]": user.email,
       "orderLines[0][description]": `Resa: ${bookingData.name}`,
-      "orderLines[0][unitPrice]": String(amountInOre),
+      "orderLines[0][unitPrice]": amountInSEK,
     });
     logStep("Calling AltaPay API", { url: altapayApiUrl, shopOrderId });
 
