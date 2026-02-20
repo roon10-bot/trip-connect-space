@@ -118,9 +118,9 @@ serve(async (req) => {
       logStep("Booking verified", { bookingId: booking.id });
     }
 
-    // Use studentresor.com backend endpoints for callbacks (guaranteed 200 OK, no 404s)
-    const callbackBackend = "https://studentresor.com/api/altapay";
-    const callbackFrontend = "https://studentresor.com";
+    // callback_ok/fail/redirect = user browser redirects -> frontend pages
+    // callback_notification = server-to-server -> edge function
+    const frontendBase = "https://studentresor.com";
 
     // Generate a unique order ID for AltaPay
     const shopOrderId = `${bookingData.id.slice(0, 8)}-${Date.now()}`;
@@ -135,12 +135,13 @@ serve(async (req) => {
     formData.append("amount", amountInSEK);
     formData.append("currency", "SEK");
     formData.append("type", "paymentAndCapture");
-    // A/B test: no callback_form, clean URLs without query strings
-    formData.append("config[callback_ok]", `${callbackBackend}/ok`);
-    formData.append("config[callback_fail]", `${callbackBackend}/fail`);
-    formData.append("config[callback_redirect]", `${callbackBackend}/redirect`);
+    // Browser redirects after payment - must be frontend pages
+    formData.append("config[callback_ok]", `${frontendBase}/payment/return?status=ok&booking=${bookingId}`);
+    formData.append("config[callback_fail]", `${frontendBase}/payment/return?status=fail&booking=${bookingId}`);
+    formData.append("config[callback_redirect]", `${frontendBase}/payment/return?status=redirect&booking=${bookingId}`);
+    // Server-to-server notification - edge function
     formData.append("config[callback_notification]", `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`);
-    formData.append("return_url", `${callbackFrontend}/payment/return?booking=${bookingId}`);
+    formData.append("return_url", `${frontendBase}/payment/return?booking=${bookingId}`);
     formData.append("customer_info[email]", user.email);
     formData.append("orderLines[0][description]", `Resa: ${bookingData.name}`);
     formData.append("orderLines[0][itemId]", bookingData.id.slice(0, 8));
@@ -160,10 +161,10 @@ serve(async (req) => {
       amount: amountInSEK,
       currency: "SEK",
       type: "paymentAndCapture",
-      return_url: `${callbackFrontend}/payment/return?booking=${bookingId}`,
-      "config[callback_ok]": `${callbackBackend}/ok`,
-      "config[callback_fail]": `${callbackBackend}/fail`,
-      "config[callback_redirect]": `${callbackBackend}/redirect`,
+      return_url: `${frontendBase}/payment/return?booking=${bookingId}`,
+      "config[callback_ok]": `${frontendBase}/payment/return?status=ok&booking=${bookingId}`,
+      "config[callback_fail]": `${frontendBase}/payment/return?status=fail&booking=${bookingId}`,
+      "config[callback_redirect]": `${frontendBase}/payment/return?status=redirect&booking=${bookingId}`,
       "config[callback_notification]": `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`,
       "customer_info[email]": user.email,
       "orderLines[0][description]": `Resa: ${bookingData.name}`,
