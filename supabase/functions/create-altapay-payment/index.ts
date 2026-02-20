@@ -245,20 +245,33 @@ serve(async (req) => {
     const paymentIdMatch = responseText.match(/<PaymentId>(.*?)<\/PaymentId>/);
     const altapayPaymentId = paymentIdMatch?.[1] || null;
 
-    // Create a pending payment record
-    const { error: paymentInsertError } = await supabaseClient
+    // Reuse existing pending payment or create a new one
+    const { data: existingPending } = await supabaseClient
       .from("payments")
-      .insert({
-        trip_booking_id: bookingId,
-        user_id: user.id,
-        amount: Number(amount),
-        payment_type: "altapay_payment",
-        status: "pending",
-        stripe_session_id: altapayPaymentId,
-      });
+      .select("id")
+      .eq("trip_booking_id", bookingId)
+      .eq("user_id", user.id)
+      .eq("status", "pending")
+      .eq("amount", Number(amount))
+      .maybeSingle();
 
-    if (paymentInsertError) {
-      logStep("Warning: Could not create payment record", { error: paymentInsertError.message });
+    if (existingPending) {
+      logStep("Reusing existing pending payment", { paymentId: existingPending.id });
+    } else {
+      const { error: paymentInsertError } = await supabaseClient
+        .from("payments")
+        .insert({
+          trip_booking_id: bookingId,
+          user_id: user.id,
+          amount: Number(amount),
+          payment_type: "altapay_payment",
+          status: "pending",
+          stripe_session_id: altapayPaymentId,
+        });
+
+      if (paymentInsertError) {
+        logStep("Warning: Could not create payment record", { error: paymentInsertError.message });
+      }
     }
 
     return new Response(JSON.stringify({ url: paymentUrl, embeddedUrl }), {
