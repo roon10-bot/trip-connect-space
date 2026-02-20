@@ -11,6 +11,7 @@ const Index = () => {
     title: "Studentresor – Studentresa till Kroatien 2026",
     description: "Boka din studentresa till Kroatien. Segelveckan, Splitveckan och Studentveckan – sol, segling och oförglömliga upplevelser. Resegaranti ingår.",
     canonical: "https://www.studentresor.se/",
+    ogImage: "https://www.studentresor.se/images/studentresor-og.jpg",
   });
   return (
     <div className="min-h-screen bg-background">
