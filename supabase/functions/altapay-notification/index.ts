@@ -93,59 +93,42 @@ serve(async (req) => {
       const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, supabaseKey);
 
-      // Find the most recent pending payment for this booking
-      const { data: existingPayment, error: findError } = await supabase
-        .from("payments")
-        .select("id, status")
-        .eq("trip_booking_id", bookingId)
-        .eq("status", "pending")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (findError) {
-        console.error(`${LOG_PREFIX} Error finding payment:`, findError);
-      }
-
-      if (existingPayment) {
-        const updateData: Record<string, unknown> = {
-          status: paymentStatus,
-          updated_at: new Date().toISOString(),
-        };
-        if (paymentStatus === "completed") {
-          updateData.paid_at = new Date().toISOString();
-        }
-        if (finalTransactionId) {
-          updateData.stripe_payment_intent_id = finalTransactionId; // reuse field for AltaPay txn ID
-        }
-
-        const { error: updateError } = await supabase
+      if (paymentStatus === "completed") {
+        // Create the payment record only on confirmed payment
+        const parsedAmount = parseFloat(amount) || 0;
+        const { error: insertError } = await supabase
           .from("payments")
-          .update(updateData)
-          .eq("id", existingPayment.id);
+          .insert({
+            trip_booking_id: bookingId,
+            user_id: userId || null,
+            amount: parsedAmount,
+            payment_type: "altapay_payment",
+            status: "completed",
+            paid_at: new Date().toISOString(),
+            stripe_payment_intent_id: finalTransactionId || null,
+          });
 
-        if (updateError) {
-          console.error(`${LOG_PREFIX} Error updating payment:`, updateError);
+        if (insertError) {
+          console.error(`${LOG_PREFIX} Error inserting completed payment:`, insertError);
         } else {
-          console.log(`${LOG_PREFIX} Payment ${existingPayment.id} updated to ${paymentStatus}`);
+          console.log(`${LOG_PREFIX} Payment created as completed for booking ${bookingId}, amount ${parsedAmount}`);
         }
 
-        // If payment completed, confirm the booking
-        if (paymentStatus === "completed") {
-          const { error: bookingError } = await supabase
-            .from("trip_bookings")
-            .update({ status: "confirmed", updated_at: new Date().toISOString() })
-            .eq("id", bookingId)
-            .eq("status", "pending");
+        // Confirm the booking if still pending
+        const { error: bookingError } = await supabase
+          .from("trip_bookings")
+          .update({ status: "confirmed", updated_at: new Date().toISOString() })
+          .eq("id", bookingId)
+          .eq("status", "pending");
 
-          if (bookingError) {
-            console.error(`${LOG_PREFIX} Error confirming booking:`, bookingError);
-          } else {
-            console.log(`${LOG_PREFIX} Booking ${bookingId} confirmed`);
-          }
+        if (bookingError) {
+          console.error(`${LOG_PREFIX} Error confirming booking:`, bookingError);
+        } else {
+          console.log(`${LOG_PREFIX} Booking ${bookingId} confirmed`);
         }
       } else {
-        console.log(`${LOG_PREFIX} No pending payment found for booking ${bookingId}`);
+        // For failed/pending statuses, just log — no DB record needed
+        console.log(`${LOG_PREFIX} Non-completed status ${paymentStatus} for booking ${bookingId}, no payment record created`);
       }
     } else {
       console.log(`${LOG_PREFIX} Skipping DB update - paymentStatus: ${paymentStatus}, bookingId: ${bookingId}`);
