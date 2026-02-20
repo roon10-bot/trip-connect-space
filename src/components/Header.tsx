@@ -201,6 +201,8 @@ export const Header = () => {
             <button
               className={`md:hidden p-1.5 relative z-[110] ${isMenuOpen ? "text-white" : useDarkText ? "text-foreground" : "text-white"}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? "Stäng meny" : "Öppna meny"}
+              aria-expanded={isMenuOpen}
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
