@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.create-altapay-payment]
 verify_jwt = false
+
+[functions.altapay-notification]
+verify_jwt = false
