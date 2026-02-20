@@ -101,7 +101,7 @@ export const TripBookingDetailsDialog = ({
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "altapay">("stripe");
-  const [embeddedPaymentUrl, setEmbeddedPaymentUrl] = useState<string | null>(null);
+  
   const { user } = useAuth();
 
   // Fetch completed payments for this booking
@@ -260,10 +260,7 @@ export const TripBookingDetailsDialog = ({
 
       if (error) throw error;
 
-      // For AltaPay, use embedded URL in iframe; for Stripe, open externally
-      if (paymentMethod === "altapay" && data?.url) {
-        setEmbeddedPaymentUrl(data.url);
-      } else if (data?.url) {
+      if (data?.url) {
         window.open(data.url, "_blank");
       } else {
         throw new Error("Ingen betalnings-URL mottogs");
@@ -285,7 +282,6 @@ export const TripBookingDetailsDialog = ({
   const hasPaymentPlan = paymentOptions.length > 0;
 
   return (
-    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -724,27 +720,5 @@ export const TripBookingDetailsDialog = ({
         </Tabs>
       </DialogContent>
     </Dialog>
-
-      {/* Embedded AltaPay Payment Dialog */}
-      <Dialog open={!!embeddedPaymentUrl} onOpenChange={(open) => { if (!open) setEmbeddedPaymentUrl(null); }}>
-        <DialogContent className="max-w-2xl h-[80vh] p-0 overflow-hidden">
-          <DialogHeader className="p-4 pb-2 border-b">
-            <DialogTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-ocean" />
-              Genomför betalning
-            </DialogTitle>
-          </DialogHeader>
-          {embeddedPaymentUrl && (
-            <iframe
-              src={embeddedPaymentUrl}
-              className="w-full flex-1 border-0"
-              style={{ height: "calc(80vh - 60px)" }}
-              title="AltaPay Betalning"
-              allow="payment"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
   );
 };
