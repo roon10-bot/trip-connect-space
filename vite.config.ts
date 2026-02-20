@@ -11,6 +11,15 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    headers: {
+      // Immutable cache for hashed assets served during dev/preview
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
+  },
+  preview: {
+    headers: {
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
