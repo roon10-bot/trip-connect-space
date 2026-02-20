@@ -30,8 +30,7 @@ export const Hero = () => {
           loop
           muted
           playsInline
-          preload="auto"
-          poster=""
+          preload="none"
           className="w-full h-full object-cover"
           style={{ backgroundColor: 'hsl(var(--foreground))' }}
         />
