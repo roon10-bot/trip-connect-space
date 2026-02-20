@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarIcon, Minus, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,10 +40,23 @@ export const BookingWidget = () => {
   const [guests, setGuests] = useState(2);
   const [selectedMonth, setSelectedMonth] = useState<{ year: number; month: number } | undefined>();
 
+  // Defer Supabase fetch until after first paint / idle
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if ("requestIdleCallback" in window) {
+      const id = (window as any).requestIdleCallback(() => setReady(true), { timeout: 2000 });
+      return () => (window as any).cancelIdleCallback(id);
+    } else {
+      const id = setTimeout(() => setReady(true), 100);
+      return () => clearTimeout(id);
+    }
+  }, []);
+
   const { data: availableMonths } = useQuery({
     queryKey: ["available-months"],
-    staleTime: 1000 * 60 * 60, // Cache i 1 timme – data ändras sällan
-    gcTime: 1000 * 60 * 60 * 24, // Behåll i cache 24h
+    enabled: ready, // Don't fetch until idle
+    staleTime: 1000 * 60 * 60,
+    gcTime: 1000 * 60 * 60 * 24,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trips")
