@@ -245,34 +245,9 @@ serve(async (req) => {
     const paymentIdMatch = responseText.match(/<PaymentId>(.*?)<\/PaymentId>/);
     const altapayPaymentId = paymentIdMatch?.[1] || null;
 
-    // Reuse existing pending payment or create a new one
-    const { data: existingPending } = await supabaseClient
-      .from("payments")
-      .select("id")
-      .eq("trip_booking_id", bookingId)
-      .eq("user_id", user.id)
-      .eq("status", "pending")
-      .eq("amount", Number(amount))
-      .maybeSingle();
-
-    if (existingPending) {
-      logStep("Reusing existing pending payment", { paymentId: existingPending.id });
-    } else {
-      const { error: paymentInsertError } = await supabaseClient
-        .from("payments")
-        .insert({
-          trip_booking_id: bookingId,
-          user_id: user.id,
-          amount: Number(amount),
-          payment_type: "altapay_payment",
-          status: "pending",
-          stripe_session_id: altapayPaymentId,
-        });
-
-      if (paymentInsertError) {
-        logStep("Warning: Could not create payment record", { error: paymentInsertError.message });
-      }
-    }
+    // No pending payment record is created here.
+    // The payment record will be created by altapay-notification
+    // when AltaPay confirms the payment, avoiding duplicate pending entries.
 
     return new Response(JSON.stringify({ url: paymentUrl, embeddedUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
