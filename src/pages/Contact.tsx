@@ -16,10 +16,10 @@ const Contact = () => {
   useSEO({
     title: "Kontakta Studentresor – Frågor om studentresor till Kroatien",
     description: "Kontakta Studentresor för frågor om studentresor till Kroatien. Nå oss via telefon, e-post eller kontaktformulär. Vi hjälper dig gärna.",
-    canonical: "https://www.studentresor.se/kontakt",
+    canonical: "https://www.studentresor.com/kontakt",
     breadcrumbs: [
-      { name: "Hem", url: "https://www.studentresor.se/" },
-      { name: "Kontakt", url: "https://www.studentresor.se/kontakt" },
+      { name: "Hem", url: "https://www.studentresor.com/" },
+      { name: "Kontakt", url: "https://www.studentresor.com/kontakt" },
     ],
   });
 
@@ -92,8 +92,8 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground">E-post</h3>
-                    <a href="mailto:info@studentresor.se" className="text-muted-foreground hover:text-primary transition-colors">
-                      info@studentresor.se
+                    <a href="mailto:info@studentresor.com" className="text-muted-foreground hover:text-primary transition-colors">
+                      info@studentresor.com
                     </a>
                   </div>
                 </div>

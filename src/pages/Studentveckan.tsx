@@ -37,12 +37,12 @@ const Studentveckan = () => {
   useSEO({
     title: "Studentveckan – Segla med 150 studenter i Kroatien",
     description: "Studentveckan är en unik seglingsresa i Kroatien tillsammans med studenter från hela Sverige. Flyg, segelbåt, event och 24/7 service ingår. Boka din hytt idag.",
-    canonical: "https://www.studentresor.se/studentveckan",
-    ogImage: "https://www.studentresor.se/images/studentveckan-og.jpg",
+    canonical: "https://www.studentresor.com/studentveckan",
+    ogImage: "https://www.studentresor.com/images/studentveckan-og.jpg",
     breadcrumbs: [
-      { name: "Hem", url: "https://www.studentresor.se/" },
-      { name: "Resor", url: "https://www.studentresor.se/search" },
-      { name: "Studentveckan", url: "https://www.studentresor.se/studentveckan" },
+      { name: "Hem", url: "https://www.studentresor.com/" },
+      { name: "Resor", url: "https://www.studentresor.com/search" },
+      { name: "Studentveckan", url: "https://www.studentresor.com/studentveckan" },
     ],
   });
 
@@ -61,12 +61,12 @@ const Studentveckan = () => {
       "offers": {
         "@type": "Offer",
         "priceCurrency": "SEK",
-        "url": "https://www.studentresor.se/studentveckan"
+        "url": "https://www.studentresor.com/studentveckan"
       },
       "provider": {
         "@type": "TravelAgency",
         "name": "Studentresor",
-        "url": "https://www.studentresor.se"
+        "url": "https://www.studentresor.com"
       }
     };
     const script = document.createElement("script");

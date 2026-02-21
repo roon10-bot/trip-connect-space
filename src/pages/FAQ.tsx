@@ -68,10 +68,10 @@ const faqItems = [
       "Vi arbetar nära flygbolagen för att hantera inställda flyg och kommer att arrangera alternativa flyg.",
   },
   {
-    question: "Har Studentresor.se tecknat resegaranti?",
+    question: "Har Studentresor.com tecknat resegaranti?",
     answer: (
       <p>
-        Studentresor.se är varumärket som används för att erbjuda reseupplevelser, medan
+        Studentresor.com är varumärket som används för att erbjuda reseupplevelser, medan
         Studentlife Sweden AB, med organisationsnummer 559358-2330, fungerar som den ansvariga
         researrangören. Företaget har även säkerställt trygghet för sina kunder genom att teckna en
         resegaranti hos Kammarkollegiet, vilket innebär att kunder är skyddade vid exempelvis
@@ -113,10 +113,10 @@ const FAQ = () => {
   useSEO({
     title: "Frågor och Svar om Studentresor | Studentresor",
     description: "Vanliga frågor om studentresor till Kroatien. Läs om betalning, avbokning, åldersgräns, resegaranti och vad som ingår i resan.",
-    canonical: "https://www.studentresor.se/faq",
+    canonical: "https://www.studentresor.com/faq",
     breadcrumbs: [
-      { name: "Hem", url: "https://www.studentresor.se/" },
-      { name: "FAQ", url: "https://www.studentresor.se/faq" },
+      { name: "Hem", url: "https://www.studentresor.com/" },
+      { name: "FAQ", url: "https://www.studentresor.com/faq" },
     ],
   });
 

@@ -42,10 +42,10 @@ const SearchTrips = () => {
   useSEO({
     title: "Sök resor till Kroatien | Studentresor",
     description: "Hitta och boka din studentresa till Kroatien. Filtrera på destination, avgångsort och datum.",
-    canonical: "https://www.studentresor.se/search",
+    canonical: "https://www.studentresor.com/search",
     breadcrumbs: [
-      { name: "Hem", url: "https://www.studentresor.se/" },
-      { name: "Resor", url: "https://www.studentresor.se/search" },
+      { name: "Hem", url: "https://www.studentresor.com/" },
+      { name: "Resor", url: "https://www.studentresor.com/search" },
     ],
   });
   const [searchParams, setSearchParams] = useSearchParams();
