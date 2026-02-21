@@ -1,4 +1,4 @@
-import { useState, useRef, lazy, Suspense } from "react";
+import { useState, useRef, useEffect, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause } from "lucide-react";
 import heroVideo from "@/assets/hero-video.mp4";
@@ -8,7 +8,13 @@ const BookingWidget = lazy(() => import("./BookingWidget").then(m => ({ default:
 
 export const Hero = () => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasHydrated, setHasHydrated] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Mark hydrated so we can animate secondary elements without blocking LCP
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
 
   const handleTogglePlay = () => {
     if (videoRef.current) {
@@ -44,9 +50,9 @@ export const Hero = () => {
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 pt-20 md:pt-16 md:flex-1 md:flex md:items-center">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Play/Pause Button - above text */}
+          {/* Play/Pause Button - above text, animate only after hydration */}
           <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={hasHydrated ? { opacity: 0, scale: 0.8 } : false}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
             onClick={handleTogglePlay}
@@ -86,23 +92,18 @@ export const Hero = () => {
               </div>
             </motion.div>
           </motion.button>
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+          {/* H1 is LCP – render immediately, no opacity:0 initial state */}
+          <h1
             className="text-2xl sm:text-3xl md:text-5xl font-serif font-bold text-primary-foreground mb-3 md:mb-4 leading-tight md:whitespace-nowrap"
           >
             Drömmer ni om en <span className="text-primary">oförglömlig</span> studentresa?
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+          <p
             className="text-sm sm:text-base md:text-lg text-primary-foreground/90 mb-6 md:mb-8 max-w-xl mx-auto leading-relaxed px-2 md:px-0"
           >
             Ert livs äventyr väntar runt hörnet, boka din resa redan idag.
-          </motion.p>
+          </p>
 
         </div>
       </div>
@@ -110,9 +111,9 @@ export const Hero = () => {
       {/* Booking Widget - at bottom on mobile, overlapping on desktop */}
       <div className="absolute bottom-4 md:bottom-0 left-0 right-0 z-20 container mx-auto px-4 md:translate-y-1/2">
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={hasHydrated ? { opacity: 0, y: 40 } : false}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
         >
           <Suspense fallback={null}>
             <BookingWidget />
