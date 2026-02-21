@@ -6,10 +6,10 @@ const Terms = () => {
   useSEO({
     title: "Allmänna resevillkor | Studentresor",
     description: "Läs Studentresors allmänna resevillkor för paketresor arrangerade av Studentlife Sweden AB. Information om betalning, avbokning och resegaranti.",
-    canonical: "https://www.studentresor.se/resevillkor",
+    canonical: "https://www.studentresor.com/resevillkor",
     breadcrumbs: [
-      { name: "Hem", url: "https://www.studentresor.se/" },
-      { name: "Resevillkor", url: "https://www.studentresor.se/resevillkor" },
+      { name: "Hem", url: "https://www.studentresor.com/" },
+      { name: "Resevillkor", url: "https://www.studentresor.com/resevillkor" },
     ],
   });
 
@@ -28,7 +28,7 @@ const Terms = () => {
           <div className="space-y-2 text-sm text-muted-foreground mb-10">
             <p>Org.nr: 559358-2330</p>
             <p>Adress: Tågagatan 44, 254 30 Helsingborg</p>
-            <p>E-post: info@studentresor.se</p>
+            <p>E-post: info@studentresor.com</p>
             <p>Telefon: 042-424 04 71</p>
           </div>
 

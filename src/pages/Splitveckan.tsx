@@ -25,12 +25,12 @@ const Splitveckan = () => {
   useSEO({
     title: "Splitveckan – Studentresa till Split, Kroatien | Studentresor",
     description: "Splitveckan är studentresan till Split med centralt boende, strandliv och nattliv i världsklass. Flyg, boende och event ingår. Boka din plats hos Studentresor.",
-    canonical: "https://www.studentresor.se/splitveckan",
-    ogImage: "https://www.studentresor.se/images/splitveckan-og.jpg",
+    canonical: "https://www.studentresor.com/splitveckan",
+    ogImage: "https://www.studentresor.com/images/splitveckan-og.jpg",
     breadcrumbs: [
-      { name: "Hem", url: "https://www.studentresor.se/" },
-      { name: "Resor", url: "https://www.studentresor.se/search" },
-      { name: "Splitveckan", url: "https://www.studentresor.se/splitveckan" },
+      { name: "Hem", url: "https://www.studentresor.com/" },
+      { name: "Resor", url: "https://www.studentresor.com/search" },
+      { name: "Splitveckan", url: "https://www.studentresor.com/splitveckan" },
     ],
   });
 
@@ -49,12 +49,12 @@ const Splitveckan = () => {
       "offers": {
         "@type": "Offer",
         "priceCurrency": "SEK",
-        "url": "https://www.studentresor.se/splitveckan"
+        "url": "https://www.studentresor.com/splitveckan"
       },
       "provider": {
         "@type": "TravelAgency",
         "name": "Studentresor",
-        "url": "https://www.studentresor.se"
+        "url": "https://www.studentresor.com"
       }
     };
     const script = document.createElement("script");

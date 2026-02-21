@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://www.studentresor.se/sitemap.xml
+Sitemap: https://www.studentresor.com/sitemap.xml

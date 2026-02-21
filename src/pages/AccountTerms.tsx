@@ -6,10 +6,10 @@ const AccountTerms = () => {
   useSEO({
     title: "Användarvillkor & Integritetspolicy | Studentresor",
     description: "Läs Studentresors användarvillkor för konto och integritetspolicy. Information om GDPR, personuppgiftshantering och dina rättigheter.",
-    canonical: "https://www.studentresor.se/kontovillkor",
+    canonical: "https://www.studentresor.com/kontovillkor",
     breadcrumbs: [
-      { name: "Hem", url: "https://www.studentresor.se/" },
-      { name: "Kontovillkor", url: "https://www.studentresor.se/kontovillkor" },
+      { name: "Hem", url: "https://www.studentresor.com/" },
+      { name: "Kontovillkor", url: "https://www.studentresor.com/kontovillkor" },
     ],
   });
 
@@ -26,11 +26,11 @@ const AccountTerms = () => {
           </p>
 
           <p className="text-foreground/80 mb-8">
-            Välkommen till studentresor.se. Genom att skapa ett konto godkänner du följande villkor.
+            Välkommen till studentresor.com. Genom att skapa ett konto godkänner du följande villkor.
           </p>
 
           <Section title="1. Om tjänsten">
-            studentresor.se är en digital plattform där användare kan skapa konto, hantera
+            studentresor.com är en digital plattform där användare kan skapa konto, hantera
             uppgifter och genomföra bokningar. Att skapa konto innebär inte att någon resa har
             bokats eller att bindande reseavtal har ingåtts.
           </Section>
@@ -66,7 +66,7 @@ const AccountTerms = () => {
               <p>Studentlife Sweden AB</p>
               <p>Org.nr: 559358-2330</p>
               <p>Adress: Tågagatan 44, 254 30 Helsingborg</p>
-              <p>E-post: info@studentresor.se</p>
+              <p>E-post: info@studentresor.com</p>
               <p>Telefon: 042-424 04 71</p>
             </div>
           </Section>
@@ -149,7 +149,7 @@ const AccountTerms = () => {
               <li><strong>Invändning:</strong> Invända mot behandling baserad på berättigat intresse</li>
             </ul>
             <p className="mt-3">
-              Kontakta oss på <a href="mailto:info@studentresor.se" className="text-primary underline">info@studentresor.se</a> för att utöva dina rättigheter.
+              Kontakta oss på <a href="mailto:info@studentresor.com" className="text-primary underline">info@studentresor.com</a> för att utöva dina rättigheter.
             </p>
           </Section>
 
@@ -185,7 +185,7 @@ const AccountTerms = () => {
             </p>
             <div className="mt-3 space-y-1 text-sm text-muted-foreground">
               <p>Studentlife Sweden AB</p>
-              <p>E-post: <a href="mailto:info@studentresor.se" className="text-primary underline">info@studentresor.se</a></p>
+              <p>E-post: <a href="mailto:info@studentresor.com" className="text-primary underline">info@studentresor.com</a></p>
               <p>Telefon: 042-424 04 71</p>
             </div>
           </div>

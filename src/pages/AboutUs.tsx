@@ -47,11 +47,11 @@ const AboutUs = () => {
   useSEO({
     title: "Om Studentresor – Studentlife Sweden AB | Studentresor",
     description: "Lär känna Studentresor och teamet bakom Sveriges studentresor till Kroatien. Vi arrangerar Segelveckan, Splitveckan och Studentveckan med resegaranti.",
-    canonical: "https://www.studentresor.se/om-oss",
-    ogImage: "https://www.studentresor.se/images/om-oss-og.jpg",
+    canonical: "https://www.studentresor.com/om-oss",
+    ogImage: "https://www.studentresor.com/images/om-oss-og.jpg",
     breadcrumbs: [
-      { name: "Hem", url: "https://www.studentresor.se/" },
-      { name: "Om oss", url: "https://www.studentresor.se/om-oss" },
+      { name: "Hem", url: "https://www.studentresor.com/" },
+      { name: "Om oss", url: "https://www.studentresor.com/om-oss" },
     ],
   });
 

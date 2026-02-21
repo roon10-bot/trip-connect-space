@@ -46,11 +46,11 @@ const ForElevkarer = () => {
   useSEO({
     title: "Studentresor för elevkårer & studentkommittéer | Studentresor",
     description: "Planera en studentresa med din elevkår eller studentkommitté. Skräddarsydda gruppresor till Kroatien med Studentresor. Boka ett möte idag.",
-    canonical: "https://www.studentresor.se/for-skolor",
-    ogImage: "https://www.studentresor.se/images/elevkarer-og.jpg",
+    canonical: "https://www.studentresor.com/for-skolor",
+    ogImage: "https://www.studentresor.com/images/elevkarer-og.jpg",
     breadcrumbs: [
-      { name: "Hem", url: "https://www.studentresor.se/" },
-      { name: "För elevkårer", url: "https://www.studentresor.se/for-skolor" },
+      { name: "Hem", url: "https://www.studentresor.com/" },
+      { name: "För elevkårer", url: "https://www.studentresor.com/for-skolor" },
     ],
   });
 
