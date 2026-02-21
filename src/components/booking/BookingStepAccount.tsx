@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -233,6 +234,13 @@ export const BookingStepAccount = ({
                   )}
                   Fortsätt med Google
                 </Button>
+
+                <p className="text-center text-xs text-muted-foreground">
+                  Genom att skapa konto godkänner du våra{" "}
+                  <Link to="/kontovillkor" className="underline hover:text-foreground">användarvillkor</Link>{" "}
+                  och{" "}
+                  <Link to="/kontovillkor#integritetspolicy" className="underline hover:text-foreground">integritetspolicy</Link>.
+                </p>
               </div>
             </form>
           </Form>
