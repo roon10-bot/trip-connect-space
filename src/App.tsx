@@ -21,6 +21,7 @@ const AboutUs = lazy(() => import("./pages/AboutUs"));
 const Contact = lazy(() => import("./pages/Contact"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Terms = lazy(() => import("./pages/Terms"));
+const AccountTerms = lazy(() => import("./pages/AccountTerms"));
 const Splitveckan = lazy(() => import("./pages/Splitveckan"));
 const Segelveckan = lazy(() => import("./pages/Segelveckan"));
 const Studentveckan = lazy(() => import("./pages/Studentveckan"));
@@ -66,6 +67,7 @@ const App = () => (
                 <Route path="/for-skolor" element={<ForElevkarer />} />
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/resevillkor" element={<Terms />} />
+                <Route path="/kontovillkor" element={<AccountTerms />} />
                 <Route path="/splitveckan" element={<Splitveckan />} />
                 <Route path="/segelveckan" element={<Segelveckan />} />
                 <Route path="/studentveckan" element={<Studentveckan />} />
