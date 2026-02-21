@@ -27,7 +27,8 @@ const Segelveckan = lazy(() => import("./pages/Segelveckan"));
 const Studentveckan = lazy(() => import("./pages/Studentveckan"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AltapayCallback = lazy(() => import("./pages/AltapayCallback"));
-const ChatAssistant = lazy(() => import("./components/ChatAssistant").then(m => ({ default: m.ChatAssistant })));
+// ChatAssistant temporarily disabled for performance
+// const ChatAssistant = lazy(() => import("./components/ChatAssistant").then(m => ({ default: m.ChatAssistant })));
 
 const queryClient = new QueryClient();
 
@@ -94,11 +95,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
-            <IdleLoad>
-              <Suspense fallback={null}>
-                <ChatAssistant />
-              </Suspense>
-            </IdleLoad>
+            {/* ChatAssistant temporarily disabled for performance */}
           </>
         )}
       </BrowserRouter>
