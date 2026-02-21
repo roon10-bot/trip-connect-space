@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,6 +30,22 @@ const AltapayCallback = lazy(() => import("./pages/AltapayCallback"));
 const ChatAssistant = lazy(() => import("./components/ChatAssistant").then(m => ({ default: m.ChatAssistant })));
 
 const queryClient = new QueryClient();
+
+/** Defers rendering children until the browser is idle (or after 3s timeout) */
+const IdleLoad = ({ children }: { children: React.ReactNode }) => {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if ("requestIdleCallback" in window) {
+      const id = (window as any).requestIdleCallback(() => setReady(true), { timeout: 3000 });
+      return () => (window as any).cancelIdleCallback(id);
+    } else {
+      const id = setTimeout(() => setReady(true), 2000);
+      return () => clearTimeout(id);
+    }
+  }, []);
+  if (!ready) return null;
+  return <>{children}</>;
+};
 
 // Toggle this to show/hide the Coming Soon page
 const COMING_SOON_MODE = false;
@@ -78,9 +94,11 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
-            <Suspense fallback={null}>
-              <ChatAssistant />
-            </Suspense>
+            <IdleLoad>
+              <Suspense fallback={null}>
+                <ChatAssistant />
+              </Suspense>
+            </IdleLoad>
           </>
         )}
       </BrowserRouter>

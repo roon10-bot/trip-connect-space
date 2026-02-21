@@ -1,16 +1,32 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const InstagramFeed = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Only load the EmbedSocial script when the section is near the viewport
   useEffect(() => {
-    if (document.getElementById("EmbedSocialHashtagScript")) return;
-    const js = document.createElement("script");
-    js.id = "EmbedSocialHashtagScript";
-    js.src = "https://embedsocial.com/cdn/ht.js";
-    document.head.appendChild(js);
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          observer.disconnect();
+          if (document.getElementById("EmbedSocialHashtagScript")) return;
+          const js = document.createElement("script");
+          js.id = "EmbedSocialHashtagScript";
+          js.src = "https://embedsocial.com/cdn/ht.js";
+          document.head.appendChild(js);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-16 md:py-24" ref={containerRef}>
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground text-center mb-10">
           Följ oss på Instagram
