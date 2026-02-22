@@ -66,6 +66,38 @@ const BookTrip = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
+  const [userProfileLoaded, setUserProfileLoaded] = useState(false);
+
+  // Pre-fill first traveler with logged-in user's data
+  useEffect(() => {
+    if (user && !userProfileLoaded) {
+      const loadProfile = async () => {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, phone")
+          .eq("user_id", user.id)
+          .single();
+
+        const nameParts = (profile?.full_name || "").split(" ");
+        const firstName = nameParts[0] || "";
+        const lastName = nameParts.slice(1).join(" ") || "";
+
+        setTravelersInfo((prev) => {
+          const updated = [...prev];
+          updated[0] = {
+            ...updated[0],
+            firstName: updated[0].firstName || firstName,
+            lastName: updated[0].lastName || lastName,
+            email: user.email || updated[0].email,
+            phone: updated[0].phone || profile?.phone || "",
+          };
+          return updated;
+        });
+        setUserProfileLoaded(true);
+      };
+      loadProfile();
+    }
+  }, [user, userProfileLoaded]);
 
   // Sync travelersInfo array length with travelers count
   useEffect(() => {

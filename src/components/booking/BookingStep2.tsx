@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import type { TravelerInfo } from "@/pages/BookTrip";
+import { useAuth } from "@/hooks/useAuth";
 
 const DEPARTURE_LOCATIONS = [
   "Arlanda (ARN)",
@@ -31,7 +32,12 @@ export const BookingStep2 = ({
   onNext,
   onPrev,
 }: BookingStep2Props) => {
+  const { user } = useAuth();
+  const isPrimaryLoggedIn = !!user;
+
   const updateField = (index: number, field: keyof TravelerInfo, value: string | Date | undefined) => {
+    // Prevent editing email for primary traveler when logged in
+    if (index === 0 && field === "email" && isPrimaryLoggedIn) return;
     const updated = [...travelersInfo];
     updated[index] = { ...updated[index], [field]: value };
     setTravelersInfo(updated);
@@ -96,7 +102,12 @@ export const BookingStep2 = ({
                 placeholder="din@email.se"
                 value={traveler.email}
                 onChange={(e) => updateField(index, "email", e.target.value)}
+                readOnly={index === 0 && isPrimaryLoggedIn}
+                className={index === 0 && isPrimaryLoggedIn ? "bg-muted cursor-not-allowed" : ""}
               />
+              {index === 0 && isPrimaryLoggedIn && (
+                <p className="text-xs text-muted-foreground">E-postadressen är kopplad till ditt konto</p>
+              )}
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
