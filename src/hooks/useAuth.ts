@@ -57,7 +57,7 @@ export const useAuth = () => {
             variables: {
               first_name: fullName?.split(" ")[0] || "",
             },
-            action_url: `${window.location.origin}/destinations`,
+            action_url: `https://studentresor.com/destinations`,
           },
         });
       } catch (e) {
