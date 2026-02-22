@@ -17,13 +17,21 @@ import { Link } from "react-router-dom";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
 import loginHero from "@/assets/login-hero.png";
 
-const authSchema = z.object({
+const signupSchema = z.object({
+  firstName: z.string().trim().min(1, "Förnamn krävs"),
+  lastName: z.string().trim().min(1, "Efternamn krävs"),
   email: z.string().email("Ange en giltig e-postadress"),
   password: z.string().min(8, "Lösenordet måste vara minst 8 tecken"),
-  fullName: z.string().optional(),
 });
 
-type AuthFormData = z.infer<typeof authSchema>;
+const loginSchema = z.object({
+  email: z.string().email("Ange en giltig e-postadress"),
+  password: z.string().min(8, "Lösenordet måste vara minst 8 tecken"),
+});
+
+type SignupFormData = z.infer<typeof signupSchema>;
+type LoginFormData = z.infer<typeof loginSchema>;
+type AuthFormData = SignupFormData | LoginFormData;
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -68,7 +76,7 @@ const Auth = () => {
     formState: { errors },
     reset,
   } = useForm<AuthFormData>({
-    resolver: zodResolver(authSchema),
+    resolver: zodResolver(isLogin ? loginSchema : signupSchema),
   });
 
   // Handle redirect after successful login
@@ -103,7 +111,8 @@ const Auth = () => {
           setShouldRedirect(true);
         }
       } else {
-        const { error } = await signUp(data.email, data.password, data.fullName);
+        const fullName = `${'firstName' in data ? data.firstName : ''} ${'lastName' in data ? data.lastName : ''}`.trim();
+        const { error } = await signUp(data.email, data.password, fullName);
         if (error) {
           if (error.message.includes("already registered")) {
             toast.error("E-postadressen är redan registrerad");
@@ -273,6 +282,35 @@ const Auth = () => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
 
+
+              {!isLogin && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">Förnamn</Label>
+                    <Input
+                      id="firstName"
+                      placeholder="Förnamn"
+                      {...register("firstName" as any)}
+                      className="h-12"
+                    />
+                    {(errors as any).firstName && (
+                      <p className="text-sm text-destructive">{(errors as any).firstName.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Efternamn</Label>
+                    <Input
+                      id="lastName"
+                      placeholder="Efternamn"
+                      {...register("lastName" as any)}
+                      className="h-12"
+                    />
+                    {(errors as any).lastName && (
+                      <p className="text-sm text-destructive">{(errors as any).lastName.message}</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="email">E-post</Label>
