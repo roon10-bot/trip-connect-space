@@ -8,6 +8,7 @@ const TripPackages = lazy(() => import("@/components/TripPackages").then(m => ({
 const Testimonials = lazy(() => import("@/components/Testimonials").then(m => ({ default: m.Testimonials })));
 const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
 const InstagramFeed = lazy(() => import("@/components/InstagramFeed"));
+const YouTubeEmbed = lazy(() => import("@/components/YouTubeEmbed"));
 
 const Index = () => {
   useSEO({
@@ -28,6 +29,7 @@ const Index = () => {
         <Hero />
         <Suspense fallback={null}>
           <TripPackages />
+          <YouTubeEmbed videoId="aF9AVtqcMc0" title="Studentresor – Studentresa till Kroatien" />
           <InstagramFeed />
           <Testimonials />
         </Suspense>
