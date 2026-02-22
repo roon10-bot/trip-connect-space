@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -34,6 +35,7 @@ export const BookingStep2 = ({
 }: BookingStep2Props) => {
   const { user } = useAuth();
   const isPrimaryLoggedIn = !!user;
+  const [openDatePickers, setOpenDatePickers] = useState<Record<number, boolean>>({});
 
   const updateField = (index: number, field: keyof TravelerInfo, value: string | Date | undefined) => {
     // Prevent editing email for primary traveler when logged in
@@ -116,7 +118,10 @@ export const BookingStep2 = ({
                 <Label>
                   Födelsedatum <span className="text-destructive">*</span>
                 </Label>
-                <Popover>
+                <Popover
+                  open={openDatePickers[index] || false}
+                  onOpenChange={(open) => setOpenDatePickers((prev) => ({ ...prev, [index]: open }))}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -135,7 +140,10 @@ export const BookingStep2 = ({
                     <Calendar
                       mode="single"
                       selected={traveler.birthDate}
-                      onSelect={(date) => updateField(index, "birthDate", date)}
+                      onSelect={(date) => {
+                        updateField(index, "birthDate", date);
+                        setOpenDatePickers((prev) => ({ ...prev, [index]: false }));
+                      }}
                       disabled={(date) => date > new Date()}
                       initialFocus
                       className="pointer-events-auto"
