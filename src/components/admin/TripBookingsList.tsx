@@ -100,8 +100,8 @@ export const TripBookingsList = () => {
                   total_price: String(booking.total_price),
                 },
                 action_url: status === "confirmed" 
-                  ? `${window.location.origin}/dashboard`
-                  : `${window.location.origin}/contact`,
+                  ? `https://studentresor.com/dashboard`
+                  : `https://studentresor.com/contact`,
               },
             });
 

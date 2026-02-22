@@ -259,7 +259,7 @@ export const AdminBookingDetailDialog = ({
             total_price: String(booking.total_price),
             departure_date: trip?.departure_date || "",
           },
-          action_url: `${window.location.origin}/dashboard`,
+          action_url: `https://studentresor.com/dashboard`,
         },
       });
 
