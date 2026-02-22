@@ -116,6 +116,20 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
     enabled: isAdmin,
   });
 
+  const { data: completedPayments } = useQuery({
+    queryKey: ["admin-completed-payments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payments")
+        .select("amount, paid_at")
+        .eq("status", "completed");
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAdmin,
+  });
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ bookingId, status }: { bookingId: string; status: string }) => {
       const { error } = await supabase
@@ -191,9 +205,9 @@ export const AdminDashboard = ({ isAdmin, userId }: AdminDashboardProps) => {
   startOfWeek.setDate(now.getDate() - now.getDay() + 1);
   startOfWeek.setHours(0, 0, 0, 0);
 
-  const revenue30d = (tripBookings || [])
-    .filter((b) => new Date(b.created_at) >= thirtyDaysAgo)
-    .reduce((sum, b) => sum + Number(b.total_price), 0);
+  const revenue30d = (completedPayments || [])
+    .filter((p) => p.paid_at && new Date(p.paid_at) >= thirtyDaysAgo)
+    .reduce((sum, p) => sum + Number(p.amount), 0);
 
   const bookingsThisWeek = (tripBookings || []).filter(
     (b) => new Date(b.created_at) >= startOfWeek
