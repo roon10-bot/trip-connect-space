@@ -29,13 +29,13 @@ export interface TravelerInfo {
   departureLocation: string;
 }
 
-const createEmptyTraveler = (): TravelerInfo => ({
+const createEmptyTraveler = (departureLocation = ""): TravelerInfo => ({
   firstName: "",
   lastName: "",
   email: "",
   birthDate: undefined,
   phone: "",
-  departureLocation: "",
+  departureLocation,
 });
 
 const BookTrip = () => {
@@ -99,17 +99,6 @@ const BookTrip = () => {
     }
   }, [user, userProfileLoaded]);
 
-  // Sync travelersInfo array length with travelers count
-  useEffect(() => {
-    setTravelersInfo((prev) => {
-      if (prev.length === travelers) return prev;
-      if (prev.length < travelers) {
-        return [...prev, ...Array.from({ length: travelers - prev.length }, () => createEmptyTraveler())];
-      }
-      return prev.slice(0, travelers);
-    });
-  }, [travelers]);
-
   const { data: trip, isLoading } = useQuery({
     queryKey: ["trip", id],
     queryFn: async () => {
@@ -125,6 +114,19 @@ const BookTrip = () => {
     },
     enabled: !!id,
   });
+
+  // Sync travelersInfo array length with travelers count and set departure location from trip
+  useEffect(() => {
+    const depLoc = trip?.departure_location || "";
+    setTravelersInfo((prev) => {
+      let updated = prev.map((t) => ({ ...t, departureLocation: depLoc }));
+      if (updated.length === travelers) return updated;
+      if (updated.length < travelers) {
+        return [...updated, ...Array.from({ length: travelers - updated.length }, () => createEmptyTraveler(depLoc))];
+      }
+      return updated.slice(0, travelers);
+    });
+  }, [travelers, trip?.departure_location]);
 
   const formatTripType = (type: string) => {
     const types: Record<string, string> = {

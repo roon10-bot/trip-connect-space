@@ -162,26 +162,15 @@ export const BookingStep2 = ({
               </div>
             </div>
 
-            {/* Departure Location */}
+            {/* Departure Location (read-only, set from trip) */}
             <div className="space-y-2">
-              <Label>
-                Avgångsort <span className="text-destructive">*</span>
-              </Label>
-              <Select
+              <Label>Avgångsort</Label>
+              <Input
                 value={traveler.departureLocation}
-                onValueChange={(value) => updateField(index, "departureLocation", value)}
-              >
-                <SelectTrigger className="w-full h-10">
-                  <SelectValue placeholder="Välj avgångsort" />
-                </SelectTrigger>
-                <SelectContent className="bg-background z-50">
-                  {DEPARTURE_LOCATIONS.map((loc) => (
-                    <SelectItem key={loc} value={loc}>
-                      {loc}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                readOnly
+                className="bg-muted cursor-not-allowed"
+              />
+              <p className="text-xs text-muted-foreground">Avgångsorten är bestämd av resan</p>
             </div>
           </CardContent>
         </Card>
