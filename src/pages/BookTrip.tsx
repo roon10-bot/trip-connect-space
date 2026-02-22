@@ -428,13 +428,22 @@ const BookTrip = () => {
       <Header />
 
       <main className="container mx-auto px-4 pt-28 pb-16">
-        <Link
-          to="/search"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Tillbaka till sökresultat
-        </Link>
+        <div className="flex items-center justify-between mb-8">
+          <Link
+            to="/search"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Tillbaka till sökresultat
+          </Link>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/search")}
+            className="text-destructive border-destructive/30 hover:bg-destructive/10"
+          >
+            Avbryt bokning
+          </Button>
+        </div>
 
         <div className="mb-8">
           <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
