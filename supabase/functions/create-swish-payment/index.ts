@@ -161,10 +161,10 @@ serve(async (req) => {
 
     logStep("Swish payload", swishPayload);
 
-    // Create mTLS HTTP client using Deno API
+    // Create mTLS HTTP client using Deno API (cert/key, not certChain/privateKey)
     const httpClient = Deno.createHttpClient({
-      certChain: clientCert,
-      privateKey: clientKey,
+      cert: clientCert,
+      key: clientKey,
     });
 
     // Swish production API endpoint
