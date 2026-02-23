@@ -31,16 +31,14 @@ serve(async (req) => {
       );
     }
 
-    // Fix PEM formatting - secrets storage may strip newlines
+    // Fix PEM formatting - secrets storage may corrupt whitespace/newlines
     const fixPem = (pem: string): string => {
-      // If it already has proper newlines, return as-is
-      if (pem.includes("\n")) return pem.trim();
-      // Otherwise reconstruct with proper line breaks
-      return pem
-        .replace(/(-----BEGIN [A-Z ]+-----)/g, "$1\n")
-        .replace(/(-----END [A-Z ]+-----)/g, "\n$1")
-        .replace(/(.{64})(?!-)/g, "$1\n")
-        .trim();
+      // Replace escaped newlines with real ones
+      let fixed = pem.replace(/\\n/g, "\n");
+      // Split into lines, trim each line, remove empty lines within base64 content
+      const lines = fixed.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+      // Rejoin with proper newlines
+      return lines.join("\n") + "\n";
     };
 
     const clientCert = fixPem(rawCert);
