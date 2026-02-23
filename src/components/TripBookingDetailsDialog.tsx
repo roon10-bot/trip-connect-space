@@ -697,7 +697,7 @@ export const TripBookingDetailsDialog = ({
                                 <span className="text-sm font-medium">Swish</span>
                               </label>
                               <label
-                                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
                                   paymentMethod === "stripe_klarna"
                                     ? "border-ocean bg-ocean/5"
                                     : "border-border hover:border-ocean/50"
