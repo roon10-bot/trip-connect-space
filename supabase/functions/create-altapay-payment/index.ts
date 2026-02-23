@@ -150,6 +150,12 @@ serve(async (req) => {
     // Server-to-server notification - edge function
     formData.append("config[callback_notification]", `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`);
     formData.append("return_url", `${frontendBase}/payment/return?booking=${bookingId}`);
+    
+    // Swish requires callback_form for custom styling (no hosted template support)
+    if (terminalType === "swish") {
+      formData.append("config[callback_form]", `${frontendBase}/pay/swish`);
+      logStep("Swish: using callback_form for custom form rendering");
+    }
     formData.append("customer_info[email]", user.email);
     formData.append("orderLines[0][description]", `Resa: ${bookingData.name}`);
     formData.append("orderLines[0][itemId]", bookingData.id.slice(0, 8));
