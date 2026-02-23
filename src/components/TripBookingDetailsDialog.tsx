@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, type ReactNode } from "react";
+import klarnaBadge from "@/assets/klarna-badge.png";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
@@ -710,10 +711,7 @@ export const TripBookingDetailsDialog = ({
                                   onChange={() => setPaymentMethod("stripe_klarna")}
                                   className="sr-only"
                                 />
-                                <svg viewBox="0 0 67 40" className="w-10 h-6" aria-label="Klarna">
-                                  <path fill="#FFB3C7" d="M0 4a4 4 0 014-4h59a4 4 0 014 4v32a4 4 0 01-4 4H4a4 4 0 01-4-4V4z"/>
-                                  <path fill="#0A0B09" d="M40.1 16.2c-1.5 0-2.7.6-3.4 1.6v-1.4h-3v11.2h3.1v-5.9c0-1.7 1.1-2.6 2.5-2.6 1.5 0 2.4 1 2.4 2.5v6h3.1v-6.6c0-2.9-1.9-4.8-4.7-4.8zm-18.4 0c-1 0-2 .3-2.8.8v-.6h-3v11.2h3.1v-5.9c0-1.7 1-2.6 2.3-2.6s2.2.9 2.2 2.5v6h3.1v-6.6c0-3-1.7-4.8-4.9-4.8zm30.2-.1h-3v11.3h3V16.1zm-3-4.3c0 1 .8 1.8 1.8 1.8s1.8-.8 1.8-1.8-.8-1.8-1.8-1.8-1.8.8-1.8 1.8zm-35 15.8h3.3V10.2h-3.3c0 3.4-1.2 6.5-3.4 8.9l4.6 8.5h3.7l-4.1-7.5c1.7-2.2 2.6-5 2.6-7.9h-3.4v15.4zm22 0h3V10.2h-3v17.4zm18.6-4.1c0 1.5-1.1 2.3-2.2 2.3-1.3 0-2.2-.9-2.2-2.4v-7.3h-3.1v7.8c0 2.8 1.8 4.6 4.3 4.6 1.2 0 2.4-.5 3.2-1.4v1.2H57V16.1h-3v7.4z"/>
-                                </svg>
+                                <img src={klarnaBadge} alt="Klarna" className="h-7" />
                                 <span className="text-sm font-medium">Klarna</span>
                               </label>
                             </div>
