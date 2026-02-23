@@ -712,7 +712,7 @@ export const TripBookingDetailsDialog = ({
                                   className="sr-only"
                                 />
                                 <img src={klarnaBadge} alt="Klarna" className="h-7" />
-                                <span className="text-sm font-medium">Klarna</span>
+                                
                               </label>
                             </div>
                           </div>
