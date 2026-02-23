@@ -31,44 +31,50 @@ serve(async (req) => {
       );
     }
 
-    // Fix PEM formatting - reconstruct proper PEM from potentially mangled secret
+    // Fix PEM formatting - handles multiple PEM blocks (cert chains)
     const fixPem = (pem: string): string => {
       // Replace escaped newlines
       let s = pem.replace(/\\n/g, "\n");
-      // Extract all base64 content between BEGIN/END markers
-      const beginMatch = s.match(/(-----BEGIN [A-Z ]+-----)/);
-      const endMatch = s.match(/(-----END [A-Z ]+-----)/);
-      if (!beginMatch || !endMatch) throw new Error("Invalid PEM format");
       
-      const beginMarker = beginMatch[1];
-      const endMarker = endMatch[1];
+      // Find all PEM blocks (supports certificate chains with multiple certs)
+      const pemBlocks: string[] = [];
+      const regex = /(-----BEGIN [A-Z ]+-----)([\s\S]*?)(-----END [A-Z ]+-----)/g;
+      let match;
       
-      // Extract raw base64: remove markers, all whitespace
-      let base64 = s
-        .replace(beginMarker, "")
-        .replace(endMarker, "")
-        .replace(/\s+/g, "");
-      
-      // Rebuild with 64-char lines
-      const lines = [beginMarker];
-      for (let i = 0; i < base64.length; i += 64) {
-        lines.push(base64.substring(i, i + 64));
+      while ((match = regex.exec(s)) !== null) {
+        const beginMarker = match[1];
+        const base64Content = match[2].replace(/\s+/g, ""); // Strip all whitespace
+        const endMarker = match[3];
+        
+        // Rebuild with 64-char lines
+        const lines = [beginMarker];
+        for (let i = 0; i < base64Content.length; i += 64) {
+          lines.push(base64Content.substring(i, i + 64));
+        }
+        lines.push(endMarker);
+        pemBlocks.push(lines.join("\n"));
       }
-      lines.push(endMarker);
-      return lines.join("\n") + "\n";
+      
+      if (pemBlocks.length === 0) throw new Error("No valid PEM blocks found");
+      return pemBlocks.join("\n") + "\n";
     };
 
     const clientCert = fixPem(rawCert);
     const clientKey = fixPem(rawKey);
 
+    // Count PEM blocks for diagnostics
+    const certBlocks = (clientCert.match(/-----BEGIN/g) || []).length;
+    const keyBlocks = (clientKey.match(/-----BEGIN/g) || []).length;
+    
     logStep("Swish config loaded", {
       payeeNumber,
       certLength: clientCert.length,
       keyLength: clientKey.length,
-      certStart: clientCert.substring(0, 40),
-      keyStart: clientKey.substring(0, 40),
-      certHasNewlines: clientCert.includes("\n"),
-      keyHasNewlines: clientKey.includes("\n"),
+      certBlocks,
+      keyBlocks,
+      certFirst60: clientCert.substring(0, 60),
+      certLast60: clientCert.substring(clientCert.length - 60),
+      keyFirst60: clientKey.substring(0, 60),
     });
 
     // Create Supabase client with service role
@@ -146,34 +152,38 @@ serve(async (req) => {
 
     // Build Swish payment request
     const callbackUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/swish-callback`;
-    const paymentRef = crypto.randomUUID().replace(/-/g, "").toUpperCase();
+    // Generate instruction UUID for v2 API (32 hex chars, uppercase)
+    const instructionUUID = crypto.randomUUID().replace(/-/g, "").toUpperCase();
     const amountNumber = Math.round(Number(amount));
+    
+    // Sanitize message: only allowed chars a-ö, A-Ö, 0-9, and !?(),.-:;
+    const rawMessage = `${bookingData.name} - ${bookingData.id.slice(0, 8).toUpperCase()}`;
+    const safeMessage = rawMessage.replace(/[^\w\såäöÅÄÖ0-9!?(),.\-:;]/g, "").substring(0, 50);
 
-    const swishPayload = {
-      payeePaymentReference: paymentRef,
+    const swishPayload: Record<string, string> = {
+      payeePaymentReference: instructionUUID.substring(0, 35),
       callbackUrl,
-      payerAlias: "", // Will be filled by Swish app
       payeeAlias: payeeNumber,
-      amount: String(amountNumber),
+      amount: amountNumber.toFixed(2),
       currency: "SEK",
-      message: `${bookingData.name} - ${bookingData.id.slice(0, 8).toUpperCase()}`,
+      message: safeMessage,
     };
 
     logStep("Swish payload", swishPayload);
 
-    // Create mTLS HTTP client using Deno API (cert/key, not certChain/privateKey)
+    // Create mTLS HTTP client using Deno API
     const httpClient = Deno.createHttpClient({
       cert: clientCert,
       key: clientKey,
     });
 
-    // Swish production API endpoint
-    const swishApiUrl = "https://cpc.getswish.net/swish-cpcapi/api/v2/paymentrequests";
+    // Swish v2 API: PUT with UUID in URL
+    const swishApiUrl = `https://cpc.getswish.net/swish-cpcapi/api/v2/paymentrequests/${instructionUUID}`;
 
-    logStep("Calling Swish API", { url: swishApiUrl });
+    logStep("Calling Swish API", { url: swishApiUrl, method: "PUT" });
 
     const swishResponse = await fetch(swishApiUrl, {
-      method: "POST",
+      method: "PUT",
       // @ts-ignore - Deno.createHttpClient client option
       client: httpClient,
       headers: {
