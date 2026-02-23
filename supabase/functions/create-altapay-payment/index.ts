@@ -23,14 +23,16 @@ serve(async (req) => {
     const gatewayUrl = (Deno.env.get("ALTAPAY_GATEWAY_URL") || "").trim().replace(/\/+$/, "");
     const apiUsername = Deno.env.get("ALTAPAY_API_USERNAME");
     const apiPassword = Deno.env.get("ALTAPAY_API_PASSWORD");
-    const terminalName = Deno.env.get("ALTAPAY_TERMINAL_NAME");
+    const cardTerminalName = Deno.env.get("ALTAPAY_TERMINAL_NAME");
+    const swishTerminalName = Deno.env.get("ALTAPAY_SWISH_TERMINAL_NAME");
 
-    if (!gatewayUrl || !apiUsername || !apiPassword || !terminalName) {
-      throw new Error(`AltaPay configuration is incomplete: gw=${!!gatewayUrl}, user=${!!apiUsername}, pass=${!!apiPassword}, term=${!!terminalName}`);
+    if (!gatewayUrl || !apiUsername || !apiPassword || !cardTerminalName) {
+      throw new Error(`AltaPay configuration is incomplete: gw=${!!gatewayUrl}, user=${!!apiUsername}, pass=${!!apiPassword}, cardTerm=${!!cardTerminalName}`);
     }
     logStep("AltaPay config debug", {
       gatewayUrl,
-      terminalName,
+      cardTerminalName,
+      swishTerminalName: swishTerminalName || "NOT SET",
       usernameLength: apiUsername.length,
       usernamePrefix: apiUsername.substring(0, 4),
       passwordLength: apiPassword.length,
@@ -58,11 +60,17 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Parse request body
-    const { bookingId, amount, bookingType } = await req.json();
+    const { bookingId, amount, bookingType, terminalType } = await req.json();
     if (!bookingId || !amount) {
       throw new Error("Missing bookingId or amount");
     }
-    logStep("Request parsed", { bookingId, amount, bookingType });
+    
+    // Select terminal based on payment method
+    const terminalName = terminalType === "swish" ? swishTerminalName : cardTerminalName;
+    if (!terminalName) {
+      throw new Error(`Terminal not configured for payment method: ${terminalType || "card"}`);
+    }
+    logStep("Request parsed", { bookingId, amount, bookingType, terminalType, terminalName });
 
     let bookingData: { id: string; name: string; description: string };
 

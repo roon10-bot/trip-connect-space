@@ -110,7 +110,7 @@ export const TripBookingDetailsDialog = ({
 }: TripBookingDetailsDialogProps) => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
-  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "altapay">("stripe");
+  const [paymentMethod, setPaymentMethod] = useState<"altapay_card" | "altapay_swish">("altapay_card");
   
   const { user } = useAuth();
 
@@ -255,9 +255,7 @@ export const TripBookingDetailsDialog = ({
         return;
       }
 
-      const functionName = paymentMethod === "altapay" 
-        ? "create-altapay-payment" 
-        : "create-booking-payment";
+      const functionName = "create-altapay-payment";
 
       const { data, error } = await supabase.functions.invoke(
         functionName,
@@ -266,6 +264,7 @@ export const TripBookingDetailsDialog = ({
             bookingId: booking.id,
             amount: selectedAmount,
             bookingType: "trip",
+            terminalType: paymentMethod === "altapay_swish" ? "swish" : "card",
           },
         }
       );
@@ -657,7 +656,7 @@ export const TripBookingDetailsDialog = ({
                             <div className="grid grid-cols-2 gap-3">
                               <label
                                 className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                                  paymentMethod === "stripe"
+                                  paymentMethod === "altapay_card"
                                     ? "border-ocean bg-ocean/5"
                                     : "border-border hover:border-ocean/50"
                                 }`}
@@ -665,9 +664,9 @@ export const TripBookingDetailsDialog = ({
                                 <input
                                   type="radio"
                                   name="paymentMethod"
-                                  value="stripe"
-                                  checked={paymentMethod === "stripe"}
-                                  onChange={() => setPaymentMethod("stripe")}
+                                  value="altapay_card"
+                                  checked={paymentMethod === "altapay_card"}
+                                  onChange={() => setPaymentMethod("altapay_card")}
                                   className="sr-only"
                                 />
                                 <CreditCard className="w-6 h-6 text-ocean" />
@@ -675,7 +674,7 @@ export const TripBookingDetailsDialog = ({
                               </label>
                               <label
                                 className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                                  paymentMethod === "altapay"
+                                  paymentMethod === "altapay_swish"
                                     ? "border-ocean bg-ocean/5"
                                     : "border-border hover:border-ocean/50"
                                 }`}
@@ -683,13 +682,13 @@ export const TripBookingDetailsDialog = ({
                                 <input
                                   type="radio"
                                   name="paymentMethod"
-                                  value="altapay"
-                                  checked={paymentMethod === "altapay"}
-                                  onChange={() => setPaymentMethod("altapay")}
+                                  value="altapay_swish"
+                                  checked={paymentMethod === "altapay_swish"}
+                                  onChange={() => setPaymentMethod("altapay_swish")}
                                   className="sr-only"
                                 />
                                 <Wallet className="w-6 h-6 text-ocean" />
-                                <span className="text-sm font-medium">MobilePay / Swish</span>
+                                <span className="text-sm font-medium">Swish</span>
                               </label>
                             </div>
                           </div>
@@ -743,7 +742,7 @@ export const TripBookingDetailsDialog = ({
                                 <AlertDialogTitle>Bekräfta betalning</AlertDialogTitle>
                                 <AlertDialogDescription asChild>
                                   <div>
-                                    Du kommer att betala <strong>{confirmPaymentAmount.toLocaleString("sv-SE")} kr</strong> via {paymentMethod === "altapay" ? "MobilePay / Swish" : "kortbetalning"}. Vill du fortsätta?
+                                    Du kommer att betala <strong>{confirmPaymentAmount.toLocaleString("sv-SE")} kr</strong> via {paymentMethod === "altapay_swish" ? "Swish" : "kortbetalning"}. Vill du fortsätta?
                                   </div>
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
