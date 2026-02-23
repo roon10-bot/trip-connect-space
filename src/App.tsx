@@ -27,6 +27,7 @@ const Segelveckan = lazy(() => import("./pages/Segelveckan"));
 const Studentveckan = lazy(() => import("./pages/Studentveckan"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AltapayCallback = lazy(() => import("./pages/AltapayCallback"));
+const PaySwish = lazy(() => import("./pages/PaySwish"));
 // ChatAssistant temporarily disabled for performance
 // const ChatAssistant = lazy(() => import("./components/ChatAssistant").then(m => ({ default: m.ChatAssistant })));
 
@@ -90,6 +91,7 @@ const App = () => (
                 <Route path="/studentveckan" element={<Studentveckan />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/altapay/:status" element={<AltapayCallback />} />
+                <Route path="/pay/swish" element={<PaySwish />} />
                 <Route path="/payment/return" element={<AltapayCallback />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
