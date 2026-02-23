@@ -99,11 +99,14 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Parse request body
-    const { bookingId, amount, bookingType } = await req.json();
+    const { bookingId, amount, bookingType, payerPhone } = await req.json();
     if (!bookingId || !amount) {
       throw new Error("Missing bookingId or amount");
     }
-    logStep("Request parsed", { bookingId, amount, bookingType });
+    if (!payerPhone) {
+      throw new Error("Telefonnummer krävs för Swish-betalning");
+    }
+    logStep("Request parsed", { bookingId, amount, bookingType, payerPhone });
 
     // Verify booking access (same logic as other payment functions)
     let bookingData: { id: string; name: string };
@@ -163,6 +166,7 @@ serve(async (req) => {
     const swishPayload: Record<string, string> = {
       payeePaymentReference: instructionUUID.substring(0, 35),
       callbackUrl,
+      payerAlias: payerPhone,
       payeeAlias: payeeNumber,
       amount: amountNumber.toFixed(2),
       currency: "SEK",

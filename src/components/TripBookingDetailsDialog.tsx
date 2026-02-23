@@ -113,6 +113,7 @@ export const TripBookingDetailsDialog = ({
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
   const [paymentMethod, setPaymentMethod] = useState<"altapay_card" | "altapay_swish" | "stripe_klarna">("altapay_card");
+  const [swishPhone, setSwishPhone] = useState("");
   
   const { user } = useAuth();
 
@@ -272,11 +273,26 @@ export const TripBookingDetailsDialog = ({
           paymentMethodType: "klarna",
         };
       } else if (isSwish) {
+        // Format phone: ensure it starts with 46 (Swedish country code)
+        let formattedPhone = swishPhone.replace(/[\s\-()]/g, "");
+        if (formattedPhone.startsWith("0")) {
+          formattedPhone = "46" + formattedPhone.substring(1);
+        } else if (!formattedPhone.startsWith("46")) {
+          formattedPhone = "46" + formattedPhone;
+        }
+        
+        if (formattedPhone.length < 10 || formattedPhone.length > 15) {
+          toast.error("Ange ett giltigt svenskt mobilnummer");
+          setIsProcessingPayment(false);
+          return;
+        }
+        
         functionName = "create-swish-payment";
         body = {
           bookingId: booking.id,
           amount: selectedAmount,
           bookingType: "trip",
+          payerPhone: formattedPhone,
         };
       } else {
         functionName = "create-altapay-payment";
@@ -713,6 +729,24 @@ export const TripBookingDetailsDialog = ({
                                 />
                                 <img src={swishLogo} alt="Swish" className="h-8" />
                               </label>
+                              
+                              {paymentMethod === "altapay_swish" && (
+                                <div className="col-span-3 mt-1">
+                                  <label className="text-sm font-medium text-foreground mb-1 block">
+                                    Ditt Swish-nummer (mobilnummer)
+                                  </label>
+                                  <div className="flex items-center gap-2">
+                                    <Phone className="w-4 h-4 text-muted-foreground" />
+                                    <input
+                                      type="tel"
+                                      placeholder="07X XXX XX XX"
+                                      value={swishPhone}
+                                      onChange={(e) => setSwishPhone(e.target.value)}
+                                      className="flex-1 px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ocean"
+                                    />
+                                  </div>
+                                </div>
+                              )}
                               <label
                                 className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
                                   paymentMethod === "stripe_klarna"
