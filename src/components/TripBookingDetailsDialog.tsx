@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback, type ReactNode } from "react";
 import klarnaBadge from "@/assets/klarna-badge.png";
 import swishLogo from "@/assets/swish-logo.png";
-import visaMastercard from "@/assets/visa-mastercard.png";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
@@ -663,7 +662,7 @@ export const TripBookingDetailsDialog = ({
                             <p className="text-sm font-medium text-foreground">Välj betalningsmetod</p>
                             <div className="grid grid-cols-3 gap-3">
                               <label
-                                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
                                   paymentMethod === "altapay_card"
                                     ? "border-ocean bg-ocean/5"
                                     : "border-border hover:border-ocean/50"
@@ -677,7 +676,8 @@ export const TripBookingDetailsDialog = ({
                                   onChange={() => setPaymentMethod("altapay_card")}
                                   className="sr-only"
                                 />
-                                <img src={visaMastercard} alt="Visa / Mastercard" className="h-7" />
+                                <CreditCard className="w-6 h-6 text-ocean" />
+                                <span className="text-sm font-medium">Kort</span>
                               </label>
                               <label
                                 className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
