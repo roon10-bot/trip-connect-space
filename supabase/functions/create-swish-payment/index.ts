@@ -21,16 +21,40 @@ serve(async (req) => {
     logStep("Function started");
 
     // Load Swish credentials from secrets
-    const clientCert = Deno.env.get("SWISH_CLIENT_CERT");
-    const clientKey = Deno.env.get("SWISH_CLIENT_KEY");
+    const rawCert = Deno.env.get("SWISH_CLIENT_CERT");
+    const rawKey = Deno.env.get("SWISH_CLIENT_KEY");
     const payeeNumber = Deno.env.get("SWISH_PAYEE_NUMBER");
 
-    if (!clientCert || !clientKey || !payeeNumber) {
+    if (!rawCert || !rawKey || !payeeNumber) {
       throw new Error(
-        `Swish config incomplete: cert=${!!clientCert}, key=${!!clientKey}, payee=${!!payeeNumber}`
+        `Swish config incomplete: cert=${!!rawCert}, key=${!!rawKey}, payee=${!!payeeNumber}`
       );
     }
-    logStep("Swish config loaded", { payeeNumber, certLength: clientCert.length, keyLength: clientKey.length });
+
+    // Fix PEM formatting - secrets storage may strip newlines
+    const fixPem = (pem: string): string => {
+      // If it already has proper newlines, return as-is
+      if (pem.includes("\n")) return pem.trim();
+      // Otherwise reconstruct with proper line breaks
+      return pem
+        .replace(/(-----BEGIN [A-Z ]+-----)/g, "$1\n")
+        .replace(/(-----END [A-Z ]+-----)/g, "\n$1")
+        .replace(/(.{64})(?!-)/g, "$1\n")
+        .trim();
+    };
+
+    const clientCert = fixPem(rawCert);
+    const clientKey = fixPem(rawKey);
+
+    logStep("Swish config loaded", {
+      payeeNumber,
+      certLength: clientCert.length,
+      keyLength: clientKey.length,
+      certStart: clientCert.substring(0, 40),
+      keyStart: clientKey.substring(0, 40),
+      certHasNewlines: clientCert.includes("\n"),
+      keyHasNewlines: clientKey.includes("\n"),
+    });
 
     // Create Supabase client with service role
     const supabaseClient = createClient(
