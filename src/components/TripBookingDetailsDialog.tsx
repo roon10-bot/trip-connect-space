@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, type ReactNode } from "react";
 import klarnaBadge from "@/assets/klarna-badge.png";
+import swishLogo from "@/assets/swish-logo.png";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
@@ -679,7 +680,7 @@ export const TripBookingDetailsDialog = ({
                                 <span className="text-sm font-medium">Kort</span>
                               </label>
                               <label
-                                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
                                   paymentMethod === "altapay_swish"
                                     ? "border-ocean bg-ocean/5"
                                     : "border-border hover:border-ocean/50"
@@ -693,8 +694,7 @@ export const TripBookingDetailsDialog = ({
                                   onChange={() => setPaymentMethod("altapay_swish")}
                                   className="sr-only"
                                 />
-                                <Wallet className="w-6 h-6 text-ocean" />
-                                <span className="text-sm font-medium">Swish</span>
+                                <img src={swishLogo} alt="Swish" className="h-8" />
                               </label>
                               <label
                                 className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
