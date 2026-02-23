@@ -48,11 +48,11 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Parse request body
-    const { bookingId, amount, bookingType } = await req.json();
+    const { bookingId, amount, bookingType, paymentMethodType } = await req.json();
     if (!bookingId || !amount) {
       throw new Error("Missing bookingId or amount");
     }
-    logStep("Request parsed", { bookingId, amount, bookingType });
+    logStep("Request parsed", { bookingId, amount, bookingType, paymentMethodType });
 
     let bookingData: { id: string; name: string; description: string };
 
@@ -132,7 +132,7 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "https://localhost:3000";
 
     // Create checkout session with dynamic price
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
@@ -156,7 +156,14 @@ serve(async (req) => {
         booking_type: bookingType || "destination",
         user_id: user.id,
       },
-    });
+    };
+
+    // If Klarna is requested, restrict payment methods to Klarna only
+    if (paymentMethodType === "klarna") {
+      sessionParams.payment_method_types = ["klarna"];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     logStep("Checkout session created", { sessionId: session.id });
 
