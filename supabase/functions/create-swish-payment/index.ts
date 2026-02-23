@@ -31,13 +31,30 @@ serve(async (req) => {
       );
     }
 
-    // Fix PEM formatting - secrets storage may corrupt whitespace/newlines
+    // Fix PEM formatting - reconstruct proper PEM from potentially mangled secret
     const fixPem = (pem: string): string => {
-      // Replace escaped newlines with real ones
-      let fixed = pem.replace(/\\n/g, "\n");
-      // Split into lines, trim each line, remove empty lines within base64 content
-      const lines = fixed.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-      // Rejoin with proper newlines
+      // Replace escaped newlines
+      let s = pem.replace(/\\n/g, "\n");
+      // Extract all base64 content between BEGIN/END markers
+      const beginMatch = s.match(/(-----BEGIN [A-Z ]+-----)/);
+      const endMatch = s.match(/(-----END [A-Z ]+-----)/);
+      if (!beginMatch || !endMatch) throw new Error("Invalid PEM format");
+      
+      const beginMarker = beginMatch[1];
+      const endMarker = endMatch[1];
+      
+      // Extract raw base64: remove markers, all whitespace
+      let base64 = s
+        .replace(beginMarker, "")
+        .replace(endMarker, "")
+        .replace(/\s+/g, "");
+      
+      // Rebuild with 64-char lines
+      const lines = [beginMarker];
+      for (let i = 0; i < base64.length; i += 64) {
+        lines.push(base64.substring(i, i + 64));
+      }
+      lines.push(endMarker);
       return lines.join("\n") + "\n";
     };
 
