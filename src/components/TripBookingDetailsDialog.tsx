@@ -258,28 +258,45 @@ export const TripBookingDetailsDialog = ({
       }
 
       const isKlarna = paymentMethod === "stripe_klarna";
-      const functionName = isKlarna ? "create-booking-payment" : "create-altapay-payment";
+      const isSwish = paymentMethod === "altapay_swish";
 
-      const body = isKlarna
-        ? {
-            bookingId: booking.id,
-            amount: selectedAmount,
-            bookingType: "trip",
-            paymentMethodType: "klarna",
-          }
-        : {
-            bookingId: booking.id,
-            amount: selectedAmount,
-            bookingType: "trip",
-            terminalType: paymentMethod === "altapay_swish" ? "swish" : "card",
-          };
+      let functionName: string;
+      let body: Record<string, unknown>;
+
+      if (isKlarna) {
+        functionName = "create-booking-payment";
+        body = {
+          bookingId: booking.id,
+          amount: selectedAmount,
+          bookingType: "trip",
+          paymentMethodType: "klarna",
+        };
+      } else if (isSwish) {
+        functionName = "create-swish-payment";
+        body = {
+          bookingId: booking.id,
+          amount: selectedAmount,
+          bookingType: "trip",
+        };
+      } else {
+        functionName = "create-altapay-payment";
+        body = {
+          bookingId: booking.id,
+          amount: selectedAmount,
+          bookingType: "trip",
+          terminalType: "card",
+        };
+      }
 
       const { data, error } = await supabase.functions.invoke(functionName, { body });
 
       if (error) throw error;
 
-      if (data?.url) {
-        // Open as centered popup window for a modal-like experience
+      if (isSwish && data?.success) {
+        // Direct Swish - show confirmation message
+        toast.success("Öppna Swish-appen på din telefon för att slutföra betalningen.");
+      } else if (data?.url) {
+        // AltaPay/Stripe - open payment URL
         const width = 500;
         const height = 700;
         const left = window.screenX + (window.outerWidth - width) / 2;
