@@ -364,14 +364,21 @@ export const TripBookingDetailsDialog = ({
         const swishPaymentId = data.swishPaymentId || appSwitchToken;
 
         const isDesktop = !isMobile && !Capacitor.isNativePlatform();
+        const isNativePlatform = Capacitor.isNativePlatform();
 
         if (isDesktop) {
           // Desktop: show QR code with Swish D-prefix format (D + PaymentRequestToken)
           const qrContent = `D${appSwitchToken}`;
           setSwishQrData({ url: qrContent, paymentId: swishPaymentId });
+        } else if (!isNativePlatform) {
+          // Mobile web: show "Open Swish" button + poll (don't navigate away)
+          setSwishQrData({ url: swishUrl, paymentId: swishPaymentId });
+        }
+
+        if (!isNativePlatform) {
+          // Start polling for both desktop QR and mobile web
           setSwishPollStatus("polling");
 
-          // Poll payment status every 3 seconds
           pollIntervalRef.current = setInterval(async () => {
             try {
               const { data: payment } = await supabase
@@ -394,7 +401,6 @@ export const TripBookingDetailsDialog = ({
             }
           }, 3000);
 
-          // Stop polling after 5 minutes
           setTimeout(() => {
             if (pollIntervalRef.current) {
               clearInterval(pollIntervalRef.current);
@@ -409,19 +415,17 @@ export const TripBookingDetailsDialog = ({
         }
 
         // Native app (Capacitor): use AppLauncher for reliable deep-linking
-        if (Capacitor.isNativePlatform()) {
-          try {
-            const canOpen = await AppLauncher.canOpenUrl({ url: "swish://" });
-            if (canOpen.value) {
-              await AppLauncher.openUrl({ url: swishUrl });
-              return;
-            }
-          } catch (launchError) {
-            console.warn("Native Swish launch failed", launchError);
+        try {
+          const canOpen = await AppLauncher.canOpenUrl({ url: "swish://" });
+          if (canOpen.value) {
+            await AppLauncher.openUrl({ url: swishUrl });
+            return;
           }
+        } catch (launchError) {
+          console.warn("Native Swish launch failed", launchError);
         }
 
-        // Mobile browser: redirect directly to Swish deeplink
+        // Native fallback
         window.location.assign(swishUrl);
       } else if (isSwish && data?.success) {
         toast.success("Öppna Swish-appen på din telefon för att slutföra betalningen.");
@@ -965,7 +969,7 @@ export const TripBookingDetailsDialog = ({
                             </AlertDialogContent>
                           </AlertDialog>
 
-                          {/* Swish QR Code Dialog for Desktop */}
+                          {/* Swish Payment Dialog (QR for Desktop, Button for Mobile Web) */}
                           <Dialog open={!!swishQrData} onOpenChange={(open) => {
                             if (!open) {
                               if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
@@ -1003,18 +1007,39 @@ export const TripBookingDetailsDialog = ({
                                   </div>
                                 ) : (
                                   <>
-                                    <p className="text-sm text-muted-foreground">
-                                      Scanna QR-koden med Swish-appen på din telefon
-                                    </p>
-                                    {swishQrData && (
-                                      <div className="bg-white p-4 rounded-xl shadow-md">
-                                        <QRCodeSVG
-                                          value={swishQrData.url}
-                                          size={220}
-                                          level="M"
-                                          includeMargin
-                                        />
-                                      </div>
+                                    {isMobile ? (
+                                      <>
+                                        <p className="text-sm text-muted-foreground">
+                                          Tryck på knappen nedan för att öppna Swish och slutföra betalningen
+                                        </p>
+                                        <Button
+                                          className="bg-gradient-ocean w-full"
+                                          onClick={() => {
+                                            if (swishQrData) {
+                                              window.location.href = swishQrData.url;
+                                            }
+                                          }}
+                                        >
+                                          <img src={swishLogo} alt="Swish" className="h-5 mr-2 brightness-0 invert" />
+                                          Öppna Swish
+                                        </Button>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <p className="text-sm text-muted-foreground">
+                                          Scanna QR-koden med Swish-appen på din telefon
+                                        </p>
+                                        {swishQrData && (
+                                          <div className="bg-white p-4 rounded-xl shadow-md">
+                                            <QRCodeSVG
+                                              value={swishQrData.url}
+                                              size={220}
+                                              level="M"
+                                              includeMargin
+                                            />
+                                          </div>
+                                        )}
+                                      </>
                                     )}
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                       <Loader2 className="w-4 h-4 animate-spin" />
