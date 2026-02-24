@@ -331,13 +331,14 @@ export const TripBookingDetailsDialog = ({
           return;
         }
 
-        const isDesktopSwish = !isMobile && !Capacitor.isNativePlatform();
+        const isNativeApp = Capacitor.isNativePlatform();
+        const isDesktopSwish = !isMobile && !isNativeApp;
         functionName = "create-swish-payment";
         body = {
           bookingId: booking.id,
           amount: selectedAmount,
           bookingType: "trip",
-          payerPhone: formattedPhone,
+          payerPhone: isNativeApp ? formattedPhone : undefined,
           isDesktop: isDesktopSwish,
         };
       } else {
