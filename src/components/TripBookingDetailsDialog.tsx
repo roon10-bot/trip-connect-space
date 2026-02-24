@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Users,
@@ -115,6 +116,8 @@ export const TripBookingDetailsDialog = ({
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
   const [paymentMethod, setPaymentMethod] = useState<"altapay_card" | "altapay_swish" | "stripe_klarna">("altapay_card");
+  const [customAmount, setCustomAmount] = useState<string>("");
+  const [useCustomAmount, setUseCustomAmount] = useState(false);
 
   const { user } = useAuth();
 
@@ -223,13 +226,25 @@ export const TripBookingDetailsDialog = ({
   }, [booking?.trips, booking?.total_price]);
 
   // Calculate selected amount
+  const remainingBalance = useMemo(() => {
+    return Math.max(0, effectiveTotal - totalPaid);
+  }, [effectiveTotal, totalPaid]);
+
+  const parsedCustomAmount = useMemo(() => {
+    const val = Number(customAmount);
+    if (isNaN(val) || val <= 0) return 0;
+    return Math.min(val, remainingBalance);
+  }, [customAmount, remainingBalance]);
+
   const selectedAmount = useMemo(() => {
-    return paymentOptions
+    const planTotal = paymentOptions
       .filter((opt) => selectedPayments.has(opt.id))
       .reduce((sum, opt) => sum + opt.amount, 0);
-  }, [paymentOptions, selectedPayments]);
+    return useCustomAmount ? parsedCustomAmount : planTotal;
+  }, [paymentOptions, selectedPayments, useCustomAmount, parsedCustomAmount]);
 
   const togglePayment = (paymentId: string) => {
+    setUseCustomAmount(false);
     setSelectedPayments((prev) => {
       const next = new Set(prev);
       if (next.has(paymentId)) {
@@ -242,7 +257,18 @@ export const TripBookingDetailsDialog = ({
   };
 
   const selectAllPayments = () => {
+    setUseCustomAmount(false);
     setSelectedPayments(new Set(paymentOptions.map((opt) => opt.id)));
+  };
+
+  const handleCustomAmountToggle = () => {
+    if (!useCustomAmount) {
+      setUseCustomAmount(true);
+      setSelectedPayments(new Set());
+    } else {
+      setUseCustomAmount(false);
+      setCustomAmount("");
+    }
   };
 
   const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
@@ -670,8 +696,47 @@ export const TripBookingDetailsDialog = ({
                           ))}
                         </div>
 
+                        {/* Custom Amount Option */}
+                        <label
+                          className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all mt-3 ${
+                            useCustomAmount
+                              ? "border-ocean bg-ocean/5"
+                              : "border-border hover:border-ocean/50"
+                          }`}
+                          onClick={(e) => { e.preventDefault(); handleCustomAmountToggle(); }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={useCustomAmount}
+                              onCheckedChange={handleCustomAmountToggle}
+                              className="data-[state=checked]:bg-ocean data-[state=checked]:border-ocean"
+                            />
+                            <div>
+                              <p className="font-medium">Valfritt belopp</p>
+                              <p className="text-sm text-muted-foreground">
+                                Max {remainingBalance.toLocaleString("sv-SE")} kr
+                              </p>
+                            </div>
+                          </div>
+                          {useCustomAmount && (
+                            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={remainingBalance}
+                                value={customAmount}
+                                onChange={(e) => setCustomAmount(e.target.value)}
+                                placeholder="0"
+                                className="w-28 text-right text-lg font-semibold"
+                                autoFocus
+                              />
+                              <span className="font-semibold text-lg">kr</span>
+                            </div>
+                          )}
+                        </label>
+
                         {/* Selected Amount Summary */}
-                        {selectedPayments.size > 0 && (
+                        {(selectedPayments.size > 0 || (useCustomAmount && parsedCustomAmount > 0)) && (
                           <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -679,7 +744,7 @@ export const TripBookingDetailsDialog = ({
                           >
                             <div className="flex justify-between items-center">
                               <span className="text-muted-foreground">
-                                {selectedPayments.size} betalning{selectedPayments.size > 1 ? "ar" : ""} valda
+                                {useCustomAmount ? "Valfritt belopp" : `${selectedPayments.size} betalning${selectedPayments.size > 1 ? "ar" : ""} valda`}
                               </span>
                               <span className="font-bold text-xl text-ocean">
                                 {selectedAmount.toLocaleString("sv-SE")} kr
@@ -776,14 +841,14 @@ export const TripBookingDetailsDialog = ({
                             <Button
                               onClick={handlePaymentClick}
                               className="w-full bg-gradient-ocean hover:opacity-90 h-12 text-lg font-semibold"
-                              disabled={isProcessingPayment || selectedPayments.size === 0}
+                              disabled={isProcessingPayment || selectedAmount <= 0}
                             >
                               {isProcessingPayment ? (
                                 <>
                                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                                   Förbereder betalning...
                                 </>
-                              ) : selectedPayments.size === 0 ? (
+                              ) : selectedAmount <= 0 ? (
                                 <>
                                   <CreditCard className="w-5 h-5 mr-2" />
                                   Välj minst en betalning
