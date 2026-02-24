@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 const InstagramFeed = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Only load the EmbedSocial script when the section is near the viewport
+  // Lazy-load the Elfsight platform script when near viewport
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -12,10 +12,11 @@ const InstagramFeed = () => {
       ([entry]) => {
         if (entry.isIntersecting) {
           observer.disconnect();
-          if (document.getElementById("EmbedSocialHashtagScript")) return;
+          if (document.getElementById("ElfsightPlatformScript")) return;
           const js = document.createElement("script");
-          js.id = "EmbedSocialHashtagScript";
-          js.src = "https://embedsocial.com/cdn/ht.js";
+          js.id = "ElfsightPlatformScript";
+          js.src = "https://static.elfsight.com/platform/platform.js";
+          js.async = true;
           document.head.appendChild(js);
         }
       },
@@ -31,19 +32,9 @@ const InstagramFeed = () => {
         <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground text-center mb-10">
           Följ oss på Instagram
         </h2>
-        {/* Override EmbedSocial white backgrounds to match site bg */}
-        <style>{`
-          .embedsocial-hashtag,
-          .embedsocial-hashtag * {
-            background-color: hsl(0 0% 97%) !important;
-          }
-          .embedsocial-hashtag iframe {
-            background: hsl(0 0% 97%) !important;
-          }
-        `}</style>
         <div
-          className="embedsocial-hashtag"
-          data-ref="e5e7c82ada53c8a161907e90ef1ac8763ff75b78"
+          className="elfsight-app-e5874453-4a6b-44e0-a5d1-4640c4ab5420"
+          data-elfsight-app-lazy
         />
       </div>
     </section>
