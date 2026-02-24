@@ -245,6 +245,7 @@ export const TripBookingDetailsDialog = ({
   };
 
   const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
+  const [showSwishPhoneDialog, setShowSwishPhoneDialog] = useState(false);
 
   const handlePayment = async () => {
     setShowPaymentConfirm(false);
@@ -344,6 +345,10 @@ export const TripBookingDetailsDialog = ({
 
   const handlePaymentClick = () => {
     if (!booking || confirmPaymentAmount <= 0) return;
+    if (paymentMethod === "altapay_swish") {
+      setShowSwishPhoneDialog(true);
+      return;
+    }
     setShowPaymentConfirm(true);
   };
 
@@ -730,23 +735,7 @@ export const TripBookingDetailsDialog = ({
                                 <img src={swishLogo} alt="Swish" className="h-8" />
                               </label>
                               
-                              {paymentMethod === "altapay_swish" && (
-                                <div className="col-span-3 mt-1">
-                                  <label className="text-sm font-medium text-foreground mb-1 block">
-                                    Ditt Swish-nummer (mobilnummer)
-                                  </label>
-                                  <div className="flex items-center gap-2">
-                                    <Phone className="w-4 h-4 text-muted-foreground" />
-                                    <input
-                                      type="tel"
-                                      placeholder="07X XXX XX XX"
-                                      value={swishPhone}
-                                      onChange={(e) => setSwishPhone(e.target.value)}
-                                      className="flex-1 px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ocean"
-                                    />
-                                  </div>
-                                </div>
-                              )}
+                              
                               <label
                                 className={`flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
                                   paymentMethod === "stripe_klarna"
@@ -824,6 +813,45 @@ export const TripBookingDetailsDialog = ({
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Avbryt</AlertDialogCancel>
                                 <AlertDialogAction onClick={handlePayment}>Ja, betala</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+
+                          <AlertDialog open={showSwishPhoneDialog} onOpenChange={setShowSwishPhoneDialog}>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="flex items-center gap-2">
+                                  <img src={swishLogo} alt="Swish" className="h-6" />
+                                  Ange ditt Swish-nummer
+                                </AlertDialogTitle>
+                                <AlertDialogDescription asChild>
+                                  <div className="space-y-4 pt-2">
+                                    <p>Ange mobilnumret som är kopplat till ditt Swish-konto.</p>
+                                    <div className="flex items-center gap-2">
+                                      <Phone className="w-5 h-5 text-muted-foreground" />
+                                      <input
+                                        type="tel"
+                                        placeholder="07X XXX XX XX"
+                                        value={swishPhone}
+                                        onChange={(e) => setSwishPhone(e.target.value)}
+                                        className="flex-1 px-3 py-2.5 rounded-md border border-input bg-background text-foreground text-base focus:outline-none focus:ring-2 focus:ring-ocean"
+                                        autoFocus
+                                      />
+                                    </div>
+                                  </div>
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                                <AlertDialogAction
+                                  disabled={swishPhone.replace(/[\s\-()]/g, "").length < 8}
+                                  onClick={() => {
+                                    setShowSwishPhoneDialog(false);
+                                    setShowPaymentConfirm(true);
+                                  }}
+                                >
+                                  Fortsätt till betalning
+                                </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
