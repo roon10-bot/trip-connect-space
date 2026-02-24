@@ -202,14 +202,15 @@ serve(async (req) => {
     if (responseStatus === 201) {
       // Success - extract payment request token from Location header
       const locationHeader = swishResponse.headers.get("Location") || "";
-      const paymentRequestToken = swishResponse.headers.get("PaymentRequestToken") || "";
+      const paymentRequestTokenHeader = swishResponse.headers.get("PaymentRequestToken") || "";
       
       // Extract payment request ID from Location URL
-      const swishPaymentId = locationHeader.split("/").pop() || paymentRef;
+      const swishPaymentId = locationHeader.split("/").pop() || instructionUUID;
+      const paymentRequestToken = paymentRequestTokenHeader || swishPaymentId;
 
       logStep("Swish payment created", {
         location: locationHeader,
-        token: paymentRequestToken ? "present" : "missing",
+        tokenSource: paymentRequestTokenHeader ? "header" : "location-id-fallback",
         swishPaymentId,
       });
 

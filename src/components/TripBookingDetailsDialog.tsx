@@ -115,8 +115,7 @@ export const TripBookingDetailsDialog = ({
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [selectedPayments, setSelectedPayments] = useState<Set<string>>(new Set());
   const [paymentMethod, setPaymentMethod] = useState<"altapay_card" | "altapay_swish" | "stripe_klarna">("altapay_card");
-  const [swishPhone, setSwishPhone] = useState("");
-  
+
   const { user } = useAuth();
 
   // Fetch completed payments for this booking
@@ -247,7 +246,6 @@ export const TripBookingDetailsDialog = ({
   };
 
   const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
-  const [showSwishPhoneDialog, setShowSwishPhoneDialog] = useState(false);
 
   const handlePayment = async () => {
     setShowPaymentConfirm(false);
@@ -288,16 +286,15 @@ export const TripBookingDetailsDialog = ({
           paymentMethodType: "klarna",
         };
       } else if (isSwish) {
-        // Format phone: ensure it starts with 46 (Swedish country code)
-        let formattedPhone = swishPhone.replace(/[\s\-()]/g, "");
-        if (formattedPhone.startsWith("0")) {
-          formattedPhone = "46" + formattedPhone.substring(1);
-        } else if (!formattedPhone.startsWith("46")) {
-          formattedPhone = "46" + formattedPhone;
-        }
+        const rawPhone = (booking.phone || "").replace(/[\s\-()]/g, "");
+        const formattedPhone = rawPhone.startsWith("0")
+          ? `46${rawPhone.substring(1)}`
+          : rawPhone.startsWith("46")
+            ? rawPhone
+            : `46${rawPhone}`;
 
         if (formattedPhone.length < 10 || formattedPhone.length > 15) {
-          toast.error("Ange ett giltigt svenskt mobilnummer");
+          toast.error("Saknar giltigt telefonnummer på bokningen. Uppdatera ditt nummer och försök igen.");
           setIsProcessingPayment(false);
           return;
         }
@@ -323,9 +320,11 @@ export const TripBookingDetailsDialog = ({
 
       if (error) throw error;
 
-      if (isSwish && data?.success && data?.paymentRequestToken) {
+      const appSwitchToken = data?.paymentRequestToken || data?.swishPaymentId;
+
+      if (isSwish && data?.success && appSwitchToken) {
         const callbackUrl = encodeURIComponent(window.location.origin + "/dashboard?payment=success");
-        const swishUrl = `swish://paymentrequest?token=${data.paymentRequestToken}&callbackurl=${callbackUrl}`;
+        const swishUrl = `swish://paymentrequest?token=${appSwitchToken}&callbackurl=${callbackUrl}`;
 
         // Native app (Capacitor): use AppLauncher for reliable deep-linking
         if (Capacitor.isNativePlatform()) {
@@ -392,10 +391,6 @@ export const TripBookingDetailsDialog = ({
 
   const handlePaymentClick = () => {
     if (!booking || confirmPaymentAmount <= 0) return;
-    if (paymentMethod === "altapay_swish") {
-      setShowSwishPhoneDialog(true);
-      return;
-    }
     setShowPaymentConfirm(true);
   };
 
@@ -864,44 +859,6 @@ export const TripBookingDetailsDialog = ({
                             </AlertDialogContent>
                           </AlertDialog>
 
-                          <AlertDialog open={showSwishPhoneDialog} onOpenChange={setShowSwishPhoneDialog}>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle className="flex items-center gap-2">
-                                  <img src={swishLogo} alt="Swish" className="h-6" />
-                                  Ange ditt Swish-nummer
-                                </AlertDialogTitle>
-                                <AlertDialogDescription asChild>
-                                  <div className="space-y-4 pt-2">
-                                    <p>Ange mobilnumret som är kopplat till ditt Swish-konto.</p>
-                                    <div className="flex items-center gap-2">
-                                      <Phone className="w-5 h-5 text-muted-foreground" />
-                                      <input
-                                        type="tel"
-                                        placeholder="07X XXX XX XX"
-                                        value={swishPhone}
-                                        onChange={(e) => setSwishPhone(e.target.value)}
-                                        className="flex-1 px-3 py-2.5 rounded-md border border-input bg-background text-foreground text-base focus:outline-none focus:ring-2 focus:ring-ocean"
-                                        autoFocus
-                                      />
-                                    </div>
-                                  </div>
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                                <AlertDialogAction
-                                  disabled={swishPhone.replace(/[\s\-()]/g, "").length < 8}
-                                  onClick={() => {
-                                    setShowSwishPhoneDialog(false);
-                                    setShowPaymentConfirm(true);
-                                  }}
-                                >
-                                  Fortsätt till betalning
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
                         </div>
                       )}
                     </div>
