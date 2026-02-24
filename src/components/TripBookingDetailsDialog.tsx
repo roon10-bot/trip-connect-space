@@ -2,6 +2,8 @@ import { useState, useMemo, useCallback, type ReactNode } from "react";
 import klarnaBadge from "@/assets/klarna-badge.png";
 import swishLogo from "@/assets/swish-logo.png";
 import { useQuery } from "@tanstack/react-query";
+import { Capacitor } from "@capacitor/core";
+import { AppLauncher } from "@capacitor/app-launcher";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -310,12 +312,41 @@ export const TripBookingDetailsDialog = ({
       if (error) throw error;
 
       if (isSwish && data?.success && data?.paymentRequestToken) {
-        // Open Swish app via app switch URL scheme
         const callbackUrl = encodeURIComponent(window.location.origin + "/dashboard?payment=success");
         const swishUrl = `swish://paymentrequest?token=${data.paymentRequestToken}&callbackurl=${callbackUrl}`;
-        window.location.href = swishUrl;
-        
-        // Fallback toast in case app doesn't open (e.g. desktop)
+
+        let appOpened = false;
+
+        // Native app (Capacitor): use AppLauncher for reliable deep-linking
+        if (Capacitor.isNativePlatform()) {
+          try {
+            const canOpen = await AppLauncher.canOpenUrl({ url: "swish://" });
+            if (canOpen.value) {
+              await AppLauncher.openUrl({ url: swishUrl });
+              appOpened = true;
+            }
+          } catch (launchError) {
+            console.warn("Native Swish launch failed", launchError);
+          }
+        }
+
+        // Browser fallback: trigger deep-link via anchor click
+        if (!appOpened) {
+          const link = document.createElement("a");
+          link.href = swishUrl;
+          link.rel = "noopener noreferrer";
+          link.style.display = "none";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          setTimeout(() => {
+            if (document.visibilityState === "visible") {
+              window.location.assign(swishUrl);
+            }
+          }, 200);
+        }
+
         setTimeout(() => {
           toast.info("Om Swish-appen inte öppnades, öppna den manuellt och godkänn betalningen.");
         }, 2000);
