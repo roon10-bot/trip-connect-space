@@ -340,6 +340,7 @@ export const TripBookingDetailsDialog = ({
           bookingType: "trip",
           payerPhone: isNativeApp ? formattedPhone : undefined,
           isDesktop: isDesktopSwish,
+          isNativeApp,
         };
       } else {
         functionName = "create-altapay-payment";
