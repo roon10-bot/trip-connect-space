@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Loader2, User } from "lucide-react";
-import chatRobotIcon from "@/assets/chat-robot-icon-sm.webp";
+import chatRobotIcon from "@/assets/chat-robot-icon.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
