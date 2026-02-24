@@ -246,12 +246,10 @@ export const TripBookingDetailsDialog = ({
   };
 
   const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
-  const [pendingSwishUrl, setPendingSwishUrl] = useState<string | null>(null);
 
   const handlePayment = async () => {
     setShowPaymentConfirm(false);
     setIsProcessingPayment(true);
-    setPendingSwishUrl(null);
 
     try {
       // Verify session is still valid before attempting payment
@@ -329,9 +327,8 @@ export const TripBookingDetailsDialog = ({
           }
         }
 
-        // Browser/PWA: show "Open Swish" button for user-gesture-driven redirect
-        setPendingSwishUrl(swishUrl);
-        toast.info("Tryck på knappen nedan för att öppna Swish.");
+        // Browser/PWA: redirect directly to Swish deeplink
+        window.location.assign(swishUrl);
       } else if (isSwish && data?.success) {
         toast.success("Öppna Swish-appen på din telefon för att slutföra betalningen.");
       } else if (data?.url) {
@@ -356,12 +353,6 @@ export const TripBookingDetailsDialog = ({
       toast.error(msg);
     } finally {
       setIsProcessingPayment(false);
-    }
-  };
-
-  const handleOpenSwish = () => {
-    if (pendingSwishUrl) {
-      window.location.assign(pendingSwishUrl);
     }
   };
 
@@ -840,22 +831,6 @@ export const TripBookingDetailsDialog = ({
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
-
-                          {/* Swish two-step: show explicit button after payment is prepared */}
-                          {pendingSwishUrl && (
-                            <div className="mt-4 space-y-3">
-                              <Button
-                                onClick={handleOpenSwish}
-                                className="w-full h-14 text-lg font-semibold bg-[#007aff] hover:bg-[#0062cc] text-white"
-                              >
-                                <Wallet className="w-5 h-5 mr-2" />
-                                Öppna Swish
-                              </Button>
-                              <p className="text-xs text-muted-foreground text-center">
-                                Tryck på knappen ovan för att öppna Swish-appen och godkänna betalningen.
-                              </p>
-                            </div>
-                          )}
 
                         </div>
                       )}
