@@ -84,19 +84,22 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Authenticate user
+    // Authenticate user via JWT claims (does not require server-side session)
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    if (!authHeader?.startsWith("Bearer "))
+      throw new Error("No authorization header provided");
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } =
-      await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    const { data: claimsData, error: claimsError } =
+      await supabaseClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims)
+      throw new Error(`Authentication error: ${claimsError?.message || "Invalid token"}`);
 
-    const user = userData.user;
-    if (!user?.email)
+    const userId = claimsData.claims.sub as string;
+    const userEmail = claimsData.claims.email as string;
+    if (!userId || !userEmail)
       throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated via claims", { userId, email: userEmail });
 
     // Parse request body
     const { bookingId, amount, bookingType, payerPhone, isDesktop, isNativeApp } = await req.json();
@@ -120,13 +123,13 @@ serve(async (req) => {
 
       if (tripError || !tripBooking) throw new Error("Trip booking not found");
 
-      const isBooker = tripBooking.user_id === user.id;
+      const isBooker = tripBooking.user_id === userId;
       if (!isBooker) {
         const { data: traveler } = await supabaseClient
           .from("trip_booking_travelers")
           .select("id")
           .eq("trip_booking_id", bookingId)
-          .eq("email", user.email)
+          .eq("email", userEmail)
           .maybeSingle();
 
         if (!traveler) throw new Error("Access denied: you are not part of this booking");
@@ -142,7 +145,7 @@ serve(async (req) => {
         .from("bookings")
         .select("*, destinations(name)")
         .eq("id", bookingId)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .maybeSingle();
 
       if (bookingError || !booking) throw new Error("Booking not found or access denied");
@@ -224,7 +227,7 @@ serve(async (req) => {
         amount: amountNumber,
         status: "pending",
         payment_type: "swish",
-        user_id: user.id,
+        user_id: userId,
         stripe_payment_intent_id: swishPaymentId, // Reuse column for Swish payment ID
       });
 
