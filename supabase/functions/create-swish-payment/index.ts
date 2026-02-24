@@ -99,14 +99,14 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Parse request body
-    const { bookingId, amount, bookingType, payerPhone, isDesktop } = await req.json();
+    const { bookingId, amount, bookingType, payerPhone, isDesktop, isNativeApp } = await req.json();
     if (!bookingId || !amount) {
       throw new Error("Missing bookingId or amount");
     }
-    if (!isDesktop && !payerPhone) {
-      throw new Error("Telefonnummer krävs för Swish-betalning");
+    if (isNativeApp && !payerPhone) {
+      throw new Error("Telefonnummer krävs för Swish-betalning i appen");
     }
-    logStep("Request parsed", { bookingId, amount, bookingType, payerPhone, isDesktop });
+    logStep("Request parsed", { bookingId, amount, bookingType, payerPhone, isDesktop, isNativeApp });
 
     // Verify booking access (same logic as other payment functions)
     let bookingData: { id: string; name: string };
@@ -173,7 +173,7 @@ serve(async (req) => {
     };
 
     // Only include payerAlias on mobile – desktop uses QR scan (open payment request)
-    if (!isDesktop && payerPhone) {
+    if (isNativeApp && payerPhone) {
       swishPayload.payerAlias = payerPhone;
     }
 
