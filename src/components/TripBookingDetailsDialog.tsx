@@ -253,6 +253,9 @@ export const TripBookingDetailsDialog = ({
     setShowPaymentConfirm(false);
     setIsProcessingPayment(true);
 
+    let preOpenedSwishWindow: Window | null = null;
+    let swishLaunchTriggered = false;
+
     try {
       // Verify session is still valid before attempting payment
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -263,6 +266,15 @@ export const TripBookingDetailsDialog = ({
 
       const isKlarna = paymentMethod === "stripe_klarna";
       const isSwish = paymentMethod === "altapay_swish";
+
+      // Pre-open a window while we're still inside user interaction.
+      // This improves app-switch reliability in mobile browsers.
+      if (isSwish && !Capacitor.isNativePlatform()) {
+        preOpenedSwishWindow = window.open("", "_blank");
+        if (preOpenedSwishWindow) {
+          preOpenedSwishWindow.document.write("<p style=\"font-family:sans-serif;padding:16px\">Öppnar Swish...</p>");
+        }
+      }
 
       let functionName: string;
       let body: Record<string, unknown>;
@@ -283,13 +295,13 @@ export const TripBookingDetailsDialog = ({
         } else if (!formattedPhone.startsWith("46")) {
           formattedPhone = "46" + formattedPhone;
         }
-        
+
         if (formattedPhone.length < 10 || formattedPhone.length > 15) {
           toast.error("Ange ett giltigt svenskt mobilnummer");
           setIsProcessingPayment(false);
           return;
         }
-        
+
         functionName = "create-swish-payment";
         body = {
           bookingId: booking.id,
@@ -315,36 +327,28 @@ export const TripBookingDetailsDialog = ({
         const callbackUrl = encodeURIComponent(window.location.origin + "/dashboard?payment=success");
         const swishUrl = `swish://paymentrequest?token=${data.paymentRequestToken}&callbackurl=${callbackUrl}`;
 
-        let appOpened = false;
-
         // Native app (Capacitor): use AppLauncher for reliable deep-linking
         if (Capacitor.isNativePlatform()) {
           try {
             const canOpen = await AppLauncher.canOpenUrl({ url: "swish://" });
             if (canOpen.value) {
               await AppLauncher.openUrl({ url: swishUrl });
-              appOpened = true;
+              swishLaunchTriggered = true;
             }
           } catch (launchError) {
             console.warn("Native Swish launch failed", launchError);
           }
         }
 
-        // Browser fallback: trigger deep-link via anchor click
-        if (!appOpened) {
-          const link = document.createElement("a");
-          link.href = swishUrl;
-          link.rel = "noopener noreferrer";
-          link.style.display = "none";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+        // Browser/PWA fallback: reuse pre-opened window if available
+        if (!swishLaunchTriggered && preOpenedSwishWindow && !preOpenedSwishWindow.closed) {
+          preOpenedSwishWindow.location.href = swishUrl;
+          swishLaunchTriggered = true;
+        }
 
-          setTimeout(() => {
-            if (document.visibilityState === "visible") {
-              window.location.assign(swishUrl);
-            }
-          }, 200);
+        // Last fallback in current window
+        if (!swishLaunchTriggered) {
+          window.location.assign(swishUrl);
         }
 
         setTimeout(() => {
@@ -367,6 +371,9 @@ export const TripBookingDetailsDialog = ({
         throw new Error("Ingen betalnings-URL mottogs");
       }
     } catch (error: any) {
+      if (preOpenedSwishWindow && !preOpenedSwishWindow.closed && !swishLaunchTriggered) {
+        preOpenedSwishWindow.close();
+      }
       console.error("Payment error:", error);
       const msg = error?.message?.includes("Auth session missing")
         ? "Din session har gått ut. Logga in igen för att betala."
