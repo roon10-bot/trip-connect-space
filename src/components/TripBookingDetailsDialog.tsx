@@ -309,8 +309,17 @@ export const TripBookingDetailsDialog = ({
 
       if (error) throw error;
 
-      if (isSwish && data?.success) {
-        // Direct Swish - show confirmation message
+      if (isSwish && data?.success && data?.paymentRequestToken) {
+        // Open Swish app via app switch URL scheme
+        const callbackUrl = encodeURIComponent(window.location.origin + "/dashboard?payment=success");
+        const swishUrl = `swish://paymentrequest?token=${data.paymentRequestToken}&callbackurl=${callbackUrl}`;
+        window.location.href = swishUrl;
+        
+        // Fallback toast in case app doesn't open (e.g. desktop)
+        setTimeout(() => {
+          toast.info("Om Swish-appen inte öppnades, öppna den manuellt och godkänn betalningen.");
+        }, 2000);
+      } else if (isSwish && data?.success) {
         toast.success("Öppna Swish-appen på din telefon för att slutföra betalningen.");
       } else if (data?.url) {
         // AltaPay/Stripe - open payment URL
