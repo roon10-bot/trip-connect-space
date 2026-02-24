@@ -364,8 +364,9 @@ export const TripBookingDetailsDialog = ({
         const isDesktop = !isMobile && !Capacitor.isNativePlatform();
 
         if (isDesktop) {
-          // Desktop: show QR code and poll for payment status
-          setSwishQrData({ url: swishUrl, paymentId: swishPaymentId });
+          // Desktop: show QR code with Swish D-prefix format (D + PaymentRequestToken)
+          const qrContent = `D${appSwitchToken}`;
+          setSwishQrData({ url: qrContent, paymentId: swishPaymentId });
           setSwishPollStatus("polling");
 
           // Poll payment status every 3 seconds
