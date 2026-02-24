@@ -331,12 +331,14 @@ export const TripBookingDetailsDialog = ({
           return;
         }
 
+        const isDesktopSwish = !isMobile && !Capacitor.isNativePlatform();
         functionName = "create-swish-payment";
         body = {
           bookingId: booking.id,
           amount: selectedAmount,
           bookingType: "trip",
           payerPhone: formattedPhone,
+          isDesktop: isDesktopSwish,
         };
       } else {
         functionName = "create-altapay-payment";
