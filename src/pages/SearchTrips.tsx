@@ -223,7 +223,7 @@ const SearchTrips = () => {
           </div>
 
           {/* Sök-knapp */}
-          <Button onClick={handleSearch} className="h-12 bg-sunset hover:bg-sunset/90 text-accent-foreground font-semibold">
+          <Button onClick={handleSearch} className="h-12 bg-ocean hover:bg-ocean/90 text-white font-semibold">
             <Search className="mr-2 h-4 w-4" />
             Sök resor
           </Button>
