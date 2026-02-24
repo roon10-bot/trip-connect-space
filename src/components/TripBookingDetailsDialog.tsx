@@ -1,10 +1,12 @@
-import { useState, useMemo, useCallback, type ReactNode } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, type ReactNode } from "react";
 import klarnaBadge from "@/assets/klarna-badge.png";
 import swishLogo from "@/assets/swish-logo.png";
+import { QRCodeSVG } from "qrcode.react";
 import { useQuery } from "@tanstack/react-query";
 import { Capacitor } from "@capacitor/core";
 import { AppLauncher } from "@capacitor/app-launcher";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -118,8 +120,24 @@ export const TripBookingDetailsDialog = ({
   const [paymentMethod, setPaymentMethod] = useState<"altapay_card" | "altapay_swish" | "stripe_klarna">("altapay_card");
   const [customAmount, setCustomAmount] = useState<string>("");
   const [useCustomAmount, setUseCustomAmount] = useState(false);
+  const [swishQrData, setSwishQrData] = useState<{ url: string; paymentId: string } | null>(null);
+  const [swishPollStatus, setSwishPollStatus] = useState<"polling" | "paid" | "error" | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { user } = useAuth();
+  const isMobile = useIsMobile();
+
+  // Clean up polling on unmount or dialog close
+  useEffect(() => {
+    if (!open) {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      setSwishQrData(null);
+      setSwishPollStatus(null);
+    }
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
+  }, [open]);
 
   // Fetch completed payments for this booking
   const { data: completedPayments } = useQuery({
@@ -339,6 +357,51 @@ export const TripBookingDetailsDialog = ({
       if (isSwish && data?.success && appSwitchToken) {
         const callbackUrl = encodeURIComponent(window.location.origin + "/dashboard?payment=success");
         const swishUrl = `swish://paymentrequest?token=${appSwitchToken}&callbackurl=${callbackUrl}`;
+        const swishPaymentId = data.swishPaymentId || appSwitchToken;
+
+        const isDesktop = !isMobile && !Capacitor.isNativePlatform();
+
+        if (isDesktop) {
+          // Desktop: show QR code and poll for payment status
+          setSwishQrData({ url: swishUrl, paymentId: swishPaymentId });
+          setSwishPollStatus("polling");
+
+          // Poll payment status every 3 seconds
+          pollIntervalRef.current = setInterval(async () => {
+            try {
+              const { data: payment } = await supabase
+                .from("payments")
+                .select("status")
+                .eq("stripe_payment_intent_id", swishPaymentId)
+                .maybeSingle();
+
+              if (payment?.status === "completed") {
+                if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+                setSwishPollStatus("paid");
+                toast.success("Betalningen genomförd!");
+              } else if (payment?.status === "failed") {
+                if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+                setSwishPollStatus("error");
+                toast.error("Betalningen misslyckades. Försök igen.");
+              }
+            } catch (e) {
+              console.warn("Poll error", e);
+            }
+          }, 3000);
+
+          // Stop polling after 5 minutes
+          setTimeout(() => {
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              if (swishPollStatus === "polling") {
+                setSwishPollStatus("error");
+                toast.error("Tidsgränsen gick ut. Försök igen.");
+              }
+            }
+          }, 5 * 60 * 1000);
+
+          return;
+        }
 
         // Native app (Capacitor): use AppLauncher for reliable deep-linking
         if (Capacitor.isNativePlatform()) {
@@ -353,7 +416,7 @@ export const TripBookingDetailsDialog = ({
           }
         }
 
-        // Browser/PWA: redirect directly to Swish deeplink
+        // Mobile browser: redirect directly to Swish deeplink
         window.location.assign(swishUrl);
       } else if (isSwish && data?.success) {
         toast.success("Öppna Swish-appen på din telefon för att slutföra betalningen.");
@@ -896,6 +959,67 @@ export const TripBookingDetailsDialog = ({
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
+
+                          {/* Swish QR Code Dialog for Desktop */}
+                          <Dialog open={!!swishQrData} onOpenChange={(open) => {
+                            if (!open) {
+                              if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+                              setSwishQrData(null);
+                              setSwishPollStatus(null);
+                            }
+                          }}>
+                            <DialogContent className="max-w-sm text-center">
+                              <DialogHeader>
+                                <DialogTitle className="flex items-center justify-center gap-2">
+                                  <img src={swishLogo} alt="Swish" className="h-6" />
+                                  Swish-betalning
+                                </DialogTitle>
+                              </DialogHeader>
+                              <div className="flex flex-col items-center gap-4 py-4">
+                                {swishPollStatus === "paid" ? (
+                                  <div className="flex flex-col items-center gap-3">
+                                    <CheckCircle className="w-16 h-16 text-palm" />
+                                    <p className="text-lg font-semibold">Betalningen genomförd!</p>
+                                    <Button onClick={() => {
+                                      setSwishQrData(null);
+                                      setSwishPollStatus(null);
+                                      window.location.reload();
+                                    }} className="bg-gradient-ocean">Stäng</Button>
+                                  </div>
+                                ) : swishPollStatus === "error" ? (
+                                  <div className="flex flex-col items-center gap-3">
+                                    <AlertCircle className="w-16 h-16 text-destructive" />
+                                    <p className="text-lg font-semibold">Betalningen misslyckades</p>
+                                    <p className="text-sm text-muted-foreground">Försök igen eller välj en annan betalningsmetod.</p>
+                                    <Button onClick={() => {
+                                      setSwishQrData(null);
+                                      setSwishPollStatus(null);
+                                    }} variant="outline">Stäng</Button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <p className="text-sm text-muted-foreground">
+                                      Scanna QR-koden med Swish-appen på din telefon
+                                    </p>
+                                    {swishQrData && (
+                                      <div className="bg-white p-4 rounded-xl shadow-md">
+                                        <QRCodeSVG
+                                          value={swishQrData.url}
+                                          size={220}
+                                          level="M"
+                                          includeMargin
+                                        />
+                                      </div>
+                                    )}
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                      Väntar på betalning...
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
 
                         </div>
                       )}
