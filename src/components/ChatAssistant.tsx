@@ -175,8 +175,17 @@ export const ChatAssistant = () => {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            className="fixed bottom-6 right-6 z-50"
+            className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2"
           >
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1.5, duration: 0.4 }}
+              className="bg-white text-foreground text-sm font-medium px-4 py-2.5 rounded-2xl rounded-br-sm shadow-lg max-w-[200px] cursor-pointer"
+              onClick={() => setIsOpen(true)}
+            >
+              Hej! 👋 Behöver du hjälp med din studentresa?
+            </motion.div>
             <button
               onClick={() => setIsOpen(true)}
               className="h-20 w-20 p-0 border-none bg-transparent cursor-pointer"
