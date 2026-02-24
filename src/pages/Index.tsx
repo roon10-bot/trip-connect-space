@@ -30,8 +30,8 @@ const Index = () => {
         <Suspense fallback={null}>
           <TripPackages />
           <YouTubeEmbed videoId="aF9AVtqcMc0" title="Studentresor – Studentresa till Kroatien" />
-          <InstagramFeed />
           <Testimonials />
+          <InstagramFeed />
         </Suspense>
       </main>
       <Suspense fallback={null}>
