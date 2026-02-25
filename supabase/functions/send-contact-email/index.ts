@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { Resend } from "npm:resend@4.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const POSTMARK_API = "https://api.postmarkapp.com/email";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,12 +52,38 @@ function buildEmailHtml(template: EmailTemplate, vars: Record<string, string>): 
   `;
 }
 
+async function sendPostmark(token: string, payload: {
+  From: string;
+  To: string;
+  ReplyTo?: string;
+  Subject: string;
+  HtmlBody: string;
+}) {
+  const res = await fetch(POSTMARK_API, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "X-Postmark-Server-Token": token,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok || data.ErrorCode) {
+    throw new Error(data.Message || `Postmark error ${data.ErrorCode}`);
+  }
+  return data;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    const token = Deno.env.get("POSTMARK_SERVER_TOKEN");
+    if (!token) throw new Error("POSTMARK_SERVER_TOKEN is not set");
+
     const { firstName, lastName, email, subject, message }: ContactRequest = await req.json();
 
     if (!firstName || !lastName || !email || !subject || !message) {
@@ -67,13 +92,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Sending contact email from ${email} - Subject: ${subject}`);
 
-    // Send the contact form to admin (this is NOT template-based, it's internal)
-    const { data, error } = await resend.emails.send({
-      from: `Studentresor Kontakt <noreply@kontakt.studentresor.com>`,
-      to: ["info@studentresor.com"],
-      replyTo: email,
-      subject: `Kontaktformulär: ${subject}`,
-      html: `
+    // Send the contact form to admin
+    const data = await sendPostmark(token, {
+      From: "Studentresor Kontakt <noreply@kontakt.studentresor.com>",
+      To: "info@studentresor.com",
+      ReplyTo: email,
+      Subject: `Kontaktformulär: ${subject}`,
+      HtmlBody: `
         <h2>Nytt meddelande från kontaktformuläret</h2>
         <p><strong>Namn:</strong> ${firstName} ${lastName}</p>
         <p><strong>E-post:</strong> ${email}</p>
@@ -83,11 +108,6 @@ const handler = async (req: Request): Promise<Response> => {
         <p>${message.replace(/\n/g, "<br />")}</p>
       `,
     });
-
-    if (error) {
-      console.error("Resend error:", error);
-      throw new Error(error.message);
-    }
 
     console.log("Contact email sent successfully:", data);
 
@@ -111,17 +131,16 @@ const handler = async (req: Request): Promise<Response> => {
           subject,
         };
 
-        await resend.emails.send({
-          from: "Studentresor <noreply@kontakt.studentresor.com>",
-          to: [email],
-          subject: replacePlaceholders((tplData as EmailTemplate).subject, vars),
-          html: buildEmailHtml(tplData as EmailTemplate, vars),
+        await sendPostmark(token, {
+          From: "Studentresor <noreply@kontakt.studentresor.com>",
+          To: email,
+          Subject: replacePlaceholders((tplData as EmailTemplate).subject, vars),
+          HtmlBody: buildEmailHtml(tplData as EmailTemplate, vars),
         });
         console.log("Confirmation email sent to:", email);
       }
     } catch (confirmError) {
       console.error("Failed to send confirmation email:", confirmError);
-      // Don't block the main flow
     }
 
     return new Response(JSON.stringify({ success: true }), {

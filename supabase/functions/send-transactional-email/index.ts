@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { Resend } from "npm:resend@2.0.0";
+
+const POSTMARK_API = "https://api.postmarkapp.com/email";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -64,9 +65,8 @@ serve(async (req: Request) => {
   }
 
   try {
-    const resendKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendKey) throw new Error("RESEND_API_KEY is not set");
-    const resend = new Resend(resendKey);
+    const token = Deno.env.get("POSTMARK_SERVER_TOKEN");
+    if (!token) throw new Error("POSTMARK_SERVER_TOKEN is not set");
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -84,7 +84,6 @@ serve(async (req: Request) => {
 
     console.log(`[SEND-EMAIL] Sending ${template_key} to ${to_email}`);
 
-    // Fetch template from DB
     const { data: tplData, error: tplError } = await supabaseAdmin
       .from("email_templates")
       .select("subject, heading, body_text, button_text, footer_text, primary_color, logo_url")
@@ -105,16 +104,25 @@ serve(async (req: Request) => {
     const subject = replacePlaceholders(template.subject, vars);
     const html = buildEmailHtml(template, vars, action_url);
 
-    const { error: sendError } = await resend.emails.send({
-      from: "Studentresor <noreply@kontakt.studentresor.com>",
-      to: [to_email],
-      subject,
-      html,
+    const res = await fetch(POSTMARK_API, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-Postmark-Server-Token": token,
+      },
+      body: JSON.stringify({
+        From: "Studentresor <noreply@kontakt.studentresor.com>",
+        To: to_email,
+        Subject: subject,
+        HtmlBody: html,
+      }),
     });
 
-    if (sendError) {
-      console.error("[SEND-EMAIL] Resend error:", sendError);
-      throw new Error(`Failed to send email: ${JSON.stringify(sendError)}`);
+    const data = await res.json();
+    if (!res.ok || data.ErrorCode) {
+      console.error("[SEND-EMAIL] Postmark error:", data);
+      throw new Error(`Failed to send email: ${data.Message || JSON.stringify(data)}`);
     }
 
     console.log(`[SEND-EMAIL] Successfully sent ${template_key} to ${to_email}`);

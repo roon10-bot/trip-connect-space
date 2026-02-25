@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { Resend } from "npm:resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const POSTMARK_API = "https://api.postmarkapp.com/email";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,6 +52,28 @@ function buildEmailHtml(template: EmailTemplate, vars: Record<string, string>, a
   `;
 }
 
+async function sendPostmark(token: string, payload: {
+  From: string;
+  To: string;
+  Subject: string;
+  HtmlBody: string;
+}) {
+  const res = await fetch(POSTMARK_API, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "X-Postmark-Server-Token": token,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok || data.ErrorCode) {
+    throw new Error(data.Message || `Postmark error ${data.ErrorCode}`);
+  }
+  return data;
+}
+
 const DEFAULT_TEMPLATE: EmailTemplate = {
   subject: "Bekräftelse: Videosamtal {{date}}",
   heading: "Mötesbekräftelse",
@@ -69,6 +90,9 @@ serve(async (req: Request) => {
   }
 
   try {
+    const token = Deno.env.get("POSTMARK_SERVER_TOKEN");
+    if (!token) throw new Error("POSTMARK_SERVER_TOKEN is not set");
+
     const { firstName, lastName, email, school, date, time, meetLink } = await req.json();
     console.log("Sending meeting confirmation to:", email);
 
@@ -79,7 +103,6 @@ serve(async (req: Request) => {
       });
     }
 
-    // Fetch template from DB
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -106,21 +129,20 @@ serve(async (req: Request) => {
     };
 
     // Send to the visitor
-    const visitorEmail = await resend.emails.send({
-      from: "Studentresor <noreply@kontakt.studentresor.com>",
-      to: [email],
-      subject: replacePlaceholders(template.subject, vars),
-      html: buildEmailHtml(template, vars, meetLink || undefined),
+    const visitorResult = await sendPostmark(token, {
+      From: "Studentresor <noreply@kontakt.studentresor.com>",
+      To: email,
+      Subject: replacePlaceholders(template.subject, vars),
+      HtmlBody: buildEmailHtml(template, vars, meetLink || undefined),
     });
-
-    console.log("Visitor email sent:", visitorEmail);
+    console.log("Visitor email sent:", visitorResult);
 
     // Notify admin
-    const adminEmail = await resend.emails.send({
-      from: "Studentresor <noreply@kontakt.studentresor.com>",
-      to: ["info@studentresor.com"],
-      subject: `Ny mötesbokning: ${firstName} ${lastName} (${school})`,
-      html: `
+    const adminResult = await sendPostmark(token, {
+      From: "Studentresor <noreply@kontakt.studentresor.com>",
+      To: "info@studentresor.com",
+      Subject: `Ny mötesbokning: ${firstName} ${lastName} (${school})`,
+      HtmlBody: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #1a1a2e;">Ny mötesbokning</h1>
           <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -134,8 +156,7 @@ serve(async (req: Request) => {
         </div>
       `,
     });
-
-    console.log("Admin email sent:", adminEmail);
+    console.log("Admin email sent:", adminResult);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
