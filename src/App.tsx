@@ -88,6 +88,9 @@ const App = () => (
                 <Route path="/segelveckan" element={<Segelveckan />} />
                 <Route path="/studentveckan" element={<Studentveckan />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/altapay/ok" element={<AltapayCallback />} />
+                <Route path="/altapay/fail" element={<AltapayCallback />} />
+                <Route path="/altapay/redirect" element={<AltapayCallback />} />
                 <Route path="/altapay/:status" element={<AltapayCallback />} />
                 <Route path="/payment/return" element={<AltapayCallback />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
