@@ -94,7 +94,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send the contact form to admin
     const data = await sendPostmark(token, {
-      From: "Studentresor Kontakt <noreply@kontakt.studentresor.com>",
+      From: "Studentresor Kontakt <noreply@studentresor.com>",
       To: "info@studentresor.com",
       ReplyTo: email,
       Subject: `Kontaktformulär: ${subject}`,
@@ -132,7 +132,7 @@ const handler = async (req: Request): Promise<Response> => {
         };
 
         await sendPostmark(token, {
-          From: "Studentresor <noreply@kontakt.studentresor.com>",
+          From: "Studentresor <noreply@studentresor.com>",
           To: email,
           Subject: replacePlaceholders((tplData as EmailTemplate).subject, vars),
           HtmlBody: buildEmailHtml(tplData as EmailTemplate, vars),
