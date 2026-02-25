@@ -254,12 +254,23 @@ export const TripBookingDetailsDialog = ({
     return Math.min(val, remainingBalance);
   }, [customAmount, remainingBalance]);
 
-  const selectedAmount = useMemo(() => {
+  const KLARNA_SURCHARGE_PERCENT = 2;
+
+  const selectedAmountBase = useMemo(() => {
     const planTotal = paymentOptions
       .filter((opt) => selectedPayments.has(opt.id))
       .reduce((sum, opt) => sum + opt.amount, 0);
     return useCustomAmount ? parsedCustomAmount : planTotal;
   }, [paymentOptions, selectedPayments, useCustomAmount, parsedCustomAmount]);
+
+  const klarnaSurcharge = useMemo(() => {
+    if (paymentMethod !== "stripe_klarna") return 0;
+    return Math.ceil(selectedAmountBase * KLARNA_SURCHARGE_PERCENT / 100);
+  }, [paymentMethod, selectedAmountBase]);
+
+  const selectedAmount = useMemo(() => {
+    return selectedAmountBase + klarnaSurcharge;
+  }, [selectedAmountBase, klarnaSurcharge]);
 
   const togglePayment = (paymentId: string) => {
     setUseCustomAmount(false);
@@ -458,7 +469,9 @@ export const TripBookingDetailsDialog = ({
 
   const isPaid = isFullyPaid;
   const hasPaymentPlan = paymentOptions.length > 0;
-  const confirmPaymentAmount = hasPaymentPlan ? selectedAmount : Number(booking?.total_price || 0);
+  const noPaymentPlanBase = Number(booking?.total_price || 0);
+  const noPaymentPlanSurcharge = paymentMethod === "stripe_klarna" ? Math.ceil(noPaymentPlanBase * KLARNA_SURCHARGE_PERCENT / 100) : 0;
+  const confirmPaymentAmount = hasPaymentPlan ? selectedAmount : noPaymentPlanBase + noPaymentPlanSurcharge;
 
   const handlePaymentClick = () => {
     if (!booking || confirmPaymentAmount <= 0) return;
@@ -814,14 +827,22 @@ export const TripBookingDetailsDialog = ({
                             animate={{ opacity: 1, y: 0 }}
                             className="mt-4 p-4 bg-ocean/10 rounded-lg border border-ocean/20"
                           >
-                            <div className="flex justify-between items-center">
-                              <span className="text-muted-foreground">
-                                {useCustomAmount ? "Valfritt belopp" : `${selectedPayments.size} betalning${selectedPayments.size > 1 ? "ar" : ""} valda`}
-                              </span>
-                              <span className="font-bold text-xl text-ocean">
-                                {selectedAmount.toLocaleString("sv-SE")} kr
-                              </span>
-                            </div>
+                            <div className="space-y-1">
+                              <div className="flex justify-between items-center">
+                               <span className="text-muted-foreground">
+                                 {useCustomAmount ? "Valfritt belopp" : `${selectedPayments.size} betalning${selectedPayments.size > 1 ? "ar" : ""} valda`}
+                               </span>
+                               <span className="font-bold text-xl text-ocean">
+                                 {selectedAmount.toLocaleString("sv-SE")} kr
+                               </span>
+                              </div>
+                              {klarnaSurcharge > 0 && (
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="text-muted-foreground">varav Klarna-avgift (+2%)</span>
+                                  <span className="text-muted-foreground">{klarnaSurcharge.toLocaleString("sv-SE")} kr</span>
+                                </div>
+                              )}
+                             </div>
                           </motion.div>
                         )}
                       </div>
@@ -903,9 +924,9 @@ export const TripBookingDetailsDialog = ({
                                   onChange={() => setPaymentMethod("stripe_klarna")}
                                   className="sr-only"
                                 />
-                                <img src={klarnaBadge} alt="Klarna" className="h-7" />
-                                
-                              </label>
+                                 <img src={klarnaBadge} alt="Klarna" className="h-7" />
+                                 <span className="text-xs text-muted-foreground">+2% avgift</span>
+                               </label>
                             </div>
                           </div>
                           
@@ -946,7 +967,7 @@ export const TripBookingDetailsDialog = ({
                               ) : (
                                 <>
                                   <CreditCard className="w-5 h-5 mr-2" />
-                                  Betala {Number(booking.total_price).toLocaleString("sv-SE")} kr
+                                  Betala {confirmPaymentAmount.toLocaleString("sv-SE")} kr
                                 </>
                               )}
                             </Button>
@@ -958,7 +979,11 @@ export const TripBookingDetailsDialog = ({
                                 <AlertDialogTitle>Bekräfta betalning</AlertDialogTitle>
                                 <AlertDialogDescription asChild>
                                   <div>
-                                    Du kommer att betala <strong>{confirmPaymentAmount.toLocaleString("sv-SE")} kr</strong> via {paymentMethod === "altapay_swish" ? "Swish" : paymentMethod === "stripe_klarna" ? "Klarna" : "kortbetalning"}. Vill du fortsätta?
+                                    Du kommer att betala <strong>{confirmPaymentAmount.toLocaleString("sv-SE")} kr</strong> via {paymentMethod === "altapay_swish" ? "Swish" : paymentMethod === "stripe_klarna" ? "Klarna" : "kortbetalning"}.
+                                    {paymentMethod === "stripe_klarna" && (
+                                      <span className="block text-xs mt-1">Inkl. 2% Klarna-avgift</span>
+                                    )}
+                                    Vill du fortsätta?
                                   </div>
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
