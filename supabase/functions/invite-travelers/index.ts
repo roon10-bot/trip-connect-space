@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { Resend } from "npm:resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const POSTMARK_API = "https://api.postmarkapp.com/email";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -71,7 +70,28 @@ function buildEmailHtml(template: EmailTemplate, vars: Record<string, string>, a
   `;
 }
 
-// Default template used if DB fetch fails
+async function sendPostmark(token: string, payload: {
+  From: string;
+  To: string;
+  Subject: string;
+  HtmlBody: string;
+}) {
+  const res = await fetch(POSTMARK_API, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "X-Postmark-Server-Token": token,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok || data.ErrorCode) {
+    throw new Error(data.Message || `Postmark error ${data.ErrorCode}`);
+  }
+  return data;
+}
+
 const DEFAULT_TEMPLATE: EmailTemplate = {
   subject: "Välkommen till Studentresor – Aktivera ditt konto",
   heading: "Välkommen till Studentresor!",
@@ -88,6 +108,9 @@ serve(async (req: Request) => {
   }
 
   try {
+    const token = Deno.env.get("POSTMARK_SERVER_TOKEN");
+    if (!token) throw new Error("POSTMARK_SERVER_TOKEN is not set");
+
     const { travelers, tripName, tripType, departureDate, returnDate, bookingId, bookerEmail, siteUrl } = await req.json();
 
     console.log("Inviting travelers for booking:", bookingId);
@@ -97,7 +120,6 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Fetch email template from DB
     let template = DEFAULT_TEMPLATE;
     try {
       const { data: tplData } = await supabaseAdmin
@@ -116,13 +138,12 @@ serve(async (req: Request) => {
       departure_date: departureDate,
       return_date: returnDate,
       site_url: siteUrl,
-      first_name: "", // set per traveler
+      first_name: "",
     };
 
     const results: { email: string; status: string; error?: string }[] = [];
 
     for (const traveler of travelers as TravelerData[]) {
-      // Skip the main booker - they already have an account
       if (traveler.email.toLowerCase() === bookerEmail.toLowerCase()) {
         results.push({ email: traveler.email, status: "skipped_booker" });
         continue;
@@ -131,7 +152,6 @@ serve(async (req: Request) => {
       const vars = { ...templateVars, first_name: traveler.firstName };
 
       try {
-        // Check if user already exists
         const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
         const existingUser = existingUsers?.users?.find(
           (u) => u.email?.toLowerCase() === traveler.email.toLowerCase()
@@ -140,18 +160,17 @@ serve(async (req: Request) => {
         if (existingUser) {
           console.log(`User ${traveler.email} already exists, sending info email`);
 
-          await resend.emails.send({
-            from: "Studentresor <noreply@kontakt.studentresor.com>",
-            to: [traveler.email],
-            subject: replacePlaceholders(template.subject, vars),
-            html: buildEmailHtml(template, vars, `${siteUrl}/dashboard`),
+          await sendPostmark(token, {
+            From: "Studentresor <noreply@kontakt.studentresor.com>",
+            To: traveler.email,
+            Subject: replacePlaceholders(template.subject, vars),
+            HtmlBody: buildEmailHtml(template, vars, `${siteUrl}/dashboard`),
           });
 
           results.push({ email: traveler.email, status: "existing_user_notified" });
           continue;
         }
 
-        // Create user with a temporary password
         const tempPassword = generateTempPassword();
         const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
           email: traveler.email,
@@ -169,7 +188,6 @@ serve(async (req: Request) => {
           continue;
         }
 
-        // Create profile for the new user
         if (createData?.user) {
           await supabaseAdmin.from("profiles").insert({
             user_id: createData.user.id,
@@ -179,7 +197,6 @@ serve(async (req: Request) => {
           console.log(`Created account for ${traveler.email}, user id: ${createData.user.id}`);
         }
 
-        // Generate a magic link for the user to set their password
         const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
           type: "magiclink",
           email: traveler.email,
@@ -190,11 +207,11 @@ serve(async (req: Request) => {
 
         if (linkError) {
           console.error(`Error generating magic link for ${traveler.email}:`, linkError);
-          await resend.emails.send({
-            from: "Studentresor <noreply@kontakt.studentresor.com>",
-            to: [traveler.email],
-            subject: replacePlaceholders(template.subject, vars),
-            html: buildEmailHtml(template, vars, `${siteUrl}/auth`),
+          await sendPostmark(token, {
+            From: "Studentresor <noreply@kontakt.studentresor.com>",
+            To: traveler.email,
+            Subject: replacePlaceholders(template.subject, vars),
+            HtmlBody: buildEmailHtml(template, vars, `${siteUrl}/auth`),
           });
           results.push({ email: traveler.email, status: "created_no_magic_link" });
           continue;
@@ -202,11 +219,11 @@ serve(async (req: Request) => {
 
         const magicLinkUrl = linkData.properties.action_link;
 
-        await resend.emails.send({
-          from: "Studentresor <noreply@kontakt.studentresor.com>",
-          to: [traveler.email],
-          subject: replacePlaceholders(template.subject, vars),
-          html: buildEmailHtml(template, vars, magicLinkUrl),
+        await sendPostmark(token, {
+          From: "Studentresor <noreply@kontakt.studentresor.com>",
+          To: traveler.email,
+          Subject: replacePlaceholders(template.subject, vars),
+          HtmlBody: buildEmailHtml(template, vars, magicLinkUrl),
         });
 
         results.push({ email: traveler.email, status: "invited" });
@@ -216,12 +233,12 @@ serve(async (req: Request) => {
       }
     }
 
-    // Also notify admin about the booking
-    await resend.emails.send({
-      from: "Studentresor <noreply@kontakt.studentresor.com>",
-      to: ["info@studentresor.com"],
-      subject: `Ny bokning: ${tripName} (${(travelers as TravelerData[]).length} resenärer)`,
-      html: buildAdminEmail(travelers as TravelerData[], tripName, tripType, departureDate, returnDate, bookingId, bookerEmail),
+    // Notify admin about the booking
+    await sendPostmark(token, {
+      From: "Studentresor <noreply@kontakt.studentresor.com>",
+      To: "info@studentresor.com",
+      Subject: `Ny bokning: ${tripName} (${(travelers as TravelerData[]).length} resenärer)`,
+      HtmlBody: buildAdminEmail(travelers as TravelerData[], tripName, tripType, departureDate, returnDate, bookingId, bookerEmail),
     });
 
     console.log("Invite results:", results);
