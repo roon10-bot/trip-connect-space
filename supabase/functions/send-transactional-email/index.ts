@@ -112,7 +112,7 @@ serve(async (req: Request) => {
         "X-Postmark-Server-Token": token,
       },
       body: JSON.stringify({
-        From: "Studentresor <noreply@kontakt.studentresor.com>",
+        From: "Studentresor <noreply@studentresor.com>",
         To: to_email,
         Subject: subject,
         HtmlBody: html,

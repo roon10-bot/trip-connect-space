@@ -161,7 +161,7 @@ serve(async (req: Request) => {
           console.log(`User ${traveler.email} already exists, sending info email`);
 
           await sendPostmark(token, {
-            From: "Studentresor <noreply@kontakt.studentresor.com>",
+            From: "Studentresor <noreply@studentresor.com>",
             To: traveler.email,
             Subject: replacePlaceholders(template.subject, vars),
             HtmlBody: buildEmailHtml(template, vars, `${siteUrl}/dashboard`),
@@ -208,7 +208,7 @@ serve(async (req: Request) => {
         if (linkError) {
           console.error(`Error generating magic link for ${traveler.email}:`, linkError);
           await sendPostmark(token, {
-            From: "Studentresor <noreply@kontakt.studentresor.com>",
+            From: "Studentresor <noreply@studentresor.com>",
             To: traveler.email,
             Subject: replacePlaceholders(template.subject, vars),
             HtmlBody: buildEmailHtml(template, vars, `${siteUrl}/auth`),
@@ -220,7 +220,7 @@ serve(async (req: Request) => {
         const magicLinkUrl = linkData.properties.action_link;
 
         await sendPostmark(token, {
-          From: "Studentresor <noreply@kontakt.studentresor.com>",
+          From: "Studentresor <noreply@studentresor.com>",
           To: traveler.email,
           Subject: replacePlaceholders(template.subject, vars),
           HtmlBody: buildEmailHtml(template, vars, magicLinkUrl),
@@ -235,7 +235,7 @@ serve(async (req: Request) => {
 
     // Notify admin about the booking
     await sendPostmark(token, {
-      From: "Studentresor <noreply@kontakt.studentresor.com>",
+      From: "Studentresor <noreply@studentresor.com>",
       To: "info@studentresor.com",
       Subject: `Ny bokning: ${tripName} (${(travelers as TravelerData[]).length} resenärer)`,
       HtmlBody: buildAdminEmail(travelers as TravelerData[], tripName, tripType, departureDate, returnDate, bookingId, bookerEmail),

@@ -130,7 +130,7 @@ serve(async (req: Request) => {
 
     // Send to the visitor
     const visitorResult = await sendPostmark(token, {
-      From: "Studentresor <noreply@kontakt.studentresor.com>",
+From: "Studentresor <noreply@studentresor.com>",
       To: email,
       Subject: replacePlaceholders(template.subject, vars),
       HtmlBody: buildEmailHtml(template, vars, meetLink || undefined),
@@ -139,7 +139,7 @@ serve(async (req: Request) => {
 
     // Notify admin
     const adminResult = await sendPostmark(token, {
-      From: "Studentresor <noreply@kontakt.studentresor.com>",
+From: "Studentresor <noreply@studentresor.com>",
       To: "info@studentresor.com",
       Subject: `Ny mötesbokning: ${firstName} ${lastName} (${school})`,
       HtmlBody: `
