@@ -144,9 +144,11 @@ serve(async (req) => {
     formData.append("currency", "SEK");
     formData.append("type", "paymentAndCapture");
     // Browser redirects after payment - must be frontend pages
-    formData.append("config[callback_ok]", `${frontendBase}/altapay/ok`);
-    formData.append("config[callback_fail]", `${frontendBase}/altapay/fail`);
-    formData.append("config[callback_redirect]", `${frontendBase}/altapay/redirect`);
+    // Callbacks point to edge function that accepts POST and 302-redirects to SPA
+    const callbackBase = `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-callback`;
+    formData.append("config[callback_ok]", `${callbackBase}?type=ok`);
+    formData.append("config[callback_fail]", `${callbackBase}?type=fail`);
+    formData.append("config[callback_redirect]", `${callbackBase}?type=redirect`);
     // Server-to-server notification - edge function
     formData.append("config[callback_notification]", `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`);
     
@@ -174,9 +176,9 @@ serve(async (req) => {
       amount: amountInSEK,
       currency: "SEK",
       type: "paymentAndCapture",
-      "config[callback_ok]": `${frontendBase}/altapay/ok`,
-      "config[callback_fail]": `${frontendBase}/altapay/fail`,
-      "config[callback_redirect]": `${frontendBase}/altapay/redirect`,
+      "config[callback_ok]": `${callbackBase}?type=ok`,
+      "config[callback_fail]": `${callbackBase}?type=fail`,
+      "config[callback_redirect]": `${callbackBase}?type=redirect`,
       "config[callback_notification]": `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`,
       "customer_info[email]": user.email,
       "orderLines[0][description]": `Resa: ${bookingData.name}`,

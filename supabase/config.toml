@@ -39,6 +39,9 @@ verify_jwt = false
 [functions.altapay-notification]
 verify_jwt = false
 
+[functions.altapay-callback]
+verify_jwt = false
+
 [functions.create-swish-payment]
 verify_jwt = false
 
