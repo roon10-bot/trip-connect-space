@@ -60,7 +60,7 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Parse request body
-    const { bookingId, amount, bookingType, terminalType } = await req.json();
+    const { bookingId, amount, bookingType, terminalType, paymentType } = await req.json();
     if (!bookingId || !amount) {
       throw new Error("Missing bookingId or amount");
     }
@@ -168,6 +168,7 @@ serve(async (req) => {
     formData.append("transaction_info[booking_id]", bookingId);
     formData.append("transaction_info[booking_type]", bookingType || "destination");
     formData.append("transaction_info[user_id]", user.id);
+    formData.append("transaction_info[payment_type]", paymentType || "first_payment");
 
     // Debug: log entire request payload (excluding auth)
     logStep("REQUEST PAYLOAD", {

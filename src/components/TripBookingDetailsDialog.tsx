@@ -343,12 +343,27 @@ export const TripBookingDetailsDialog = ({
           isNativeApp,
         };
       } else {
+        // Determine payment_type from selected payment options
+        const selectedIds = Array.from(selectedPayments);
+        const paymentTypeMap: Record<string, string> = {
+          first: "first_payment",
+          second: "second_payment",
+          final: "final_payment",
+        };
+        // If exactly one payment option selected, use its type; otherwise use generic
+        const resolvedPaymentType = !useCustomAmount && selectedIds.length === 1
+          ? paymentTypeMap[selectedIds[0]] || "altapay_payment"
+          : useCustomAmount
+            ? "custom_payment"
+            : "combined_payment";
+
         functionName = "create-altapay-payment";
         body = {
           bookingId: booking.id,
           amount: selectedAmount,
           bookingType: "trip",
           terminalType: "card",
+          paymentType: resolvedPaymentType,
         };
       }
 
