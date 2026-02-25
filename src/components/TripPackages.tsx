@@ -59,8 +59,8 @@ export const TripPackages = () => {
                 to={pkg.href}
                 className="group block bg-card rounded-xl p-8 shadow-elegant hover:shadow-lg transition-all duration-300 border border-border"
               >
-                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
-                  <pkg.icon className="w-7 h-7 text-primary" />
+                <div className="w-14 h-14 rounded-xl bg-ocean-light flex items-center justify-center mb-6 group-hover:bg-ocean/20 transition-colors">
+                  <pkg.icon className="w-7 h-7 text-ocean" />
                 </div>
                 <h3 className="text-2xl font-serif font-bold text-foreground mb-4">
                   {pkg.title}
