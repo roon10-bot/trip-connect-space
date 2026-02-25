@@ -453,8 +453,8 @@ const Segelveckan = () => {
                   viewport={{ once: true }}
                   className="flex items-center gap-3 p-3"
                 >
-                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <item.icon className="w-4 h-4 text-primary" />
+                  <div className="shrink-0 w-8 h-8 rounded-xl bg-ocean-light flex items-center justify-center">
+                    <item.icon className="w-4 h-4 text-ocean" />
                   </div>
                   <span className="text-foreground font-medium">{item.text}</span>
                 </motion.div>
