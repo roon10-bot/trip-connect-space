@@ -430,16 +430,8 @@ export const TripBookingDetailsDialog = ({
       } else if (isSwish && data?.success) {
         toast.success("Öppna Swish-appen på din telefon för att slutföra betalningen.");
       } else if (data?.url) {
-        // AltaPay/Stripe - open payment URL
-        const width = 500;
-        const height = 700;
-        const left = window.screenX + (window.outerWidth - width) / 2;
-        const top = window.screenY + (window.outerHeight - height) / 2;
-        window.open(
-          data.url,
-          "altapay_payment",
-          `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
-        );
+        // AltaPay/Stripe - redirect to payment page (full page redirect works better with 3DS2)
+        window.location.href = data.url;
       } else {
         throw new Error("Ingen betalnings-URL mottogs");
       }
