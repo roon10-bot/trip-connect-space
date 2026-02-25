@@ -149,7 +149,6 @@ serve(async (req) => {
     formData.append("config[callback_redirect]", `${frontendBase}/payment/return?status=redirect&booking=${bookingId}`);
     // Server-to-server notification - edge function
     formData.append("config[callback_notification]", `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`);
-    formData.append("return_url", `${frontendBase}/payment/return?booking=${bookingId}`);
     
     // Swish requires callback_form for custom styling (no hosted template support)
     if (terminalType === "swish") {
@@ -175,7 +174,6 @@ serve(async (req) => {
       amount: amountInSEK,
       currency: "SEK",
       type: "paymentAndCapture",
-      return_url: `${frontendBase}/payment/return?booking=${bookingId}`,
       "config[callback_ok]": `${frontendBase}/payment/return?status=ok&booking=${bookingId}`,
       "config[callback_fail]": `${frontendBase}/payment/return?status=fail&booking=${bookingId}`,
       "config[callback_redirect]": `${frontendBase}/payment/return?status=redirect&booking=${bookingId}`,
