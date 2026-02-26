@@ -173,7 +173,7 @@ export const Header = () => {
               {user ? (
                 <div className="flex items-center gap-3">
                   <Link to="/settings">
-                    <Button variant="ghost" size="sm" className="gap-2">
+                    <Button variant="ghost" size="sm" className={`gap-2 ${useDarkText ? "" : "text-white hover:text-white/80 hover:bg-white/10"}`}>
                       <UserIcon className="w-4 h-4" />
                       Mitt konto
                     </Button>
