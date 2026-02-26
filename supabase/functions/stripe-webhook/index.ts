@@ -32,17 +32,14 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Get the signature from headers
     const signature = req.headers.get("stripe-signature");
     if (!signature) {
       throw new Error("No stripe-signature header found");
     }
     logStep("Signature found");
 
-    // Get the raw body
     const body = await req.text();
 
-    // Verify the webhook signature
     let event: Stripe.Event;
     try {
       event = await stripe.webhooks.constructEventAsync(
@@ -51,8 +48,7 @@ serve(async (req) => {
         webhookSecret
       );
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      logStep("Signature verification failed", { error: errorMessage });
+      logStep("Signature verification failed");
       return new Response(JSON.stringify({ error: "Invalid signature" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -60,20 +56,15 @@ serve(async (req) => {
     }
     logStep("Signature verified", { eventType: event.type });
 
-    // Create Supabase client with service role
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
-    // Handle checkout.session.completed event
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
-      logStep("Processing checkout.session.completed", {
-        sessionId: session.id,
-        metadata: session.metadata,
-      });
+      logStep("Processing checkout.session.completed");
 
       const bookingId = session.metadata?.booking_id;
       const bookingType = session.metadata?.booking_type;
@@ -86,14 +77,12 @@ serve(async (req) => {
         });
       }
 
-      const amountPaid = (session.amount_total || 0) / 100; // Convert from öre to SEK
-      logStep("Payment details", { bookingId, bookingType, amountPaid, userId });
+      const amountPaid = (session.amount_total || 0) / 100;
+      logStep("Payment details", { bookingType, amountPaid });
 
-      // Determine payment type based on existing payments for this booking
       let paymentType = "first_payment";
       
       if (bookingType === "trip") {
-        // Check existing payments for this trip booking
         const { data: existingPayments, error: paymentsError } = await supabaseClient
           .from("payments")
           .select("payment_type")
@@ -102,9 +91,8 @@ serve(async (req) => {
           .order("created_at", { ascending: true });
 
         if (paymentsError) {
-          logStep("Error fetching existing payments", { error: paymentsError.message });
+          logStep("Error fetching existing payments");
         } else if (existingPayments && existingPayments.length > 0) {
-          // Determine next payment type based on what's already paid
           const paidTypes = existingPayments.map(p => p.payment_type);
           if (!paidTypes.includes("first_payment")) {
             paymentType = "first_payment";
@@ -114,9 +102,8 @@ serve(async (req) => {
             paymentType = "final_payment";
           }
         }
-        logStep("Determined payment type", { paymentType, existingPayments: existingPayments?.length || 0 });
+        logStep("Determined payment type", { paymentType, existingCount: existingPayments?.length || 0 });
 
-        // Insert payment record
         const { error: insertError } = await supabaseClient
           .from("payments")
           .insert({
@@ -133,12 +120,11 @@ serve(async (req) => {
           });
 
         if (insertError) {
-          logStep("Error inserting payment", { error: insertError.message });
-          throw new Error(`Failed to insert payment: ${insertError.message}`);
+          logStep("Error inserting payment");
+          throw new Error("Failed to insert payment");
         }
         logStep("Payment record inserted successfully");
 
-        // Update trip booking status if fully paid
         const { data: tripBooking } = await supabaseClient
           .from("trip_bookings")
           .select("*, trips(*)")
@@ -146,14 +132,12 @@ serve(async (req) => {
           .maybeSingle();
 
         if (tripBooking) {
-          // First payment → confirmed, stays confirmed after that
           await supabaseClient
             .from("trip_bookings")
             .update({ status: "confirmed" })
             .eq("id", bookingId);
           logStep("Trip booking marked as confirmed");
 
-          // Send payment confirmation email
           try {
             const tripData = tripBooking.trips as { name?: string; departure_date?: string; return_date?: string } | null;
             const siteUrl = "https://studentresor.com";
@@ -179,25 +163,23 @@ serve(async (req) => {
             });
             logStep("Payment confirmation email sent");
           } catch (emailErr) {
-            logStep("Failed to send payment email", { error: String(emailErr) });
+            logStep("Failed to send payment email");
           }
         }
       } else {
-        // Handle legacy destination bookings
         const { error: updateError } = await supabaseClient
           .from("bookings")
           .update({ status: "confirmed" })
           .eq("id", bookingId);
 
         if (updateError) {
-          logStep("Error updating booking status", { error: updateError.message });
+          logStep("Error updating booking status");
         } else {
           logStep("Booking status updated to confirmed");
         }
       }
     }
 
-    // Send cancellation email when booking is cancelled
     if (event.type === "checkout.session.expired") {
       logStep("Checkout session expired (no action needed)");
     }
@@ -207,7 +189,7 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
+    logStep("ERROR");
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

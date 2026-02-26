@@ -139,7 +139,7 @@ serve(async (req: Request) => {
       .single();
 
     if (bookingError) {
-      console.error("Booking insert error:", bookingError);
+      console.error("Booking insert failed");
       throw new Error("Failed to create booking");
     }
 
@@ -160,7 +160,7 @@ serve(async (req: Request) => {
       .insert(travelerRows);
 
     if (travelersError) {
-      console.error("Travelers insert error:", travelersError);
+      console.error("Travelers insert failed");
       // Don't fail the whole booking
     }
 
@@ -197,7 +197,7 @@ serve(async (req: Request) => {
         });
       }
     } catch (emailErr) {
-      console.error("Failed to send booking confirmation email:", emailErr);
+      console.error("Failed to send booking confirmation email");
     }
 
     return new Response(JSON.stringify({ success: true, booking_id: booking.id }), {
@@ -205,7 +205,7 @@ serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error in create-trip-booking:", error);
+    console.error("Error in create-trip-booking");
     return new Response(JSON.stringify({ error: error.message || "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

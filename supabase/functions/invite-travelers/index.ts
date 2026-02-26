@@ -113,7 +113,7 @@ serve(async (req: Request) => {
 
     const { travelers, tripName, tripType, departureDate, returnDate, bookingId, bookerEmail, siteUrl } = await req.json();
 
-    console.log("Inviting travelers for booking:", bookingId);
+    console.log("Inviting travelers for booking, count:", (travelers as TravelerData[]).length);
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -129,7 +129,7 @@ serve(async (req: Request) => {
         .maybeSingle();
       if (tplData) template = tplData as EmailTemplate;
     } catch (e) {
-      console.error("Failed to fetch email template, using default:", e);
+      console.error("Failed to fetch email template, using default");
     }
 
     const templateVars = {
@@ -158,7 +158,7 @@ serve(async (req: Request) => {
         );
 
         if (existingUser) {
-          console.log(`User ${traveler.email} already exists, sending info email`);
+          console.log("Existing user found, sending info email");
 
           await sendPostmark(token, {
             From: "Studentresor <noreply@studentresor.com>",
@@ -183,8 +183,8 @@ serve(async (req: Request) => {
         });
 
         if (createError) {
-          console.error(`Error creating user ${traveler.email}:`, createError);
-          results.push({ email: traveler.email, status: "error", error: createError.message });
+          console.error("Error creating user account");
+          results.push({ email: traveler.email, status: "error", error: "Account creation failed" });
           continue;
         }
 
@@ -194,7 +194,7 @@ serve(async (req: Request) => {
             full_name: `${traveler.firstName} ${traveler.lastName}`,
             phone: traveler.phone,
           });
-          console.log(`Created account for ${traveler.email}, user id: ${createData.user.id}`);
+          console.log("Account created successfully");
         }
 
         const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
@@ -206,7 +206,7 @@ serve(async (req: Request) => {
         });
 
         if (linkError) {
-          console.error(`Error generating magic link for ${traveler.email}:`, linkError);
+          console.error("Error generating magic link");
           await sendPostmark(token, {
             From: "Studentresor <noreply@studentresor.com>",
             To: traveler.email,
@@ -228,8 +228,8 @@ serve(async (req: Request) => {
 
         results.push({ email: traveler.email, status: "invited" });
       } catch (travelerError) {
-        console.error(`Error processing traveler ${traveler.email}:`, travelerError);
-        results.push({ email: traveler.email, status: "error", error: String(travelerError) });
+        console.error("Error processing traveler invite");
+        results.push({ email: traveler.email, status: "error", error: "Processing failed" });
       }
     }
 
@@ -241,14 +241,18 @@ serve(async (req: Request) => {
       HtmlBody: buildAdminEmail(travelers as TravelerData[], tripName, tripType, departureDate, returnDate, bookingId, bookerEmail),
     });
 
-    console.log("Invite results:", results);
+    const statusSummary = results.reduce((acc, r) => {
+      acc[r.status] = (acc[r.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    console.log("Invite results summary:", statusSummary);
 
     return new Response(JSON.stringify({ success: true, results }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error in invite-travelers:", error);
+    console.error("Error in invite-travelers");
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

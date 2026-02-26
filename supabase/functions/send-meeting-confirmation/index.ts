@@ -108,7 +108,7 @@ serve(async (req: Request) => {
     if (!token) throw new Error("POSTMARK_SERVER_TOKEN is not set");
 
     const { firstName, lastName, email, school, date, time, meetLink } = await req.json();
-    console.log("Sending meeting confirmation to:", email);
+    console.log("Processing meeting confirmation request");
 
     if (!email || !firstName || !date || !time) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -131,7 +131,7 @@ serve(async (req: Request) => {
         .maybeSingle();
       if (tplData) template = tplData as EmailTemplate;
     } catch (e) {
-      console.error("Failed to fetch email template, using default:", e);
+      console.error("Failed to fetch email template, using default");
     }
 
     const vars = {
@@ -144,14 +144,14 @@ serve(async (req: Request) => {
 
     // Send to the visitor
     const visitorHtml = buildEmailHtml(template, vars, meetLink || undefined);
-    const visitorResult = await sendPostmark(token, {
+    await sendPostmark(token, {
       From: "Studentresor <noreply@studentresor.com>",
       To: email,
       Subject: replacePlaceholders(template.subject, vars),
       HtmlBody: visitorHtml,
       TextBody: stripHtml(visitorHtml),
     });
-    console.log("Visitor email sent:", visitorResult);
+    console.log("Visitor confirmation email sent");
 
     // Notify admin
     const adminHtml = `
@@ -167,21 +167,21 @@ serve(async (req: Request) => {
           ${meetLink ? `<p><a href="${meetLink}">Google Meet-länk</a></p>` : ""}
         </div>
       `;
-    const adminResult = await sendPostmark(token, {
+    await sendPostmark(token, {
       From: "Studentresor <noreply@studentresor.com>",
       To: "info@studentresor.com",
       Subject: `Ny mötesbokning: ${firstName} ${lastName} (${school})`,
       HtmlBody: adminHtml,
       TextBody: stripHtml(adminHtml),
     });
-    console.log("Admin email sent:", adminResult);
+    console.log("Admin notification email sent");
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error sending meeting confirmation:", error);
+    console.error("Error sending meeting confirmation");
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

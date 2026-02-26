@@ -14,7 +14,6 @@ const logStep = (step: string, details?: unknown) => {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -26,14 +25,12 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    // Create Supabase client with service role to bypass RLS
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
-    // Get authenticated user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
 
@@ -45,19 +42,17 @@ serve(async (req) => {
     const user = userData.user;
     if (!user?.email)
       throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated");
 
-    // Parse request body
     const { bookingId, amount, bookingType, paymentMethodType } = await req.json();
     if (!bookingId || !amount) {
       throw new Error("Missing bookingId or amount");
     }
-    logStep("Request parsed", { bookingId, amount, bookingType, paymentMethodType });
+    logStep("Request parsed", { bookingType, paymentMethodType });
 
     let bookingData: { id: string; name: string; description: string };
 
     if (bookingType === "trip") {
-      // Fetch from trip_bookings table - allow both booker and travelers
       const { data: tripBooking, error: tripError } = await supabaseClient
         .from("trip_bookings")
         .select("*, trips(name, trip_type)")
@@ -68,7 +63,6 @@ serve(async (req) => {
         throw new Error("Trip booking not found");
       }
 
-      // Verify user is either the booker or a traveler
       const isBooker = tripBooking.user_id === user.id;
       if (!isBooker) {
         const { data: traveler } = await supabaseClient
@@ -88,9 +82,8 @@ serve(async (req) => {
         name: tripBooking.trips?.name || "Resa",
         description: `Bokningsnummer: ${tripBooking.id.slice(0, 8).toUpperCase()} | ${tripBooking.trips?.trip_type || ""}`,
       };
-      logStep("Trip booking verified", { bookingId: tripBooking.id, isBooker });
+      logStep("Trip booking verified", { isBooker });
     } else {
-      // Fetch from bookings table (legacy destination bookings)
       const { data: booking, error: bookingError } = await supabaseClient
         .from("bookings")
         .select("*, destinations(name, country)")
@@ -107,15 +100,13 @@ serve(async (req) => {
         name: booking.destinations?.name || "Destination",
         description: `Bokningsnummer: ${booking.id.slice(0, 8).toUpperCase()} | ${booking.destinations?.country || ""}`,
       };
-      logStep("Booking verified", { bookingId: booking.id });
+      logStep("Booking verified");
     }
 
-    // Initialize Stripe
     const stripe = new Stripe(stripeKey, {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Check if customer exists
     const customers = await stripe.customers.list({
       email: user.email,
       limit: 1,
@@ -124,14 +115,13 @@ serve(async (req) => {
     let customerId: string | undefined;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
-      logStep("Existing customer found", { customerId });
+      logStep("Existing Stripe customer found");
     } else {
       logStep("No existing customer, will create one");
     }
 
     const origin = req.headers.get("origin") || "https://localhost:3000";
 
-    // Create checkout session with dynamic price
     const sessionParams: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -143,7 +133,7 @@ serve(async (req) => {
               name: `Resa: ${bookingData.name}`,
               description: bookingData.description,
             },
-            unit_amount: Math.round(Number(amount) * 100), // Convert to öre
+            unit_amount: Math.round(Number(amount) * 100),
           },
           quantity: 1,
         },
@@ -158,14 +148,13 @@ serve(async (req) => {
       },
     };
 
-    // If Klarna is requested, restrict payment methods to Klarna only
     if (paymentMethodType === "klarna") {
       sessionParams.payment_method_types = ["klarna"];
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
-    logStep("Checkout session created", { sessionId: session.id });
+    logStep("Checkout session created");
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

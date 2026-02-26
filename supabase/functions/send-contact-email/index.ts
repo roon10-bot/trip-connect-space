@@ -104,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Alla fält måste fyllas i");
     }
 
-    console.log(`Sending contact email from ${email} - Subject: ${subject}`);
+    console.log(`Processing contact form submission`);
 
     // Send the contact form to admin
     const adminHtml = `
@@ -125,7 +125,7 @@ const handler = async (req: Request): Promise<Response> => {
       TextBody: stripHtml(adminHtml),
     });
 
-    console.log("Contact email sent successfully:", data);
+    console.log("Contact email sent successfully");
 
     // Send confirmation email to the user using template
     try {
@@ -155,10 +155,10 @@ const handler = async (req: Request): Promise<Response> => {
           HtmlBody: confirmHtml,
           TextBody: stripHtml(confirmHtml),
         });
-        console.log("Confirmation email sent to:", email);
+        console.log("Confirmation email sent");
       }
     } catch (confirmError) {
-      console.error("Failed to send confirmation email:", confirmError);
+      console.error("Failed to send confirmation email");
     }
 
     return new Response(JSON.stringify({ success: true }), {
@@ -166,7 +166,7 @@ const handler = async (req: Request): Promise<Response> => {
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
-    console.error("Error in send-contact-email:", error);
+    console.error("Error in send-contact-email");
     return new Response(
       JSON.stringify({ error: error.message }),
       {
