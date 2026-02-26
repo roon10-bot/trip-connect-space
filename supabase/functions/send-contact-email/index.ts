@@ -35,6 +35,19 @@ function replacePlaceholders(text: string, vars: Record<string, string>): string
   return result;
 }
 
+function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/h[1-6]>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function buildEmailHtml(template: EmailTemplate, vars: Record<string, string>): string {
   const color = template.primary_color || "#0c4a6e";
   const heading = replacePlaceholders(template.heading, vars);
@@ -58,6 +71,7 @@ async function sendPostmark(token: string, payload: {
   ReplyTo?: string;
   Subject: string;
   HtmlBody: string;
+  TextBody?: string;
 }) {
   const res = await fetch(POSTMARK_API, {
     method: "POST",
@@ -93,12 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Sending contact email from ${email} - Subject: ${subject}`);
 
     // Send the contact form to admin
-    const data = await sendPostmark(token, {
-      From: "Studentresor Kontakt <noreply@studentresor.com>",
-      To: "info@studentresor.com",
-      ReplyTo: email,
-      Subject: `Kontaktformulär: ${subject}`,
-      HtmlBody: `
+    const adminHtml = `
         <h2>Nytt meddelande från kontaktformuläret</h2>
         <p><strong>Namn:</strong> ${firstName} ${lastName}</p>
         <p><strong>E-post:</strong> ${email}</p>
@@ -106,7 +115,14 @@ const handler = async (req: Request): Promise<Response> => {
         <hr />
         <p><strong>Meddelande:</strong></p>
         <p>${message.replace(/\n/g, "<br />")}</p>
-      `,
+      `;
+    const data = await sendPostmark(token, {
+      From: "Studentresor Kontakt <noreply@studentresor.com>",
+      To: "info@studentresor.com",
+      ReplyTo: email,
+      Subject: `Kontaktformulär: ${subject}`,
+      HtmlBody: adminHtml,
+      TextBody: stripHtml(adminHtml),
     });
 
     console.log("Contact email sent successfully:", data);
@@ -131,11 +147,13 @@ const handler = async (req: Request): Promise<Response> => {
           subject,
         };
 
+        const confirmHtml = buildEmailHtml(tplData as EmailTemplate, vars);
         await sendPostmark(token, {
           From: "Studentresor <noreply@studentresor.com>",
           To: email,
           Subject: replacePlaceholders((tplData as EmailTemplate).subject, vars),
-          HtmlBody: buildEmailHtml(tplData as EmailTemplate, vars),
+          HtmlBody: confirmHtml,
+          TextBody: stripHtml(confirmHtml),
         });
         console.log("Confirmation email sent to:", email);
       }
