@@ -98,6 +98,45 @@ serve(async (req) => {
         logStep("Booking status updated to confirmed");
       }
 
+      // Send payment confirmation email
+      try {
+        const { data: bookingData } = await supabaseClient
+          .from("trip_bookings")
+          .select("first_name, email, total_price, trips(name, departure_date, return_date)")
+          .eq("id", payment.trip_booking_id)
+          .maybeSingle();
+
+        if (bookingData) {
+          const trip = bookingData.trips as any;
+          const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+          const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+          await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${supabaseKey}`,
+            },
+            body: JSON.stringify({
+              template_key: "payment_confirmation",
+              to_email: bookingData.email,
+              variables: {
+                first_name: bookingData.first_name,
+                trip_name: trip?.name || "",
+                departure_date: trip?.departure_date || "",
+                return_date: trip?.return_date || "",
+                amount: String(amount),
+                total_price: String(bookingData.total_price),
+              },
+              action_url: "https://studentresor.com/dashboard",
+            }),
+          });
+          logStep("Payment confirmation email sent", { to: bookingData.email });
+        }
+      } catch (emailErr) {
+        logStep("Failed to send payment confirmation email", { error: String(emailErr) });
+      }
+
       logStep("Payment completed", { paymentId: payment.id, totalPaid });
     } else if (status === "DECLINED" || status === "ERROR") {
       await supabaseClient
