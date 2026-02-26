@@ -73,7 +73,7 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { template_key, to_email, variables, action_url } = await req.json();
+    const { template_key, to_email, variables, action_url, subject_override, body_override } = await req.json();
 
     if (!template_key || !to_email) {
       return new Response(JSON.stringify({ error: "template_key and to_email are required" }), {
@@ -100,6 +100,10 @@ serve(async (req: Request) => {
 
     const template = tplData as EmailTemplate;
     const vars = variables || {};
+
+    // Allow admin overrides for subject and body
+    if (subject_override) template.subject = subject_override;
+    if (body_override) template.body_text = body_override;
 
     const subject = replacePlaceholders(template.subject, vars);
     const html = buildEmailHtml(template, vars, action_url);
