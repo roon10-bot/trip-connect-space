@@ -17,6 +17,13 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -53,6 +60,8 @@ import {
   History,
   Edit,
   Bell,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -74,6 +83,9 @@ export const AdminBookingDetailDialog = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [sendingReminder, setSendingReminder] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailResult, setEmailResult] = useState<{ success: boolean; message: string } | null>(null);
 
   // Editable fields
   const [editData, setEditData] = useState({
@@ -140,7 +152,81 @@ export const AdminBookingDetailDialog = ({
     enabled: open,
   });
 
-  // Log activity helper
+  // Email templates for manual sending
+  const { data: emailTemplates } = useQuery({
+    queryKey: ["admin-email-templates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_templates")
+        .select("template_key, name")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
+  // Available templates for admin sending (filter out irrelevant ones)
+  const sendableTemplates = emailTemplates?.filter((t) =>
+    ["booking_confirmation", "payment_reminder", "payment_confirmation", "booking_cancelled", "welcome"].includes(t.template_key)
+  );
+
+  // Send manual email
+  const handleSendEmail = async () => {
+    if (!selectedTemplate) return;
+    setSendingEmail(true);
+    setEmailResult(null);
+    try {
+      const trip = booking.trips as any;
+      const variables: Record<string, string> = {
+        first_name: booking.first_name,
+        last_name: booking.last_name,
+        trip_name: trip?.name || "",
+        departure_date: trip?.departure_date || "",
+        return_date: trip?.return_date || "",
+        total_price: String(booking.total_price),
+        travelers: String(booking.travelers),
+      };
+
+      const { error } = await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          template_key: selectedTemplate,
+          to_email: booking.email,
+          variables,
+          action_url: "https://studentresor.com/dashboard",
+        },
+      });
+
+      if (error) throw error;
+
+      const templateName = sendableTemplates?.find((t) => t.template_key === selectedTemplate)?.name || selectedTemplate;
+      await logActivity("email_sent", `${templateName} skickad manuellt till ${booking.email}`, {
+        template: selectedTemplate,
+        to: booking.email,
+        manual: true,
+      });
+
+      setEmailResult({ success: true, message: `${templateName} skickades till ${booking.email}` });
+      toast.success(`Mail skickat till ${booking.email}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-booking-activity", booking.id] });
+    } catch (err: any) {
+      const templateName = sendableTemplates?.find((t) => t.template_key === selectedTemplate)?.name || selectedTemplate;
+      await logActivity("email_failed", `${templateName} kunde inte skickas till ${booking.email}: ${err.message || "Okänt fel"}`, {
+        template: selectedTemplate,
+        to: booking.email,
+        manual: true,
+        error: err.message,
+      });
+
+      setEmailResult({ success: false, message: `Kunde inte skicka: ${err.message || "Okänt fel"}` });
+      toast.error("Kunde inte skicka mailet");
+      queryClient.invalidateQueries({ queryKey: ["admin-booking-activity", booking.id] });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+
   const logActivity = async (
     activityType: string,
     description: string,
@@ -291,11 +377,12 @@ export const AdminBookingDetailDialog = ({
         </DialogHeader>
 
         <Tabs defaultValue="details" className="mt-2 flex flex-col">
-          <TabsList className="w-full grid grid-cols-5">
+          <TabsList className="w-full grid grid-cols-6">
             <TabsTrigger value="details">Kundinfo</TabsTrigger>
             <TabsTrigger value="travelers">Resenärer</TabsTrigger>
             <TabsTrigger value="payments">Betalning</TabsTrigger>
             <TabsTrigger value="documents">Dokument</TabsTrigger>
+            <TabsTrigger value="email">E-post</TabsTrigger>
             <TabsTrigger value="history">Historik</TabsTrigger>
           </TabsList>
 
@@ -546,6 +633,71 @@ export const AdminBookingDetailDialog = ({
                 <p>Inga dokument uppladdade</p>
               </div>
             )}
+          </TabsContent>
+
+          {/* E-POST */}
+          <TabsContent value="email" className="mt-4 space-y-6 min-h-[400px]">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Välj e-postmall</Label>
+                <Select value={selectedTemplate} onValueChange={(v) => { setSelectedTemplate(v); setEmailResult(null); }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj mall..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sendableTemplates?.map((t) => (
+                      <SelectItem key={t.template_key} value={t.template_key}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="rounded-lg border p-3 bg-muted/30 text-sm space-y-1">
+                <p><span className="text-muted-foreground">Mottagare:</span> {booking.email}</p>
+                <p><span className="text-muted-foreground">Kund:</span> {booking.first_name} {booking.last_name}</p>
+                <p><span className="text-muted-foreground">Resa:</span> {booking.trips?.name}</p>
+              </div>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button disabled={!selectedTemplate || sendingEmail} className="w-full">
+                    {sendingEmail ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4 mr-2" />
+                    )}
+                    {sendingEmail ? "Skickar..." : "Skicka mail"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Bekräfta utskick</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Skicka <strong>{sendableTemplates?.find((t) => t.template_key === selectedTemplate)?.name}</strong> till <strong>{booking.email}</strong>?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleSendEmail}>
+                      Skicka
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              {emailResult && (
+                <div className={`flex items-center gap-3 p-4 rounded-lg border ${emailResult.success ? "bg-primary/5 border-primary/20" : "bg-destructive/5 border-destructive/20"}`}>
+                  {emailResult.success ? (
+                    <CheckCircle className="w-5 h-5 text-primary shrink-0" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-destructive shrink-0" />
+                  )}
+                  <p className="text-sm">{emailResult.message}</p>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* HISTORIK */}
