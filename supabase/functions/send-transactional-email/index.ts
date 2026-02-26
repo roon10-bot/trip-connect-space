@@ -27,6 +27,19 @@ function replacePlaceholders(text: string, vars: Record<string, string>): string
   return result;
 }
 
+function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/h[1-6]>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function buildEmailHtml(template: EmailTemplate, vars: Record<string, string>, actionUrl?: string): string {
   const color = template.primary_color || "#0c4a6e";
   const heading = replacePlaceholders(template.heading, vars);
@@ -120,6 +133,7 @@ serve(async (req: Request) => {
         To: to_email,
         Subject: subject,
         HtmlBody: html,
+        TextBody: stripHtml(html),
       }),
     });
 

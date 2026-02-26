@@ -27,6 +27,19 @@ function replacePlaceholders(text: string, vars: Record<string, string>): string
   return result;
 }
 
+function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/h[1-6]>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function buildEmailHtml(template: EmailTemplate, vars: Record<string, string>, actionUrl?: string): string {
   const color = template.primary_color || "#1a73e8";
   const heading = replacePlaceholders(template.heading, vars);
@@ -57,6 +70,7 @@ async function sendPostmark(token: string, payload: {
   To: string;
   Subject: string;
   HtmlBody: string;
+  TextBody?: string;
 }) {
   const res = await fetch(POSTMARK_API, {
     method: "POST",
@@ -129,20 +143,18 @@ serve(async (req: Request) => {
     };
 
     // Send to the visitor
+    const visitorHtml = buildEmailHtml(template, vars, meetLink || undefined);
     const visitorResult = await sendPostmark(token, {
-From: "Studentresor <noreply@studentresor.com>",
+      From: "Studentresor <noreply@studentresor.com>",
       To: email,
       Subject: replacePlaceholders(template.subject, vars),
-      HtmlBody: buildEmailHtml(template, vars, meetLink || undefined),
+      HtmlBody: visitorHtml,
+      TextBody: stripHtml(visitorHtml),
     });
     console.log("Visitor email sent:", visitorResult);
 
     // Notify admin
-    const adminResult = await sendPostmark(token, {
-From: "Studentresor <noreply@studentresor.com>",
-      To: "info@studentresor.com",
-      Subject: `Ny mötesbokning: ${firstName} ${lastName} (${school})`,
-      HtmlBody: `
+    const adminHtml = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #1a1a2e;">Ny mötesbokning</h1>
           <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -154,7 +166,13 @@ From: "Studentresor <noreply@studentresor.com>",
           </div>
           ${meetLink ? `<p><a href="${meetLink}">Google Meet-länk</a></p>` : ""}
         </div>
-      `,
+      `;
+    const adminResult = await sendPostmark(token, {
+      From: "Studentresor <noreply@studentresor.com>",
+      To: "info@studentresor.com",
+      Subject: `Ny mötesbokning: ${firstName} ${lastName} (${school})`,
+      HtmlBody: adminHtml,
+      TextBody: stripHtml(adminHtml),
     });
     console.log("Admin email sent:", adminResult);
 
