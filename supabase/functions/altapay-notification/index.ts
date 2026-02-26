@@ -150,6 +150,44 @@ serve(async (req) => {
           console.error(`${LOG_PREFIX} Error inserting completed payment:`, insertError);
         } else {
           console.log(`${LOG_PREFIX} Payment created as completed for booking ${bookingId}, amount ${parsedAmount}, type ${paymentType}, txn ${finalTransactionId}`);
+
+          // Send payment confirmation email
+          try {
+            const { data: bookingData } = await supabase
+              .from("trip_bookings")
+              .select("first_name, email, total_price, trips(name, departure_date, return_date)")
+              .eq("id", bookingId)
+              .maybeSingle();
+
+            if (bookingData) {
+              const trip = bookingData.trips as any;
+              const siteUrl = "https://studentresor.com";
+
+              await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${supabaseKey}`,
+                },
+                body: JSON.stringify({
+                  template_key: "payment_confirmation",
+                  to_email: bookingData.email,
+                  variables: {
+                    first_name: bookingData.first_name,
+                    trip_name: trip?.name || "",
+                    departure_date: trip?.departure_date || "",
+                    return_date: trip?.return_date || "",
+                    amount: String(parsedAmount),
+                    total_price: String(bookingData.total_price),
+                  },
+                  action_url: `${siteUrl}/dashboard`,
+                }),
+              });
+              console.log(`${LOG_PREFIX} Payment confirmation email sent to ${bookingData.email}`);
+            }
+          } catch (emailErr) {
+            console.error(`${LOG_PREFIX} Failed to send payment confirmation email:`, emailErr);
+          }
         }
 
         // Confirm the booking if still pending
