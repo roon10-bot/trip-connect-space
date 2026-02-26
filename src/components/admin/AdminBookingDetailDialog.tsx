@@ -86,6 +86,8 @@ export const AdminBookingDetailDialog = ({
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailResult, setEmailResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [editSubject, setEditSubject] = useState("");
+  const [editBody, setEditBody] = useState("");
 
   // Editable fields
   const [editData, setEditData] = useState({
@@ -152,13 +154,13 @@ export const AdminBookingDetailDialog = ({
     enabled: open,
   });
 
-  // Email templates for manual sending
+  // Email templates for manual sending (fetch full content)
   const { data: emailTemplates } = useQuery({
-    queryKey: ["admin-email-templates"],
+    queryKey: ["admin-email-templates-full"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("email_templates")
-        .select("template_key, name")
+        .select("template_key, name, subject, heading, body_text, button_text, footer_text")
         .order("name");
       if (error) throw error;
       return data;
@@ -171,29 +173,54 @@ export const AdminBookingDetailDialog = ({
     ["booking_confirmation", "payment_reminder", "payment_confirmation", "booking_cancelled", "welcome"].includes(t.template_key)
   );
 
-  // Send manual email
+  // Helper to replace placeholders for preview
+  const getVariables = () => {
+    const trip = booking.trips as any;
+    return {
+      first_name: booking.first_name,
+      last_name: booking.last_name,
+      trip_name: trip?.name || "",
+      departure_date: trip?.departure_date || "",
+      return_date: trip?.return_date || "",
+      total_price: String(booking.total_price),
+      travelers: String(booking.travelers),
+    };
+  };
+
+  const replacePlaceholders = (text: string, vars: Record<string, string>) => {
+    let result = text;
+    for (const [key, value] of Object.entries(vars)) {
+      result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
+    }
+    return result;
+  };
+
+  // When template is selected, load its content into editable fields
+  const handleTemplateSelect = (templateKey: string) => {
+    setSelectedTemplate(templateKey);
+    setEmailResult(null);
+    const tpl = emailTemplates?.find((t) => t.template_key === templateKey);
+    if (tpl) {
+      const vars = getVariables();
+      setEditSubject(replacePlaceholders(tpl.subject, vars));
+      setEditBody(replacePlaceholders(tpl.body_text, vars));
+    }
+  };
+
+  // Send manual email with overrides
   const handleSendEmail = async () => {
     if (!selectedTemplate) return;
     setSendingEmail(true);
     setEmailResult(null);
     try {
-      const trip = booking.trips as any;
-      const variables: Record<string, string> = {
-        first_name: booking.first_name,
-        last_name: booking.last_name,
-        trip_name: trip?.name || "",
-        departure_date: trip?.departure_date || "",
-        return_date: trip?.return_date || "",
-        total_price: String(booking.total_price),
-        travelers: String(booking.travelers),
-      };
-
       const { error } = await supabase.functions.invoke("send-transactional-email", {
         body: {
           template_key: selectedTemplate,
           to_email: booking.email,
-          variables,
+          variables: {},
           action_url: "https://studentresor.com/dashboard",
+          subject_override: editSubject,
+          body_override: editBody,
         },
       });
 
@@ -636,11 +663,11 @@ export const AdminBookingDetailDialog = ({
           </TabsContent>
 
           {/* E-POST */}
-          <TabsContent value="email" className="mt-4 space-y-6 min-h-[400px]">
+          <TabsContent value="email" className="mt-4 space-y-4 min-h-[400px]">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Välj e-postmall</Label>
-                <Select value={selectedTemplate} onValueChange={(v) => { setSelectedTemplate(v); setEmailResult(null); }}>
+                <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
                   <SelectTrigger>
                     <SelectValue placeholder="Välj mall..." />
                   </SelectTrigger>
@@ -654,38 +681,67 @@ export const AdminBookingDetailDialog = ({
                 </Select>
               </div>
 
-              <div className="rounded-lg border p-3 bg-muted/30 text-sm space-y-1">
-                <p><span className="text-muted-foreground">Mottagare:</span> {booking.email}</p>
-                <p><span className="text-muted-foreground">Kund:</span> {booking.first_name} {booking.last_name}</p>
-                <p><span className="text-muted-foreground">Resa:</span> {booking.trips?.name}</p>
-              </div>
+              {selectedTemplate && (
+                <>
+                  <div className="rounded-lg border p-3 bg-muted/30 text-sm">
+                    <span className="text-muted-foreground">Mottagare:</span> {booking.email}
+                  </div>
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button disabled={!selectedTemplate || sendingEmail} className="w-full">
-                    {sendingEmail ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4 mr-2" />
-                    )}
-                    {sendingEmail ? "Skickar..." : "Skicka mail"}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Bekräfta utskick</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Skicka <strong>{sendableTemplates?.find((t) => t.template_key === selectedTemplate)?.name}</strong> till <strong>{booking.email}</strong>?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleSendEmail}>
-                      Skicka
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                  <div className="space-y-2">
+                    <Label>Ämne</Label>
+                    <Input
+                      value={editSubject}
+                      onChange={(e) => setEditSubject(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Brödtext</Label>
+                    <textarea
+                      value={editBody}
+                      onChange={(e) => setEditBody(e.target.value)}
+                      rows={8}
+                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Använd \n för radbrytningar. Variabler som {"{{first_name}}"} är redan ersatta.
+                    </p>
+                  </div>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button disabled={sendingEmail} className="w-full">
+                        {sendingEmail ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4 mr-2" />
+                        )}
+                        {sendingEmail ? "Skickar..." : "Skicka mail"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Bekräfta utskick</AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                          <div className="space-y-3">
+                            <p>Skicka till <strong>{booking.email}</strong>?</p>
+                            <div className="rounded border p-3 bg-muted/30 text-sm space-y-1">
+                              <p><strong>Ämne:</strong> {editSubject}</p>
+                              <p className="text-muted-foreground whitespace-pre-line"><strong>Innehåll:</strong> {editBody.slice(0, 200)}{editBody.length > 200 ? "..." : ""}</p>
+                            </div>
+                          </div>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleSendEmail}>
+                          Skicka
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
 
               {emailResult && (
                 <div className={`flex items-center gap-3 p-4 rounded-lg border ${emailResult.success ? "bg-primary/5 border-primary/20" : "bg-destructive/5 border-destructive/20"}`}>
