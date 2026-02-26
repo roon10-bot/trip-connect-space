@@ -173,8 +173,7 @@ serve(async (req: Request) => {
         .maybeSingle();
 
       if (tripData) {
-        const siteUrl = Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", "") 
-          ? "https://trip-connect-space.lovable.app" : "https://trip-connect-space.lovable.app";
+        const siteUrl = "https://studentresor.com";
 
         await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-transactional-email`, {
           method: "POST",

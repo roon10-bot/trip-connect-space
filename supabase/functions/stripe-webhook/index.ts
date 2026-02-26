@@ -156,7 +156,7 @@ serve(async (req) => {
           // Send payment confirmation email
           try {
             const tripData = tripBooking.trips as { name?: string; departure_date?: string; return_date?: string } | null;
-            const siteUrl = "https://trip-connect-space.lovable.app";
+            const siteUrl = "https://studentresor.com";
 
             await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-transactional-email`, {
               method: "POST",
