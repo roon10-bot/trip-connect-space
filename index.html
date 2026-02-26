@@ -37,6 +37,12 @@
     <meta name="author" content="Studentlife Sweden AB" />
     <meta name="keywords" content="studentresor, studentresa, studentresa kroatien, segelveckan, splitveckan, studentveckan, studentresa 2026, studentresor kroatien" />
     <meta name="robots" content="index, follow" />
+    <script>
+      // Block indexing on non-production domains (prevents duplicate content)
+      if (window.location.hostname !== 'www.studentresor.com' && window.location.hostname !== 'studentresor.com') {
+        document.querySelector('meta[name="robots"]').setAttribute('content', 'noindex, nofollow');
+      }
+    </script>
 
     <meta property="og:title" content="Studentresor – Studentresor till Kroatien" />
     <meta property="og:description" content="Boka din studentresa till Kroatien. Segelveckan, Splitveckan och Studentveckan med flyg, boende och event. Resegaranti ingår." />
