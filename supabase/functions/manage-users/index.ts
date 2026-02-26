@@ -104,7 +104,6 @@ serve(async (req: Request) => {
         });
       }
 
-      // Check if user already has admin role
       const { data: existingRole } = await supabaseAdmin
         .from("user_roles")
         .select("id")
@@ -113,14 +112,12 @@ serve(async (req: Request) => {
         .maybeSingle();
 
       if (existingRole) {
-        // Remove admin role
         await supabaseAdmin.from("user_roles").delete().eq("id", existingRole.id);
         return new Response(JSON.stringify({ success: true, isAdmin: false }), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       } else {
-        // Add admin role
         await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: "admin" });
         return new Response(JSON.stringify({ success: true, isAdmin: true }), {
           status: 200,
@@ -139,7 +136,6 @@ serve(async (req: Request) => {
         });
       }
 
-      // Don't allow deleting yourself
       if (userId === caller.id) {
         return new Response(JSON.stringify({ error: "Cannot delete your own account" }), {
           status: 400,
@@ -147,8 +143,7 @@ serve(async (req: Request) => {
         });
       }
 
-      // Delete all related data first to avoid foreign key constraints
-      // 1. Get trip bookings for this user
+      // Delete all related data first
       const { data: tripBookings } = await supabaseAdmin
         .from("trip_bookings")
         .select("id")
@@ -156,18 +151,13 @@ serve(async (req: Request) => {
 
       if (tripBookings && tripBookings.length > 0) {
         const bookingIds = tripBookings.map((b) => b.id);
-        // Delete payments linked to trip bookings
         await supabaseAdmin.from("payments").delete().in("trip_booking_id", bookingIds);
-        // Delete travelers linked to trip bookings
         await supabaseAdmin.from("trip_booking_travelers").delete().in("trip_booking_id", bookingIds);
-        // Delete trip bookings
         await supabaseAdmin.from("trip_bookings").delete().eq("user_id", userId);
       }
 
-      // 2. Delete payments directly linked to user
       await supabaseAdmin.from("payments").delete().eq("user_id", userId);
 
-      // 3. Get bookings for this user
       const { data: bookings } = await supabaseAdmin
         .from("bookings")
         .select("id")
@@ -181,11 +171,9 @@ serve(async (req: Request) => {
         await supabaseAdmin.from("bookings").delete().eq("user_id", userId);
       }
 
-      // 4. Delete profile and roles
       await supabaseAdmin.from("profiles").delete().eq("user_id", userId);
       await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
 
-      // 5. Delete the auth user
       const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
       if (deleteError) {
@@ -203,8 +191,8 @@ serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error in manage-users:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("Error in manage-users function");
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
