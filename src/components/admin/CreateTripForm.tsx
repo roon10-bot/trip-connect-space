@@ -289,6 +289,9 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
     createTripMutation.mutate(values);
   };
 
+  const selectedTripType = form.watch("trip_type");
+  const isSegel = selectedTripType === "seglingsvecka";
+
   const firstPaymentAmount = Number(form.watch("first_payment_amount") || 0);
   const secondPaymentAmount = Number(form.watch("second_payment_amount") || 0);
   const finalPaymentAmount = Number(form.watch("final_payment_amount") || 0);
@@ -358,47 +361,49 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                 />
               </div>
 
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className={cn("grid gap-4", isSegel ? "md:grid-cols-2" : "md:grid-cols-3")}>
                 <FormField
                   control={form.control}
                   name="capacity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Total kapacitet</FormLabel>
+                      <FormLabel>{isSegel ? "Antal segelbåtar" : "Total kapacitet"}</FormLabel>
                       <FormControl>
                         <Input type="number" min={1} {...field} />
                       </FormControl>
-                      <FormDescription>Antal platser totalt</FormDescription>
+                      <FormDescription>{isSegel ? "Antal båtar tillgängliga" : "Antal platser totalt"}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="min_persons"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Min personer/boende</FormLabel>
-                      <FormControl>
-                        <Input type="number" min={1} {...field} />
-                      </FormControl>
-                      <FormDescription>Minsta antal per lägenhet</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!isSegel && (
+                  <FormField
+                    control={form.control}
+                    name="min_persons"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Min personer/boende</FormLabel>
+                        <FormControl>
+                          <Input type="number" min={1} {...field} />
+                        </FormControl>
+                        <FormDescription>Minsta antal per lägenhet</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}
                   name="max_persons"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Max personer/boende</FormLabel>
+                      <FormLabel>Max antal personer</FormLabel>
                       <FormControl>
                         <Input type="number" min={1} {...field} />
                       </FormControl>
-                      <FormDescription>Högsta antal per lägenhet</FormDescription>
+                      <FormDescription>{isSegel ? "Max antal resenärer" : "Högsta antal per lägenhet"}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -406,20 +411,22 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="base_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Baspris för boende (kr)</FormLabel>
-                      <FormControl>
-                        <Input type="number" min={0} placeholder="t.ex. 15000" {...field} />
-                      </FormControl>
-                      <FormDescription>Inköpspris för lägenheten (20% marginal adderas)</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!isSegel && (
+                  <FormField
+                    control={form.control}
+                    name="base_price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Baspris för boende (kr)</FormLabel>
+                        <FormControl>
+                          <Input type="number" min={0} placeholder="t.ex. 15000" {...field} />
+                        </FormControl>
+                        <FormDescription>Inköpspris för lägenheten (20% marginal adderas)</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}
@@ -671,37 +678,39 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               </div>
             </div>
 
-            {/* Accommodation Section */}
+            {/* Accommodation / Boat Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">Boende / Båtinformation</h3>
+              <h3 className="text-lg font-semibold border-b pb-2">{isSegel ? "Båt" : "Boende / Båtinformation"}</h3>
               
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Antal rum</label>
+                  <label className="text-sm font-medium">{isSegel ? "Antal kabiner" : "Antal rum"}</label>
                   <Input
                     type="number"
                     min={0}
-                    placeholder="t.ex. 3"
+                    placeholder={isSegel ? "t.ex. 4" : "t.ex. 3"}
                     value={accommodationRooms}
                     onChange={(e) => setAccommodationRooms(e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Storlek (m²)</label>
-                  <Input
-                    type="number"
-                    min={0}
-                    placeholder="t.ex. 85"
-                    value={accommodationSizeSqm}
-                    onChange={(e) => setAccommodationSizeSqm(e.target.value)}
-                  />
-                </div>
+                {!isSegel && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Storlek (m²)</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="t.ex. 85"
+                      value={accommodationSizeSqm}
+                      onChange={(e) => setAccommodationSizeSqm(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Faciliteter</label>
                 <Input
-                  placeholder="t.ex. Pool, WiFi, Balkong, AC (kommaseparerat)"
+                  placeholder={isSegel ? "t.ex. Soltak, WiFi, Kök, AC (kommaseparerat)" : "t.ex. Pool, WiFi, Balkong, AC (kommaseparerat)"}
                   value={accommodationFacilities}
                   onChange={(e) => setAccommodationFacilities(e.target.value)}
                 />
@@ -709,18 +718,18 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Adress</label>
+                <label className="text-sm font-medium">{isSegel ? "Avgångshamn" : "Adress"}</label>
                 <Input
-                  placeholder="t.ex. Riva 21000, Split, Kroatien"
+                  placeholder={isSegel ? "t.ex. Trogir Marina, Kroatien" : "t.ex. Riva 21000, Split, Kroatien"}
                   value={accommodationAddress}
                   onChange={(e) => setAccommodationAddress(e.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Beskrivning av boende</label>
+                <label className="text-sm font-medium">{isSegel ? "Beskrivning av båten" : "Beskrivning av boende"}</label>
                 <Textarea
-                  placeholder="Kort beskrivning av boendet eller båten..."
+                  placeholder={isSegel ? "Kort beskrivning av båten, t.ex. modell och specifikationer..." : "Kort beskrivning av boendet eller båten..."}
                   className="min-h-[80px]"
                   value={accommodationDescription}
                   onChange={(e) => setAccommodationDescription(e.target.value)}
