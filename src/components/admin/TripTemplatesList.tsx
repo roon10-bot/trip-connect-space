@@ -1,15 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -18,13 +34,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,13 +45,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Copy, FileText, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, FileText, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const TRIP_TYPE_LABELS: Record<string, string> = {
   seglingsvecka: "Seglingsveckan",
   splitveckan: "Splitveckan",
   studentveckan: "Studentveckan",
 };
+
+const splitBoatNames = ["Inez", "Noah", "Elma", "Irma", "Alfred", "Tove"];
 
 interface TripTemplate {
   id: string;
@@ -52,92 +64,30 @@ interface TripTemplate {
   capacity: number | null;
   min_persons: number | null;
   max_persons: number | null;
-  base_price: number | null;
-  base_price_accommodation: number | null;
-  base_price_flight: number | null;
-  base_price_extras: number | null;
-  price: number | null;
-  departure_location: string | null;
   description: string | null;
   accommodation_rooms: number | null;
   accommodation_size_sqm: number | null;
   accommodation_facilities: string[] | null;
   accommodation_address: string | null;
   accommodation_description: string | null;
-  first_payment_amount: number | null;
-  first_payment_type: string | null;
-  second_payment_amount: number | null;
-  second_payment_type: string | null;
-  final_payment_amount: number | null;
-  final_payment_type: string | null;
   created_at: string;
   updated_at: string;
 }
 
-// Define which fields are available per section
-const FIELD_SECTIONS = [
-  {
-    label: "Grundinformation",
-    fields: [
-      { key: "name", label: "Namn på resa", type: "text" },
-      { key: "capacity", label: "Kapacitet / Antal båtar", type: "number" },
-      { key: "min_persons", label: "Min antal personer", type: "number" },
-      { key: "max_persons", label: "Max antal personer", type: "number" },
-      { key: "departure_location", label: "Avgångsort", type: "text" },
-      { key: "description", label: "Beskrivning", type: "textarea" },
-    ],
-  },
-  {
-    label: "Prissättning",
-    fields: [
-      { key: "price", label: "Pris (kr)", type: "number" },
-      { key: "base_price", label: "Baspris", type: "number" },
-      { key: "base_price_accommodation", label: "Baspris boende", type: "number" },
-      { key: "base_price_flight", label: "Baspris flyg", type: "number" },
-      { key: "base_price_extras", label: "Baspris extras", type: "number" },
-    ],
-  },
-  {
-    label: "Boende",
-    fields: [
-      { key: "accommodation_rooms", label: "Antal rum/kabiner", type: "number" },
-      { key: "accommodation_size_sqm", label: "Storlek (m²)", type: "number" },
-      { key: "accommodation_address", label: "Adress", type: "text" },
-      { key: "accommodation_description", label: "Beskrivning av boende", type: "textarea" },
-      { key: "accommodation_facilities", label: "Faciliteter (kommaseparerat)", type: "text" },
-    ],
-  },
-  {
-    label: "Betalningsplan",
-    fields: [
-      { key: "first_payment_amount", label: "Första betalning", type: "number" },
-      { key: "first_payment_type", label: "Typ (percent/amount)", type: "select_payment" },
-      { key: "second_payment_amount", label: "Andra betalning", type: "number" },
-      { key: "second_payment_type", label: "Typ (percent/amount)", type: "select_payment" },
-      { key: "final_payment_amount", label: "Slutbetalning", type: "number" },
-      { key: "final_payment_type", label: "Typ (percent/amount)", type: "select_payment" },
-    ],
-  },
-];
+const templateSchema = z.object({
+  template_name: z.string().min(2, "Mallnamn krävs"),
+  trip_type: z.enum(["seglingsvecka", "splitveckan", "studentveckan"], {
+    required_error: "Välj en restyp",
+  }),
+  name: z.string().optional(),
+  capacity: z.coerce.number().min(1).optional(),
+  min_persons: z.coerce.number().min(1).optional(),
+  max_persons: z.coerce.number().min(1).optional(),
+});
 
-const defaultFormData = (): Record<string, string> => {
-  const data: Record<string, string> = {
-    template_name: "",
-    trip_type: "splitveckan",
-  };
-  FIELD_SECTIONS.forEach((s) =>
-    s.fields.forEach((f) => {
-      data[f.key] = "";
-    })
-  );
-  return data;
-};
+type TemplateFormValues = z.infer<typeof templateSchema>;
 
-const defaultEnabledFields = (): Record<string, boolean> => {
-  const map: Record<string, boolean> = {};
-  FIELD_SECTIONS.forEach((s) => s.fields.forEach((f) => (map[f.key] = false)));
-  return map;
-};
+// ─── Template Form Dialog ───────────────────────────────────────────
 
 interface TemplateFormDialogProps {
   open: boolean;
@@ -148,103 +98,78 @@ interface TemplateFormDialogProps {
 }
 
 const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: TemplateFormDialogProps) => {
-  const [formData, setFormData] = useState<Record<string, string>>(defaultFormData());
-  const [enabledFields, setEnabledFields] = useState<Record<string, boolean>>(defaultEnabledFields());
+  const [accommodationRooms, setAccommodationRooms] = useState("");
+  const [accommodationSizeSqm, setAccommodationSizeSqm] = useState("");
+  const [accommodationFacilities, setAccommodationFacilities] = useState("");
+  const [accommodationAddress, setAccommodationAddress] = useState("");
+  const [accommodationDescription, setAccommodationDescription] = useState("");
 
-  // Reset form when dialog opens
-  useState(() => {
-    if (template) {
-      const data: Record<string, string> = {
-        template_name: template.template_name,
-        trip_type: template.trip_type,
-      };
-      const enabled: Record<string, boolean> = {};
-      FIELD_SECTIONS.forEach((s) =>
-        s.fields.forEach((f) => {
-          const val = (template as any)[f.key];
-          if (f.key === "accommodation_facilities" && Array.isArray(val)) {
-            data[f.key] = val.join(", ");
-            enabled[f.key] = true;
-          } else if (val !== null && val !== undefined && val !== "" && val !== 0) {
-            data[f.key] = String(val);
-            enabled[f.key] = true;
-          } else {
-            data[f.key] = val !== null && val !== undefined ? String(val) : "";
-            enabled[f.key] = false;
-          }
-        })
-      );
-      setFormData(data);
-      setEnabledFields(enabled);
-    } else {
-      setFormData(defaultFormData());
-      setEnabledFields(defaultEnabledFields());
-    }
+  const form = useForm<TemplateFormValues>({
+    resolver: zodResolver(templateSchema),
+    defaultValues: {
+      template_name: "",
+      trip_type: undefined,
+      name: "",
+      capacity: 20,
+      min_persons: 1,
+      max_persons: 8,
+    },
   });
 
-  const handleSubmit = () => {
-    if (!formData.template_name.trim()) {
-      toast.error("Mallnamn krävs");
-      return;
+  // Populate form when editing
+  useEffect(() => {
+    if (open && template) {
+      form.reset({
+        template_name: template.template_name,
+        trip_type: template.trip_type as any,
+        name: template.name || "",
+        capacity: template.capacity || 20,
+        min_persons: template.min_persons || 1,
+        max_persons: template.max_persons || 8,
+      });
+      setAccommodationRooms(template.accommodation_rooms?.toString() || "");
+      setAccommodationSizeSqm(template.accommodation_size_sqm?.toString() || "");
+      setAccommodationFacilities((template.accommodation_facilities || []).join(", "));
+      setAccommodationAddress(template.accommodation_address || "");
+      setAccommodationDescription(template.accommodation_description || "");
+    } else if (open && !template) {
+      form.reset({
+        template_name: "",
+        trip_type: undefined,
+        name: "",
+        capacity: 20,
+        min_persons: 1,
+        max_persons: 8,
+      });
+      setAccommodationRooms("");
+      setAccommodationSizeSqm("");
+      setAccommodationFacilities("");
+      setAccommodationAddress("");
+      setAccommodationDescription("");
     }
-    const result: Record<string, unknown> = {
-      template_name: formData.template_name.trim(),
-      trip_type: formData.trip_type,
-    };
-    FIELD_SECTIONS.forEach((s) =>
-      s.fields.forEach((f) => {
-        if (enabledFields[f.key] && formData[f.key]) {
-          if (f.key === "accommodation_facilities") {
-            result[f.key] = formData[f.key].split(",").map((x: string) => x.trim()).filter(Boolean);
-          } else if (f.type === "number") {
-            result[f.key] = Number(formData[f.key]);
-          } else {
-            result[f.key] = formData[f.key];
-          }
-        } else {
-          result[f.key] = null;
-        }
-      })
-    );
-    onSave(result);
-  };
+  }, [open, template]);
 
-  const renderField = (field: { key: string; label: string; type: string }) => {
-    if (field.type === "textarea") {
-      return (
-        <Textarea
-          value={formData[field.key] || ""}
-          onChange={(e) => setFormData((p) => ({ ...p, [field.key]: e.target.value }))}
-          disabled={!enabledFields[field.key]}
-          className="min-h-[60px]"
-        />
-      );
-    }
-    if (field.type === "select_payment") {
-      return (
-        <Select
-          value={formData[field.key] || "amount"}
-          onValueChange={(v) => setFormData((p) => ({ ...p, [field.key]: v }))}
-          disabled={!enabledFields[field.key]}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="amount">Belopp (kr)</SelectItem>
-            <SelectItem value="percent">Procent (%)</SelectItem>
-          </SelectContent>
-        </Select>
-      );
-    }
-    return (
-      <Input
-        type={field.type === "number" ? "number" : "text"}
-        value={formData[field.key] || ""}
-        onChange={(e) => setFormData((p) => ({ ...p, [field.key]: e.target.value }))}
-        disabled={!enabledFields[field.key]}
-      />
-    );
+  const selectedTripType = form.watch("trip_type");
+  const isSegel = selectedTripType === "seglingsvecka" || selectedTripType === "studentveckan";
+  const isSplit = selectedTripType === "splitveckan";
+
+  const handleSubmit = (values: TemplateFormValues) => {
+    const result: Record<string, unknown> = {
+      template_name: values.template_name,
+      trip_type: values.trip_type,
+      name: values.name || null,
+      capacity: isSplit ? null : (values.capacity || null),
+      min_persons: isSegel ? null : (values.min_persons || null),
+      max_persons: values.max_persons || null,
+      accommodation_rooms: accommodationRooms ? parseInt(accommodationRooms) : null,
+      accommodation_size_sqm: accommodationSizeSqm ? parseInt(accommodationSizeSqm) : null,
+      accommodation_facilities: accommodationFacilities
+        ? accommodationFacilities.split(",").map((f) => f.trim()).filter(Boolean)
+        : null,
+      accommodation_address: accommodationAddress || null,
+      accommodation_description: accommodationDescription || null,
+    };
+    onSave(result);
   };
 
   return (
@@ -255,82 +180,221 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
             {template ? "Redigera resmall" : "Skapa resmall"}
           </DialogTitle>
           <DialogDescription>
-            Välj vilka fält som ska ingå i mallen. Bara aktiverade fält sparas.
+            {template
+              ? "Uppdatera mallens information."
+              : "Fyll i informationen nedan för att skapa en ny resmall. Mallen kan sedan användas för att snabbt skapa nya resor."}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          {/* Required fields */}
-          <div className="space-y-3">
-            <div>
-              <Label className="font-semibold">Mallnamn *</Label>
-              <Input
-                value={formData.template_name}
-                onChange={(e) => setFormData((p) => ({ ...p, template_name: e.target.value }))}
-                placeholder="t.ex. Splitveckan Inez Standard"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+            {/* Mallnamn */}
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="template_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mallnamn</FormLabel>
+                    <FormControl>
+                      <Input placeholder="t.ex. Splitveckan Inez Standard" {...field} />
+                    </FormControl>
+                    <FormDescription>Internt namn för mallen, visas bara för admin</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            <div>
-              <Label className="font-semibold">Restyp *</Label>
-              <Select
-                value={formData.trip_type}
-                onValueChange={(v) => setFormData((p) => ({ ...p, trip_type: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="seglingsvecka">Seglingsveckan</SelectItem>
-                  <SelectItem value="splitveckan">Splitveckan</SelectItem>
-                  <SelectItem value="studentveckan">Studentveckan</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
-          <Separator />
+            {/* Grundinformation */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold border-b pb-2">Grundinformation</h3>
 
-          {/* Configurable fields by section */}
-          {FIELD_SECTIONS.map((section) => (
-            <div key={section.label} className="space-y-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                {section.label}
-              </h3>
-              <div className="space-y-3">
-                {section.fields.map((field) => (
-                  <div key={field.key} className="flex items-start gap-3">
-                    <Checkbox
-                      checked={enabledFields[field.key]}
-                      onCheckedChange={(c) =>
-                        setEnabledFields((p) => ({ ...p, [field.key]: !!c }))
-                      }
-                      className="mt-2"
-                    />
-                    <div className="flex-1 space-y-1">
-                      <Label className={enabledFields[field.key] ? "" : "text-muted-foreground"}>
-                        {field.label}
-                      </Label>
-                      {renderField(field)}
-                    </div>
-                  </div>
-                ))}
+              <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="trip_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Typ av resa</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Välj restyp" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="seglingsvecka">Seglingsveckan</SelectItem>
+                          <SelectItem value="splitveckan">Splitveckan</SelectItem>
+                          <SelectItem value="studentveckan">Studentveckan</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{isSplit ? "Välj boende" : "Namn på resa"}</FormLabel>
+                      {isSplit ? (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Välj boende" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {splitBoatNames.map((name) => (
+                              <SelectItem key={name} value={name}>
+                                {name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <FormControl>
+                          <Input placeholder="t.ex. Seglingsveckan" {...field} />
+                        </FormControl>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className={cn("grid gap-4", isSplit ? "md:grid-cols-2" : isSegel ? "md:grid-cols-2" : "md:grid-cols-3")}>
+                {!isSplit && (
+                  <FormField
+                    control={form.control}
+                    name="capacity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{isSegel ? "Antal segelbåtar" : "Total kapacitet"}</FormLabel>
+                        <FormControl>
+                          <Input type="number" min={1} {...field} />
+                        </FormControl>
+                        <FormDescription>{isSegel ? "Antal båtar tillgängliga" : "Antal platser totalt"}</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {!isSegel && (
+                  <FormField
+                    control={form.control}
+                    name="min_persons"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Min personer</FormLabel>
+                        <FormControl>
+                          <Input type="number" min={1} {...field} />
+                        </FormControl>
+                        <FormDescription>{isSplit ? "Minsta antal på boendet" : "Minsta antal per lägenhet"}</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="max_persons"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max antal personer</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={1} {...field} />
+                      </FormControl>
+                      <FormDescription>{isSegel ? "Max antal resenärer" : isSplit ? "Högsta antal på boendet" : "Högsta antal per lägenhet"}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
-          ))}
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Avbryt
-          </Button>
-          <Button onClick={handleSubmit} disabled={saving}>
-            {saving ? "Sparar..." : template ? "Uppdatera" : "Skapa mall"}
-          </Button>
-        </DialogFooter>
+            {/* Boende / Båtinformation */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold border-b pb-2">
+                {isSegel ? "Båt" : isSplit ? "Information om boende" : "Boende / Båtinformation"}
+              </h3>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{isSegel ? "Antal kabiner" : "Antal rum"}</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder={isSegel ? "t.ex. 4" : "t.ex. 3"}
+                    value={accommodationRooms}
+                    onChange={(e) => setAccommodationRooms(e.target.value)}
+                  />
+                </div>
+                {!isSegel && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Storlek (m²)</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="t.ex. 85"
+                      value={accommodationSizeSqm}
+                      onChange={(e) => setAccommodationSizeSqm(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Faciliteter</label>
+                <Input
+                  placeholder={isSegel ? "t.ex. Soltak, WiFi, Kök, AC (kommaseparerat)" : "t.ex. Pool, WiFi, Balkong, AC (kommaseparerat)"}
+                  value={accommodationFacilities}
+                  onChange={(e) => setAccommodationFacilities(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Separera med komma</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">{isSegel ? "Avgångshamn" : "Adress"}</label>
+                <Input
+                  placeholder={isSegel ? "t.ex. Trogir Marina, Kroatien" : "t.ex. Riva 21000, Split, Kroatien"}
+                  value={accommodationAddress}
+                  onChange={(e) => setAccommodationAddress(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">{isSegel ? "Beskrivning av båten" : "Beskrivning av boende"}</label>
+                <Textarea
+                  placeholder={isSegel ? "Kort beskrivning av båten, t.ex. modell och specifikationer..." : "Kort beskrivning av boendet eller båten..."}
+                  className="min-h-[80px]"
+                  value={accommodationDescription}
+                  onChange={(e) => setAccommodationDescription(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Avbryt
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? "Sparar..." : template ? "Uppdatera mall" : "Skapa mall"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
 };
+
+// ─── Templates List ─────────────────────────────────────────────────
 
 export const TripTemplatesList = () => {
   const { user } = useAuth();
@@ -456,11 +520,12 @@ export const TripTemplatesList = () => {
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {t.price != null && <Badge variant="outline">{Number(t.price).toLocaleString("sv-SE")} kr</Badge>}
                       {t.capacity != null && <Badge variant="outline">Kap: {t.capacity}</Badge>}
-                      {t.departure_location && <Badge variant="outline">{t.departure_location}</Badge>}
-                      {t.accommodation_address && <Badge variant="outline">{t.accommodation_address}</Badge>}
                       {t.max_persons != null && <Badge variant="outline">Max: {t.max_persons} pers</Badge>}
+                      {t.accommodation_address && <Badge variant="outline">{t.accommodation_address}</Badge>}
+                      {t.accommodation_rooms != null && (
+                        <Badge variant="outline">{t.accommodation_rooms} rum</Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <Button size="sm" variant="outline" onClick={() => setEditTemplate(t)}>
