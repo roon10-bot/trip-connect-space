@@ -359,7 +359,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Välj båtnamn" />
+                              <SelectValue placeholder="Välj boende" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -409,7 +409,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                         <FormControl>
                           <Input type="number" min={1} {...field} />
                         </FormControl>
-                        <FormDescription>{isSplit ? "Minsta antal per båt" : "Minsta antal per lägenhet"}</FormDescription>
+                        <FormDescription>{isSplit ? "Minsta antal på boendet" : "Minsta antal per lägenhet"}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -425,7 +425,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                       <FormControl>
                         <Input type="number" min={1} {...field} />
                       </FormControl>
-                      <FormDescription>{isSegel ? "Max antal resenärer" : isSplit ? "Högsta antal per båt" : "Högsta antal per lägenhet"}</FormDescription>
+                      <FormDescription>{isSegel ? "Max antal resenärer" : isSplit ? "Högsta antal på boendet" : "Högsta antal per lägenhet"}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -686,7 +686,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
 
             {/* Accommodation / Boat Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">{isSegel ? "Båt" : "Boende / Båtinformation"}</h3>
+              <h3 className="text-lg font-semibold border-b pb-2">{isSegel ? "Båt" : isSplit ? "Information om boende" : "Boende / Båtinformation"}</h3>
               
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
