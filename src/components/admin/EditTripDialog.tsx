@@ -229,6 +229,10 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
     updateTripMutation.mutate(values);
   };
 
+  const watchedTripType = form.watch("trip_type");
+  const isSegel = watchedTripType === "seglingsvecka" || watchedTripType === "studentveckan";
+  const isSplit = watchedTripType === "splitveckan";
+
   const firstPaymentAmount = Number(form.watch("first_payment_amount") || 0);
   const secondPaymentAmount = Number(form.watch("second_payment_amount") || 0);
   const finalPaymentAmount = Number(form.watch("final_payment_amount") || 0);
@@ -353,7 +357,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    {form.watch("trip_type") === "splitveckan" ? (
+                    {isSplit ? (
                       <>
                         <div className="md:col-span-2 grid md:grid-cols-3 gap-4">
                           <div className="space-y-2">
@@ -547,7 +551,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    {form.watch("trip_type") === "splitveckan" ? (
+                    {isSplit ? (
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Pris för resan (kr)</label>
                         <Input
@@ -587,7 +591,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                   </div>
 
                   {/* Dynamic pricing preview for Splitveckan */}
-                  {form.watch("trip_type") === "splitveckan" && Number(form.watch("base_price")) > 0 && (
+                  {isSplit && Number(form.watch("base_price")) > 0 && (
                     <div className="bg-muted/50 border rounded-lg p-4 space-y-3">
                       <h4 className="font-semibold text-sm">Prisberäkning per person (Splitveckan)</h4>
                       <p className="text-xs text-muted-foreground">

@@ -300,7 +300,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   };
 
   const selectedTripType = form.watch("trip_type");
-  const isSegel = selectedTripType === "seglingsvecka";
+  const isSegel = selectedTripType === "seglingsvecka" || selectedTripType === "studentveckan";
   const isSplit = selectedTripType === "splitveckan";
 
   const splitBoatNames = ["Inez", "Noah", "Elma", "Irma", "Alfred", "Tove"];
