@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -141,8 +142,9 @@ const BookTrip = () => {
     if (!trip) return 0;
     
     let pricePerPerson = trip.price;
-    if (trip.trip_type === "splitveckan" && trip.base_price && travelers > 0) {
-      pricePerPerson = Math.ceil((Number(trip.base_price) * 1.20) / travelers);
+    if (trip.trip_type === "splitveckan" && travelers > 0) {
+      const splitPrice = getSplitPricePerPerson(trip, travelers);
+      if (splitPrice > 0) pricePerPerson = splitPrice;
     }
     
     const baseTotal = pricePerPerson * travelers;
@@ -299,8 +301,9 @@ const BookTrip = () => {
       const totalPrice = calculateTotalPrice();
       
       let pricePerPerson = trip.price;
-      if (trip.trip_type === "splitveckan" && trip.base_price && travelers > 0) {
-        pricePerPerson = Math.ceil((Number(trip.base_price) * 1.20) / travelers);
+      if (trip.trip_type === "splitveckan" && travelers > 0) {
+        const splitPrice = getSplitPricePerPerson(trip, travelers);
+        if (splitPrice > 0) pricePerPerson = splitPrice;
       }
       const baseTotal = pricePerPerson * travelers;
       const discountAmount = baseTotal - totalPrice;

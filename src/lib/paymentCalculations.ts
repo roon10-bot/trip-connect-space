@@ -3,6 +3,47 @@
  * Converts payment plan values (percent or amount) to actual amounts in kronor
  */
 
+/**
+ * Calculate Splitveckan price per person using the component-based formula:
+ * ((accommodation / persons) + flight + extras) × 1.20
+ */
+export function calculateSplitPricePerPerson(
+  basePriceAccommodation: number,
+  basePriceFlight: number,
+  basePriceExtras: number,
+  persons: number
+): number {
+  if (persons <= 0) return 0;
+  return Math.ceil(((basePriceAccommodation / persons) + basePriceFlight + basePriceExtras) * 1.20);
+}
+
+/**
+ * Legacy helper: calculate Splitveckan price per person from trip object.
+ * Falls back to old formula if sub-fields are missing.
+ */
+export function getSplitPricePerPerson(
+  trip: {
+    base_price?: number | null;
+    base_price_accommodation?: number;
+    base_price_flight?: number;
+    base_price_extras?: number;
+  },
+  persons: number
+): number {
+  const accommodation = Number((trip as any).base_price_accommodation) || 0;
+  const flight = Number((trip as any).base_price_flight) || 0;
+  const extras = Number((trip as any).base_price_extras) || 0;
+
+  if (accommodation > 0 || flight > 0 || extras > 0) {
+    return calculateSplitPricePerPerson(accommodation, flight, extras, persons);
+  }
+  // Fallback for old data without sub-fields
+  if (trip.base_price && persons > 0) {
+    return Math.ceil((Number(trip.base_price) * 1.20) / persons);
+  }
+  return 0;
+}
+
 export type PaymentValueType = "percent" | "amount";
 
 export interface PaymentPlanItem {

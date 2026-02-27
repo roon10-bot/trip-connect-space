@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Calendar, MapPin, Users, Tag } from "lucide-react";
+import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AccommodationInfoDialog } from "@/components/AccommodationInfoDialog";
 
@@ -43,8 +44,8 @@ export const BookingTripSummary = ({
 }: BookingTripSummaryProps) => {
   // For Splitveckan, calculate price per person based on group size
   const isSplitVeckan = trip.trip_type === "splitveckan";
-  const pricePerPerson = isSplitVeckan && trip.base_price && travelers > 0
-    ? Math.ceil((Number(trip.base_price) * 1.20) / travelers)
+  const pricePerPerson = isSplitVeckan && travelers > 0
+    ? (getSplitPricePerPerson(trip, travelers) || trip.price)
     : trip.price;
   
   const baseTotal = pricePerPerson * travelers;
