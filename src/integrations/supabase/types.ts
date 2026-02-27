@@ -719,6 +719,9 @@ export type Database = {
           accommodation_rooms: number | null
           accommodation_size_sqm: number | null
           base_price: number | null
+          base_price_accommodation: number
+          base_price_extras: number
+          base_price_flight: number
           capacity: number
           created_at: string
           created_by: string
@@ -753,6 +756,9 @@ export type Database = {
           accommodation_rooms?: number | null
           accommodation_size_sqm?: number | null
           base_price?: number | null
+          base_price_accommodation?: number
+          base_price_extras?: number
+          base_price_flight?: number
           capacity?: number
           created_at?: string
           created_by: string
@@ -787,6 +793,9 @@ export type Database = {
           accommodation_rooms?: number | null
           accommodation_size_sqm?: number | null
           base_price?: number | null
+          base_price_accommodation?: number
+          base_price_extras?: number
+          base_price_flight?: number
           capacity?: number
           created_at?: string
           created_by?: string

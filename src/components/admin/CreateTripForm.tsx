@@ -96,6 +96,9 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const [accommodationAddress, setAccommodationAddress] = useState<string>("");
   const [accommodationDescription, setAccommodationDescription] = useState<string>("");
   const [useManualPaymentPlan, setUseManualPaymentPlan] = useState(false);
+  const [basePriceAccommodation, setBasePriceAccommodation] = useState<string>("0");
+  const [basePriceFlight, setBasePriceFlight] = useState<string>("0");
+  const [basePriceExtras, setBasePriceExtras] = useState<string>("0");
 
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripSchema),
@@ -248,7 +251,10 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
           : null,
         accommodation_address: accommodationAddress || null,
         accommodation_description: accommodationDescription || null,
-      }).select('id').single();
+        base_price_accommodation: Number(basePriceAccommodation) || 0,
+        base_price_flight: Number(basePriceFlight) || 0,
+        base_price_extras: Number(basePriceExtras) || 0,
+      } as any).select('id').single();
 
       if (tripError) throw tripError;
 
@@ -276,6 +282,9 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       setAccommodationFacilities("");
       setAccommodationAddress("");
       setAccommodationDescription("");
+      setBasePriceAccommodation("0");
+      setBasePriceFlight("0");
+      setBasePriceExtras("0");
       onSuccess?.();
     },
     onError: (error) => {
@@ -433,21 +442,80 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                {!isSegel && (
+                {!isSegel && !isSplit && (
                   <FormField
                     control={form.control}
                     name="base_price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{isSplit ? "Baspris för totala resan (kr)" : "Baspris för boende (kr)"}</FormLabel>
+                        <FormLabel>Baspris för boende (kr)</FormLabel>
                         <FormControl>
                           <Input type="number" min={0} placeholder="t.ex. 15000" {...field} />
                         </FormControl>
-                        <FormDescription>{isSplit ? "Baspris för hela resan (20% marginal adderas)" : "Inköpspris för lägenheten (20% marginal adderas)"}</FormDescription>
+                        <FormDescription>Inköpspris för lägenheten (20% marginal adderas)</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                )}
+                {isSplit && (
+                  <>
+                    <div className="md:col-span-2 grid md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Baspris för boende (kr)</label>
+                        <Input
+                          type="number"
+                          min={0}
+                          placeholder="t.ex. 10000"
+                          value={basePriceAccommodation}
+                          onChange={(e) => {
+                            setBasePriceAccommodation(e.target.value);
+                            const total = Number(e.target.value || 0) + Number(basePriceFlight || 0) + Number(basePriceExtras || 0);
+                            form.setValue("base_price", total);
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Baspris för flyg (kr)</label>
+                        <Input
+                          type="number"
+                          min={0}
+                          placeholder="t.ex. 3000"
+                          value={basePriceFlight}
+                          onChange={(e) => {
+                            setBasePriceFlight(e.target.value);
+                            const total = Number(basePriceAccommodation || 0) + Number(e.target.value || 0) + Number(basePriceExtras || 0);
+                            form.setValue("base_price", total);
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Baspris Extras (kr)</label>
+                        <Input
+                          type="number"
+                          min={0}
+                          placeholder="t.ex. 2000"
+                          value={basePriceExtras}
+                          onChange={(e) => {
+                            setBasePriceExtras(e.target.value);
+                            const total = Number(basePriceAccommodation || 0) + Number(basePriceFlight || 0) + Number(e.target.value || 0);
+                            form.setValue("base_price", total);
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Baspris för totala resan (kr)</label>
+                      <Input
+                        type="number"
+                        readOnly
+                        disabled
+                        value={Number(form.watch("base_price")) || 0}
+                        placeholder="Beräknas automatiskt"
+                      />
+                      <p className="text-sm text-muted-foreground">Summa av boende + flyg + extras</p>
+                    </div>
+                  </>
                 )}
 
                 <FormField
