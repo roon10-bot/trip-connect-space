@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { ArrowLeft, Check, Loader2, User, Mail, Phone, MapPin, Calendar, Plane } from "lucide-react";
+import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TravelerInfo } from "@/pages/BookTrip";
@@ -46,8 +47,8 @@ export const BookingStep3 = ({
   isSubmitting,
 }: BookingStep3Props) => {
   const isSplitVeckan = trip.trip_type === "splitveckan";
-  const pricePerPerson = isSplitVeckan && trip.base_price && travelers > 0
-    ? Math.ceil((Number(trip.base_price) * 1.20) / travelers)
+  const pricePerPerson = isSplitVeckan && travelers > 0
+    ? (getSplitPricePerPerson(trip, travelers) || trip.price)
     : trip.price;
   const baseTotal = pricePerPerson * travelers;
   const discountAmount = baseTotal - totalPrice;

@@ -37,6 +37,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
 
 const departureLocations = [
   { value: "Kastrup (CPH)", label: "Kastrup (CPH)" },
@@ -648,13 +649,18 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                       readOnly
                       disabled
                       value={
-                        Number(form.watch("base_price")) > 0 && Number(form.watch("max_persons")) > 0
-                          ? Math.ceil((Number(form.watch("base_price")) * 1.20) / Number(form.watch("max_persons")))
+                        Number(basePriceAccommodation) > 0 && Number(form.watch("max_persons")) > 0
+                          ? calculateSplitPricePerPerson(
+                              Number(basePriceAccommodation),
+                              Number(basePriceFlight),
+                              Number(basePriceExtras),
+                              Number(form.watch("max_persons"))
+                            )
                           : ""
                       }
                       placeholder="Beräknas automatiskt"
                     />
-                    <p className="text-sm text-muted-foreground">Beräknat pris per person (baspris × 1.20 / max antal)</p>
+                    <p className="text-sm text-muted-foreground">Beräknat pris per person ((boende / antal + flyg + extras) × 1.20)</p>
                   </div>
                 ) : (
                   <FormField
@@ -679,16 +685,19 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                 <div className="bg-muted/50 border rounded-lg p-4 space-y-3">
                   <h4 className="font-semibold text-sm">Prisberäkning per person (Splitveckan)</h4>
                   <p className="text-xs text-muted-foreground">
-                    Baspris med 20% marginal, delat på antal personer i lägenheten
+                    Formel: ((boende / antal) + flyg + extras) × 1.20
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {Array.from(
                       { length: Number(form.watch("max_persons") || 8) - Number(form.watch("min_persons") || 1) + 1 },
                       (_, i) => Number(form.watch("min_persons") || 1) + i
                     ).map((persons) => {
-                      const basePrice = Number(form.watch("base_price")) || 0;
-                      const priceWithMargin = basePrice * 1.20; // 20% margin
-                      const pricePerPerson = Math.ceil(priceWithMargin / persons);
+                      const pricePerPerson = calculateSplitPricePerPerson(
+                        Number(basePriceAccommodation) || 0,
+                        Number(basePriceFlight) || 0,
+                        Number(basePriceExtras) || 0,
+                        persons
+                      );
                       return (
                         <div key={persons} className="bg-background rounded p-2 text-center">
                           <div className="text-xs text-muted-foreground">{persons} pers</div>
@@ -697,9 +706,6 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                       );
                     })}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Total med marginal: {Math.ceil(Number(form.watch("base_price") || 0) * 1.20).toLocaleString("sv-SE")} kr
-                  </p>
                 </div>
               )}
 

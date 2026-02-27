@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { Calendar, Plane, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AccommodationInfoDialog } from "./AccommodationInfoDialog";
@@ -211,9 +212,13 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
                       <div>
                         <span className="text-xs text-muted-foreground">Pris från</span>
                         <p className="text-2xl font-bold text-primary">
-                          {trip.trip_type === "splitveckan" && trip.base_price && trip.max_persons
-                            ? Math.ceil((Number(trip.base_price) * 1.20) / Number(trip.max_persons)).toLocaleString("sv-SE")
-                            : trip.price.toLocaleString("sv-SE")} kr
+                          {(() => {
+                            if (trip.trip_type === "splitveckan" && trip.max_persons) {
+                              const p = getSplitPricePerPerson(trip, Number(trip.max_persons));
+                              return p > 0 ? p.toLocaleString("sv-SE") : trip.price.toLocaleString("sv-SE");
+                            }
+                            return trip.price.toLocaleString("sv-SE");
+                          })()} kr
                         </p>
                       </div>
                       
