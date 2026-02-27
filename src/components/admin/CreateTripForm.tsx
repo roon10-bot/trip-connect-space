@@ -595,23 +595,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                 </div>
               )}
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Beskrivning</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Beskriv resan..."
-                        className="min-h-[120px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
 
               {/* Image Upload */}
               <div className="space-y-2">
