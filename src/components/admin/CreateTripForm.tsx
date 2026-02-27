@@ -572,20 +572,38 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pris för resan (kr)</FormLabel>
-                      <FormControl>
-                        <Input type="number" min={0} placeholder="t.ex. 9990" {...field} />
-                      </FormControl>
-                      <FormDescription>Totalpriset som visas för kunden</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {isSplit ? (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Pris för resan (kr)</label>
+                    <Input
+                      type="number"
+                      readOnly
+                      disabled
+                      value={
+                        Number(form.watch("base_price")) > 0 && Number(form.watch("max_persons")) > 0
+                          ? Math.ceil((Number(form.watch("base_price")) * 1.20) / Number(form.watch("max_persons")))
+                          : ""
+                      }
+                      placeholder="Beräknas automatiskt"
+                    />
+                    <p className="text-sm text-muted-foreground">Beräknat pris per person (baspris × 1.20 / max antal)</p>
+                  </div>
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pris för resan (kr)</FormLabel>
+                        <FormControl>
+                          <Input type="number" min={0} placeholder="t.ex. 9990" {...field} />
+                        </FormControl>
+                        <FormDescription>Totalpriset som visas för kunden</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
 
               {/* Dynamic pricing preview for Splitveckan */}
