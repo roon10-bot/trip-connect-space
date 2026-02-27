@@ -5,7 +5,7 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { CalendarIcon, Upload, X, Image } from "lucide-react";
+import { CalendarIcon, Upload, X, Image, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const departureLocations = [
   { value: "Kastrup (CPH)", label: "Kastrup (CPH)" },
@@ -94,6 +95,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const [accommodationFacilities, setAccommodationFacilities] = useState<string>("");
   const [accommodationAddress, setAccommodationAddress] = useState<string>("");
   const [accommodationDescription, setAccommodationDescription] = useState<string>("");
+  const [useManualPaymentPlan, setUseManualPaymentPlan] = useState(false);
 
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripSchema),
@@ -728,249 +730,283 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
 
             {/* Payment Schedule Section */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b pb-2">
+              <div className="border-b pb-2">
                 <h3 className="text-lg font-semibold">Betalningsplan</h3>
-                <div className="text-sm text-muted-foreground">
-                  Totalt: <span className="font-semibold text-foreground">{totalPaymentPlan.toLocaleString("sv-SE")} {paymentPlanUnit}</span>
+              </div>
+
+              <div className="flex items-start space-x-3 p-4 bg-muted/50 rounded-lg">
+                <Checkbox
+                  id="manual-payment-plan"
+                  checked={useManualPaymentPlan}
+                  onCheckedChange={(checked) => {
+                    setUseManualPaymentPlan(!!checked);
+                    if (!checked) {
+                      form.setValue("first_payment_amount", 0);
+                      form.setValue("second_payment_amount", 0);
+                      form.setValue("final_payment_amount", 0);
+                      form.setValue("first_payment_date", null);
+                      form.setValue("second_payment_date", null);
+                      form.setValue("final_payment_date", null);
+                    }
+                  }}
+                />
+                <div className="space-y-1">
+                  <label htmlFor="manual-payment-plan" className="text-sm font-medium cursor-pointer">
+                    Anpassad betalningsplan
+                  </label>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Info className="w-3 h-3" />
+                    Lämna avmarkerad för att använda automatiska betalningsregler (30/35/35% baserat på tid till avresa)
+                  </p>
                 </div>
               </div>
 
-              {/* First Payment */}
-              <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-                <FormField
-                  control={form.control}
-                  name="first_payment_amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Första betalningen</FormLabel>
-                      <FormControl>
-                        <Input type="number" min={0} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {useManualPaymentPlan && (
+                <>
+                  <div className="flex items-center justify-end">
+                    <div className="text-sm text-muted-foreground">
+                      Totalt: <span className="font-semibold text-foreground">{totalPaymentPlan.toLocaleString("sv-SE")} {paymentPlanUnit}</span>
+                    </div>
+                  </div>
 
-                <FormField
-                  control={form.control}
-                  name="first_payment_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Typ</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Välj typ" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="percent">Procent (%)</SelectItem>
-                          <SelectItem value="amount">Kronor (kr)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="first_payment_date"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Förfallodatum</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
+                  {/* First Payment */}
+                  <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+                    <FormField
+                      control={form.control}
+                      name="first_payment_amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Första betalningen</FormLabel>
                           <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP", { locale: sv })
-                              ) : (
-                                <span>Välj datum</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
+                            <Input type="number" min={0} {...field} />
                           </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value || undefined}
-                            onSelect={field.onChange}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              {/* Second Payment */}
-              <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-                <FormField
-                  control={form.control}
-                  name="second_payment_amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Andra betalningen</FormLabel>
-                      <FormControl>
-                        <Input type="number" min={0} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="first_payment_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Typ</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Välj typ" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="percent">Procent (%)</SelectItem>
+                              <SelectItem value="amount">Kronor (kr)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="second_payment_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Typ</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Välj typ" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="percent">Procent (%)</SelectItem>
-                          <SelectItem value="amount">Kronor (kr)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="first_payment_date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Förfallodatum</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP", { locale: sv })
+                                  ) : (
+                                    <span>Välj datum</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value || undefined}
+                                onSelect={field.onChange}
+                                initialFocus
+                                className="p-3 pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                <FormField
-                  control={form.control}
-                  name="second_payment_date"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Förfallodatum</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
+                  {/* Second Payment */}
+                  <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+                    <FormField
+                      control={form.control}
+                      name="second_payment_amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Andra betalningen</FormLabel>
                           <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP", { locale: sv })
-                              ) : (
-                                <span>Välj datum</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
+                            <Input type="number" min={0} {...field} />
                           </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value || undefined}
-                            onSelect={field.onChange}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              {/* Final Payment */}
-              <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-                <FormField
-                  control={form.control}
-                  name="final_payment_amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sista betalningen</FormLabel>
-                      <FormControl>
-                        <Input type="number" min={0} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="second_payment_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Typ</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Välj typ" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="percent">Procent (%)</SelectItem>
+                              <SelectItem value="amount">Kronor (kr)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="final_payment_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Typ</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Välj typ" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="percent">Procent (%)</SelectItem>
-                          <SelectItem value="amount">Kronor (kr)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="second_payment_date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Förfallodatum</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP", { locale: sv })
+                                  ) : (
+                                    <span>Välj datum</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value || undefined}
+                                onSelect={field.onChange}
+                                initialFocus
+                                className="p-3 pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                <FormField
-                  control={form.control}
-                  name="final_payment_date"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Förfallodatum</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
+                  {/* Final Payment */}
+                  <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+                    <FormField
+                      control={form.control}
+                      name="final_payment_amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Sista betalningen</FormLabel>
                           <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP", { locale: sv })
-                              ) : (
-                                <span>Välj datum</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
+                            <Input type="number" min={0} {...field} />
                           </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value || undefined}
-                            onSelect={field.onChange}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="final_payment_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Typ</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Välj typ" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="percent">Procent (%)</SelectItem>
+                              <SelectItem value="amount">Kronor (kr)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="final_payment_date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Förfallodatum</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP", { locale: sv })
+                                  ) : (
+                                    <span>Välj datum</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value || undefined}
+                                onSelect={field.onChange}
+                                initialFocus
+                                className="p-3 pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             <Button
