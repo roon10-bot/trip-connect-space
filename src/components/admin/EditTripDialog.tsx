@@ -93,6 +93,9 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
   const [accommodationFacilities, setAccommodationFacilities] = useState<string>("");
   const [accommodationAddress, setAccommodationAddress] = useState<string>("");
   const [accommodationDescription, setAccommodationDescription] = useState<string>("");
+  const [basePriceAccommodation, setBasePriceAccommodation] = useState<string>("0");
+  const [basePriceFlight, setBasePriceFlight] = useState<string>("0");
+  const [basePriceExtras, setBasePriceExtras] = useState<string>("0");
 
   const { data: trip, isLoading: tripLoading } = useQuery({
     queryKey: ["trip", tripId],
@@ -160,6 +163,9 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
       setAccommodationFacilities((trip.accommodation_facilities || []).join(", "));
       setAccommodationAddress(trip.accommodation_address || "");
       setAccommodationDescription(trip.accommodation_description || "");
+      setBasePriceAccommodation(((trip as any).base_price_accommodation || 0).toString());
+      setBasePriceFlight(((trip as any).base_price_flight || 0).toString());
+      setBasePriceExtras(((trip as any).base_price_extras || 0).toString());
     }
   }, [trip, form]);
 
@@ -197,7 +203,10 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
             : null,
           accommodation_address: accommodationAddress || null,
           accommodation_description: accommodationDescription || null,
-        })
+          base_price_accommodation: Number(basePriceAccommodation) || 0,
+          base_price_flight: Number(basePriceFlight) || 0,
+          base_price_extras: Number(basePriceExtras) || 0,
+        } as any)
         .eq("id", tripId);
 
       if (error) throw error;
@@ -343,20 +352,80 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="base_price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Baspris för boende (kr)</FormLabel>
-                          <FormControl>
-                            <Input type="number" min={0} placeholder="t.ex. 15000" {...field} />
-                          </FormControl>
-                          <FormDescription>Inköpspris (20% marginal adderas)</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {form.watch("trip_type") === "splitveckan" ? (
+                      <>
+                        <div className="md:col-span-2 grid md:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Baspris för boende (kr)</label>
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder="t.ex. 10000"
+                              value={basePriceAccommodation}
+                              onChange={(e) => {
+                                setBasePriceAccommodation(e.target.value);
+                                const total = Number(e.target.value || 0) + Number(basePriceFlight || 0) + Number(basePriceExtras || 0);
+                                form.setValue("base_price", total);
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Baspris för flyg (kr)</label>
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder="t.ex. 3000"
+                              value={basePriceFlight}
+                              onChange={(e) => {
+                                setBasePriceFlight(e.target.value);
+                                const total = Number(basePriceAccommodation || 0) + Number(e.target.value || 0) + Number(basePriceExtras || 0);
+                                form.setValue("base_price", total);
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Baspris Extras (kr)</label>
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder="t.ex. 2000"
+                              value={basePriceExtras}
+                              onChange={(e) => {
+                                setBasePriceExtras(e.target.value);
+                                const total = Number(basePriceAccommodation || 0) + Number(basePriceFlight || 0) + Number(e.target.value || 0);
+                                form.setValue("base_price", total);
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Baspris för totala resan (kr)</label>
+                          <Input
+                            type="number"
+                            readOnly
+                            disabled
+                            value={Number(form.watch("base_price")) || 0}
+                            placeholder="Beräknas automatiskt"
+                          />
+                          <p className="text-sm text-muted-foreground">Summa av boende + flyg + extras</p>
+                        </div>
+                      </>
+                    ) : (
+                      <FormField
+                        control={form.control}
+                        name="base_price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Baspris för boende (kr)</FormLabel>
+                            <FormControl>
+                              <Input type="number" min={0} placeholder="t.ex. 15000" {...field} />
+                            </FormControl>
+                            <FormDescription>Inköpspris (20% marginal adderas)</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
                     <FormField
                       control={form.control}
@@ -477,20 +546,38 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Pris för resan (kr)</FormLabel>
-                          <FormControl>
-                            <Input type="number" min={0} placeholder="t.ex. 9990" {...field} />
-                          </FormControl>
-                          <FormDescription>Totalpriset som visas för kunden</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {form.watch("trip_type") === "splitveckan" ? (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Pris för resan (kr)</label>
+                        <Input
+                          type="number"
+                          readOnly
+                          disabled
+                          value={
+                            Number(form.watch("base_price")) > 0 && Number(form.watch("max_persons")) > 0
+                              ? Math.ceil((Number(form.watch("base_price")) * 1.20) / Number(form.watch("max_persons")))
+                              : ""
+                          }
+                          placeholder="Beräknas automatiskt"
+                        />
+                        <p className="text-sm text-muted-foreground">Beräknat pris per person (baspris × 1.20 / max antal)</p>
+                      </div>
+                    ) : (
+                      <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Pris för resan (kr)</FormLabel>
+                            <FormControl>
+                              <Input type="number" min={0} placeholder="t.ex. 9990" {...field} />
+                            </FormControl>
+                            <FormDescription>Totalpriset som visas för kunden</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
 
                   {/* Dynamic pricing preview for Splitveckan */}
