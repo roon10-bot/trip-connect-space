@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { CalendarIcon, Upload, X, Image, Info } from "lucide-react";
@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -100,6 +101,59 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const [basePriceAccommodation, setBasePriceAccommodation] = useState<string>("0");
   const [basePriceFlight, setBasePriceFlight] = useState<string>("0");
   const [basePriceExtras, setBasePriceExtras] = useState<string>("0");
+
+  // Fetch templates for quick-fill
+  const { data: templates } = useQuery({
+    queryKey: ["trip-templates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trip_templates" as any)
+        .select("*")
+        .order("trip_type")
+        .order("template_name");
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const applyTemplate = (templateId: string) => {
+    const tpl = templates?.find((t: any) => t.id === templateId);
+    if (!tpl) return;
+    // Apply form fields
+    if (tpl.trip_type) form.setValue("trip_type", tpl.trip_type);
+    if (tpl.name) form.setValue("name", tpl.name);
+    if (tpl.capacity != null) form.setValue("capacity", Number(tpl.capacity));
+    if (tpl.min_persons != null) form.setValue("min_persons", Number(tpl.min_persons));
+    if (tpl.max_persons != null) form.setValue("max_persons", Number(tpl.max_persons));
+    if (tpl.base_price != null) form.setValue("base_price", Number(tpl.base_price));
+    if (tpl.price != null) form.setValue("price", Number(tpl.price));
+    if (tpl.departure_location) form.setValue("departure_location", tpl.departure_location);
+    if (tpl.description) form.setValue("description", tpl.description);
+    // Payment plan
+    if (tpl.first_payment_amount != null && Number(tpl.first_payment_amount) > 0) {
+      setUseManualPaymentPlan(true);
+      form.setValue("first_payment_amount", Number(tpl.first_payment_amount));
+      if (tpl.first_payment_type) form.setValue("first_payment_type", tpl.first_payment_type);
+    }
+    if (tpl.second_payment_amount != null && Number(tpl.second_payment_amount) > 0) {
+      form.setValue("second_payment_amount", Number(tpl.second_payment_amount));
+      if (tpl.second_payment_type) form.setValue("second_payment_type", tpl.second_payment_type);
+    }
+    if (tpl.final_payment_amount != null && Number(tpl.final_payment_amount) > 0) {
+      form.setValue("final_payment_amount", Number(tpl.final_payment_amount));
+      if (tpl.final_payment_type) form.setValue("final_payment_type", tpl.final_payment_type);
+    }
+    // Accommodation
+    if (tpl.accommodation_rooms != null) setAccommodationRooms(String(tpl.accommodation_rooms));
+    if (tpl.accommodation_size_sqm != null) setAccommodationSizeSqm(String(tpl.accommodation_size_sqm));
+    if (tpl.accommodation_address) setAccommodationAddress(tpl.accommodation_address);
+    if (tpl.accommodation_description) setAccommodationDescription(tpl.accommodation_description);
+    if (tpl.accommodation_facilities) setAccommodationFacilities(Array.isArray(tpl.accommodation_facilities) ? tpl.accommodation_facilities.join(", ") : "");
+    // Split price components
+    if (tpl.base_price_accommodation != null) setBasePriceAccommodation(String(tpl.base_price_accommodation));
+    if (tpl.base_price_flight != null) setBasePriceFlight(String(tpl.base_price_flight));
+    if (tpl.base_price_extras != null) setBasePriceExtras(String(tpl.base_price_extras));
+  };
 
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripSchema),
@@ -331,6 +385,27 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {/* Template selector */}
+            {templates && templates.length > 0 && (
+              <div className="bg-muted/50 border rounded-lg p-4 space-y-2">
+                <Label className="font-semibold text-sm">Fyll i från resmall</Label>
+                <div className="flex gap-2 flex-wrap">
+                  {templates.map((tpl: any) => (
+                    <Button
+                      key={tpl.id}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => applyTemplate(tpl.id)}
+                    >
+                      {tpl.template_name}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">Klicka på en mall för att fylla i fälten. Du kan ändra allt efteråt.</p>
+              </div>
+            )}
+
             {/* Basic Info Section */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold border-b pb-2">Grundinformation</h3>
