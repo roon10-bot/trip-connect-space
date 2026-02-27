@@ -45,7 +45,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, FileText, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, FileText, Loader2, Upload, X, Image } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TRIP_TYPE_LABELS: Record<string, string> = {
@@ -70,6 +70,7 @@ interface TripTemplate {
   accommodation_facilities: string[] | null;
   accommodation_address: string | null;
   accommodation_description: string | null;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -103,6 +104,9 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
   const [accommodationFacilities, setAccommodationFacilities] = useState("");
   const [accommodationAddress, setAccommodationAddress] = useState("");
   const [accommodationDescription, setAccommodationDescription] = useState("");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
 
   const form = useForm<TemplateFormValues>({
     resolver: zodResolver(templateSchema),
@@ -132,6 +136,9 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
       setAccommodationFacilities((template.accommodation_facilities || []).join(", "));
       setAccommodationAddress(template.accommodation_address || "");
       setAccommodationDescription(template.accommodation_description || "");
+      setExistingImageUrl(template.image_url || null);
+      setImageFiles([]);
+      setImagePreviews([]);
     } else if (open && !template) {
       form.reset({
         template_name: "",
@@ -146,12 +153,48 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
       setAccommodationFacilities("");
       setAccommodationAddress("");
       setAccommodationDescription("");
+      setExistingImageUrl(null);
+      setImageFiles([]);
+      setImagePreviews([]);
     }
   }, [open, template]);
 
   const selectedTripType = form.watch("trip_type");
   const isSegel = selectedTripType === "seglingsvecka" || selectedTripType === "studentveckan";
   const isSplit = selectedTripType === "splitveckan";
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const picked = Array.from(files);
+    const accepted: File[] = [];
+    const previewPromises: Promise<string>[] = [];
+    picked.forEach((file) => {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} är för stor (max 5 MB)`);
+        return;
+      }
+      accepted.push(file);
+      previewPromises.push(
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("Kunde inte läsa filen"));
+          reader.readAsDataURL(file);
+        })
+      );
+    });
+    if (accepted.length === 0) return;
+    const previews = await Promise.all(previewPromises);
+    setImageFiles((prev) => [...prev, ...accepted]);
+    setImagePreviews((prev) => [...prev, ...previews]);
+    e.target.value = "";
+  };
+
+  const removeImageAt = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = (values: TemplateFormValues) => {
     const result: Record<string, unknown> = {
@@ -169,7 +212,7 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
       accommodation_address: accommodationAddress || null,
       accommodation_description: accommodationDescription || null,
     };
-    onSave(result);
+    onSave({ ...result, _imageFiles: imageFiles, _existingImageUrl: existingImageUrl });
   };
 
   return (
@@ -379,6 +422,83 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
               </div>
             </div>
 
+            {/* Bilder */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold border-b pb-2">Bilder</h3>
+              <p className="text-sm text-muted-foreground">
+                Ladda upp bilder som kopplas till mallen (max 5 MB per bild)
+              </p>
+
+              {existingImageUrl && imageFiles.length === 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">Befintlig bild:</p>
+                  <div className="relative group w-32">
+                    <img
+                      src={existingImageUrl}
+                      alt="Mallbild"
+                      className="w-full aspect-square object-cover rounded-lg border"
+                      loading="lazy"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => setExistingImageUrl(null)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-4">
+                <label className="cursor-pointer">
+                  <div className="flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
+                    <Upload className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      {imagePreviews.length > 0 ? "Lägg till fler" : "Välj bilder"}
+                    </span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </label>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Image className="h-4 w-4" />
+                  <span className="text-sm">JPG, PNG, WEBP</span>
+                </div>
+              </div>
+
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                  {imagePreviews.map((src, idx) => (
+                    <div key={`${idx}-${src.slice(0, 16)}`} className="relative group">
+                      <img
+                        src={src}
+                        alt={`Förhandsvisning ${idx + 1}`}
+                        className="w-full aspect-square object-cover rounded-lg border"
+                        loading="lazy"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeImageAt(idx)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Avbryt
@@ -416,12 +536,47 @@ export const TripTemplatesList = () => {
     },
   });
 
+  const uploadTemplateImages = async (templateId: string, files: File[]): Promise<string | null> => {
+    if (!files.length) return null;
+    let firstUrl: string | null = null;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileExt = file.name.split(".").pop();
+      const fileName = `templates/${templateId}/${Date.now()}-${i}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("trip-images")
+        .upload(fileName, file);
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from("trip-images").getPublicUrl(fileName);
+      if (!firstUrl) firstUrl = publicUrl;
+    }
+    return firstUrl;
+  };
+
   const createMutation = useMutation({
     mutationFn: async (values: Record<string, unknown>) => {
-      const { error } = await supabase
+      const imageFiles = (values._imageFiles as File[]) || [];
+      const existingImageUrl = values._existingImageUrl as string | null;
+      const { _imageFiles, _existingImageUrl, ...dbValues } = values;
+
+      // Insert template first
+      const { data, error } = await supabase
         .from("trip_templates" as any)
-        .insert({ ...values, created_by: user?.id } as any);
+        .insert({ ...dbValues, created_by: user?.id } as any)
+        .select("id")
+        .single();
       if (error) throw error;
+
+      // Upload images if any
+      if (imageFiles.length > 0 && data) {
+        const imageUrl = await uploadTemplateImages((data as any).id, imageFiles);
+        if (imageUrl) {
+          await supabase
+            .from("trip_templates" as any)
+            .update({ image_url: imageUrl } as any)
+            .eq("id", (data as any).id);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trip-templates"] });
@@ -433,9 +588,19 @@ export const TripTemplatesList = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, values }: { id: string; values: Record<string, unknown> }) => {
+      const imageFiles = (values._imageFiles as File[]) || [];
+      const existingImageUrl = values._existingImageUrl as string | null;
+      const { _imageFiles, _existingImageUrl, ...dbValues } = values;
+
+      // Upload new images if any
+      let imageUrl = existingImageUrl;
+      if (imageFiles.length > 0) {
+        imageUrl = await uploadTemplateImages(id, imageFiles);
+      }
+
       const { error } = await supabase
         .from("trip_templates" as any)
-        .update(values as any)
+        .update({ ...dbValues, image_url: imageUrl } as any)
         .eq("id", id);
       if (error) throw error;
     },
@@ -507,7 +672,17 @@ export const TripTemplatesList = () => {
             </h3>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {items.map((t) => (
-                <Card key={t.id} className="group hover:shadow-md transition-shadow">
+                <Card key={t.id} className="group hover:shadow-md transition-shadow overflow-hidden">
+                  {t.image_url && (
+                    <div className="h-32 overflow-hidden">
+                      <img
+                        src={t.image_url}
+                        alt={t.template_name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div>
