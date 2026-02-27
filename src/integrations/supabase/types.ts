@@ -711,6 +711,111 @@ export type Database = {
           },
         ]
       }
+      trip_templates: {
+        Row: {
+          accommodation_address: string | null
+          accommodation_description: string | null
+          accommodation_facilities: string[] | null
+          accommodation_rooms: number | null
+          accommodation_size_sqm: number | null
+          base_price: number | null
+          base_price_accommodation: number | null
+          base_price_extras: number | null
+          base_price_flight: number | null
+          capacity: number | null
+          created_at: string
+          created_by: string
+          departure_location: string | null
+          description: string | null
+          final_payment_amount: number | null
+          final_payment_date: string | null
+          final_payment_type: string | null
+          first_payment_amount: number | null
+          first_payment_date: string | null
+          first_payment_type: string | null
+          id: string
+          image_url: string | null
+          max_persons: number | null
+          min_persons: number | null
+          name: string | null
+          price: number | null
+          second_payment_amount: number | null
+          second_payment_date: string | null
+          second_payment_type: string | null
+          template_name: string
+          trip_type: string
+          updated_at: string
+        }
+        Insert: {
+          accommodation_address?: string | null
+          accommodation_description?: string | null
+          accommodation_facilities?: string[] | null
+          accommodation_rooms?: number | null
+          accommodation_size_sqm?: number | null
+          base_price?: number | null
+          base_price_accommodation?: number | null
+          base_price_extras?: number | null
+          base_price_flight?: number | null
+          capacity?: number | null
+          created_at?: string
+          created_by: string
+          departure_location?: string | null
+          description?: string | null
+          final_payment_amount?: number | null
+          final_payment_date?: string | null
+          final_payment_type?: string | null
+          first_payment_amount?: number | null
+          first_payment_date?: string | null
+          first_payment_type?: string | null
+          id?: string
+          image_url?: string | null
+          max_persons?: number | null
+          min_persons?: number | null
+          name?: string | null
+          price?: number | null
+          second_payment_amount?: number | null
+          second_payment_date?: string | null
+          second_payment_type?: string | null
+          template_name: string
+          trip_type: string
+          updated_at?: string
+        }
+        Update: {
+          accommodation_address?: string | null
+          accommodation_description?: string | null
+          accommodation_facilities?: string[] | null
+          accommodation_rooms?: number | null
+          accommodation_size_sqm?: number | null
+          base_price?: number | null
+          base_price_accommodation?: number | null
+          base_price_extras?: number | null
+          base_price_flight?: number | null
+          capacity?: number | null
+          created_at?: string
+          created_by?: string
+          departure_location?: string | null
+          description?: string | null
+          final_payment_amount?: number | null
+          final_payment_date?: string | null
+          final_payment_type?: string | null
+          first_payment_amount?: number | null
+          first_payment_date?: string | null
+          first_payment_type?: string | null
+          id?: string
+          image_url?: string | null
+          max_persons?: number | null
+          min_persons?: number | null
+          name?: string | null
+          price?: number | null
+          second_payment_amount?: number | null
+          second_payment_date?: string | null
+          second_payment_type?: string | null
+          template_name?: string
+          trip_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       trips: {
         Row: {
           accommodation_address: string | null
