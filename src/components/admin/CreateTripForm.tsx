@@ -119,40 +119,19 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const applyTemplate = (templateId: string) => {
     const tpl = templates?.find((t: any) => t.id === templateId);
     if (!tpl) return;
-    // Apply form fields
+    // Grundinfo
     if (tpl.trip_type) form.setValue("trip_type", tpl.trip_type);
     if (tpl.name) form.setValue("name", tpl.name);
     if (tpl.capacity != null) form.setValue("capacity", Number(tpl.capacity));
     if (tpl.min_persons != null) form.setValue("min_persons", Number(tpl.min_persons));
     if (tpl.max_persons != null) form.setValue("max_persons", Number(tpl.max_persons));
-    if (tpl.base_price != null) form.setValue("base_price", Number(tpl.base_price));
-    if (tpl.price != null) form.setValue("price", Number(tpl.price));
-    if (tpl.departure_location) form.setValue("departure_location", tpl.departure_location);
-    if (tpl.description) form.setValue("description", tpl.description);
-    // Payment plan
-    if (tpl.first_payment_amount != null && Number(tpl.first_payment_amount) > 0) {
-      setUseManualPaymentPlan(true);
-      form.setValue("first_payment_amount", Number(tpl.first_payment_amount));
-      if (tpl.first_payment_type) form.setValue("first_payment_type", tpl.first_payment_type);
-    }
-    if (tpl.second_payment_amount != null && Number(tpl.second_payment_amount) > 0) {
-      form.setValue("second_payment_amount", Number(tpl.second_payment_amount));
-      if (tpl.second_payment_type) form.setValue("second_payment_type", tpl.second_payment_type);
-    }
-    if (tpl.final_payment_amount != null && Number(tpl.final_payment_amount) > 0) {
-      form.setValue("final_payment_amount", Number(tpl.final_payment_amount));
-      if (tpl.final_payment_type) form.setValue("final_payment_type", tpl.final_payment_type);
-    }
     // Accommodation
     if (tpl.accommodation_rooms != null) setAccommodationRooms(String(tpl.accommodation_rooms));
     if (tpl.accommodation_size_sqm != null) setAccommodationSizeSqm(String(tpl.accommodation_size_sqm));
     if (tpl.accommodation_address) setAccommodationAddress(tpl.accommodation_address);
     if (tpl.accommodation_description) setAccommodationDescription(tpl.accommodation_description);
     if (tpl.accommodation_facilities) setAccommodationFacilities(Array.isArray(tpl.accommodation_facilities) ? tpl.accommodation_facilities.join(", ") : "");
-    // Split price components
-    if (tpl.base_price_accommodation != null) setBasePriceAccommodation(String(tpl.base_price_accommodation));
-    if (tpl.base_price_flight != null) setBasePriceFlight(String(tpl.base_price_flight));
-    if (tpl.base_price_extras != null) setBasePriceExtras(String(tpl.base_price_extras));
+    toast.success(`Mall "${tpl.template_name}" tillämpad`);
   };
 
   const form = useForm<TripFormValues>({
