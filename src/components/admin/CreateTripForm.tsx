@@ -291,6 +291,9 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
 
   const selectedTripType = form.watch("trip_type");
   const isSegel = selectedTripType === "seglingsvecka";
+  const isSplit = selectedTripType === "splitveckan";
+
+  const splitBoatNames = ["Inez", "Noah", "Elma", "Irma", "Alfred", "Tove"];
 
   const firstPaymentAmount = Number(form.watch("first_payment_amount") || 0);
   const secondPaymentAmount = Number(form.watch("second_payment_amount") || 0);
@@ -352,30 +355,49 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Namn på resa</FormLabel>
-                      <FormControl>
-                        <Input placeholder="t.ex. Seglingsveckan Juni 2025" {...field} />
-                      </FormControl>
+                      {isSplit ? (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Välj båtnamn" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {splitBoatNames.map((name) => (
+                              <SelectItem key={name} value={name}>
+                                {name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <FormControl>
+                          <Input placeholder="t.ex. Seglingsveckan Juni 2025" {...field} />
+                        </FormControl>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
-              <div className={cn("grid gap-4", isSegel ? "md:grid-cols-2" : "md:grid-cols-3")}>
-                <FormField
-                  control={form.control}
-                  name="capacity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{isSegel ? "Antal segelbåtar" : "Total kapacitet"}</FormLabel>
-                      <FormControl>
-                        <Input type="number" min={1} {...field} />
-                      </FormControl>
-                      <FormDescription>{isSegel ? "Antal båtar tillgängliga" : "Antal platser totalt"}</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className={cn("grid gap-4", isSplit ? "md:grid-cols-2" : isSegel ? "md:grid-cols-2" : "md:grid-cols-3")}>
+                {!isSplit && (
+                  <FormField
+                    control={form.control}
+                    name="capacity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{isSegel ? "Antal segelbåtar" : "Total kapacitet"}</FormLabel>
+                        <FormControl>
+                          <Input type="number" min={1} {...field} />
+                        </FormControl>
+                        <FormDescription>{isSegel ? "Antal båtar tillgängliga" : "Antal platser totalt"}</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 {!isSegel && (
                   <FormField
@@ -383,11 +405,11 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                     name="min_persons"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Min personer/boende</FormLabel>
+                        <FormLabel>Min personer</FormLabel>
                         <FormControl>
                           <Input type="number" min={1} {...field} />
                         </FormControl>
-                        <FormDescription>Minsta antal per lägenhet</FormDescription>
+                        <FormDescription>{isSplit ? "Minsta antal per båt" : "Minsta antal per lägenhet"}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -403,7 +425,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                       <FormControl>
                         <Input type="number" min={1} {...field} />
                       </FormControl>
-                      <FormDescription>{isSegel ? "Max antal resenärer" : "Högsta antal per lägenhet"}</FormDescription>
+                      <FormDescription>{isSegel ? "Max antal resenärer" : isSplit ? "Högsta antal per båt" : "Högsta antal per lägenhet"}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -417,11 +439,11 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                     name="base_price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Baspris för boende (kr)</FormLabel>
+                        <FormLabel>{isSplit ? "Baspris för totala resan (kr)" : "Baspris för boende (kr)"}</FormLabel>
                         <FormControl>
                           <Input type="number" min={0} placeholder="t.ex. 15000" {...field} />
                         </FormControl>
-                        <FormDescription>Inköpspris för lägenheten (20% marginal adderas)</FormDescription>
+                        <FormDescription>{isSplit ? "Baspris för hela resan (20% marginal adderas)" : "Inköpspris för lägenheten (20% marginal adderas)"}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
