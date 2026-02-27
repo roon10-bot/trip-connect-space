@@ -54,20 +54,39 @@ const Terms = () => {
           <Section title="2. Pris och betalning">
             <p>Pris anges inklusive skatter och obligatoriska avgifter.</p>
             <p className="font-medium mt-3 mb-2">Betalningsvillkor:</p>
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>
-                <strong>Bokningsavgift:</strong> 25 % av totalbeloppet. Bokningsavgiften ska betalas
-                inom 48 timmar efter bokningstillfället och är inte återbetalningsbar.
-              </li>
-              <li>
-                <strong>Slutbetalning:</strong> Resterande belopp ska betalas senast 30 dagar före
-                avresa.
-              </li>
-              <li>
-                Bokningar som görs närmare än 40 dagar före avresa ska betalas i sin helhet inom 3
-                dagar.
-              </li>
+            <p className="mb-2">Betalningsplanen beror på hur långt innan avresa bokningen görs:</p>
+
+            <p className="font-medium mt-4 mb-1">Mer än 120 dagar före avresa:</p>
+            <ul className="list-disc pl-5 space-y-1.5 mb-3">
+              <li>30 % av totalbeloppet – inom 48 timmar efter bokning</li>
+              <li>35 % av totalbeloppet – senast 90 dagar före avresa</li>
+              <li>35 % av totalbeloppet – senast 30 dagar före avresa</li>
             </ul>
+
+            <p className="font-medium mt-4 mb-1">61–120 dagar före avresa:</p>
+            <ul className="list-disc pl-5 space-y-1.5 mb-3">
+              <li>50 % av totalbeloppet – inom 48 timmar efter bokning</li>
+              <li>50 % av totalbeloppet – senast 30 dagar före avresa</li>
+            </ul>
+
+            <p className="font-medium mt-4 mb-1">60 dagar eller mindre före avresa:</p>
+            <ul className="list-disc pl-5 space-y-1.5 mb-3">
+              <li>100 % av totalbeloppet – inom 48 timmar efter bokning</li>
+            </ul>
+
+            <p className="mt-3">
+              Förfallodatum beräknas utifrån resans avresedatum. Om en planerad delbetalning
+              enligt ovan redan har passerat vid bokningstillfället, ska motsvarande belopp
+              betalas inom 48 timmar.
+            </p>
+            <p className="mt-3 font-medium">
+              Vid utebliven betalning äger arrangören rätt att avboka resan.
+            </p>
+            <p className="mt-4 text-sm text-muted-foreground italic">
+              Vid bokning av större grupper, skolor eller föreningar kan särskilda
+              betalningsupplägg eller villkor överenskommas genom separat skriftligt avtal.
+              Sådana överenskommelser ersätter då ovanstående standardvillkor.
+            </p>
           </Section>
 
           <Section title="3. Avbokning">
