@@ -21,7 +21,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { calculatePaymentAmount, type PaymentValueType } from "@/lib/paymentCalculations";
+import { resolvePaymentPlan, type PaymentValueType } from "@/lib/paymentCalculations";
 
 interface TripBooking {
   id: string;
@@ -137,34 +137,12 @@ function getNextPayment(
     ? Number(booking.total_price)
     : Math.ceil(Number(booking.total_price) / travelers);
 
-  const plan = [
-    {
-      type: "first_payment",
-      amount: trip.first_payment_amount || 0,
-      payType: (trip.first_payment_type || "amount") as PaymentValueType,
-      date: trip.first_payment_date,
-      label: "Delbetalning 1",
-    },
-    {
-      type: "second_payment",
-      amount: trip.second_payment_amount || 0,
-      payType: (trip.second_payment_type || "amount") as PaymentValueType,
-      date: trip.second_payment_date,
-      label: "Delbetalning 2",
-    },
-    {
-      type: "final_payment",
-      amount: trip.final_payment_amount || 0,
-      payType: (trip.final_payment_type || "amount") as PaymentValueType,
-      date: trip.final_payment_date,
-      label: "Slutbetalning",
-    },
-  ];
+  const planItems = resolvePaymentPlan(trip, totalPrice, booking.created_at);
 
-  for (const p of plan) {
+  for (const p of planItems) {
     if (p.amount > 0 && !paidTypes.has(p.type)) {
       return {
-        amount: calculatePaymentAmount(p.amount, p.payType, totalPrice),
+        amount: p.amount,
         dueDate: p.date || null,
         label: p.label,
       };
