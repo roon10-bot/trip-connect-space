@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const { data: tripBookings, error: tbErr } = await supabase
       .from("trip_bookings")
       .select(`
-        id, total_price, travelers, user_id, departure_location,
+        id, total_price, travelers, user_id, departure_location, created_at,
         trips (
           name, trip_type, departure_date, return_date,
           first_payment_amount, first_payment_type, first_payment_date,
@@ -117,20 +117,75 @@ Deno.serve(async (req) => {
     const calcAmount = (amt: number, type: string, total: number) =>
       type === "percent" ? Math.ceil((amt / 100) * total) : amt;
 
-    const plan = [
-      { type: "first_payment", amount: trip.first_payment_amount || 0, payType: trip.first_payment_type || "amount", date: trip.first_payment_date },
-      { type: "second_payment", amount: trip.second_payment_amount || 0, payType: trip.second_payment_type || "amount", date: trip.second_payment_date },
-      { type: "final_payment", amount: trip.final_payment_amount || 0, payType: trip.final_payment_type || "amount", date: trip.final_payment_date },
-    ];
+    // Check if manual payment plan exists
+    const hasManualPlan =
+      (trip.first_payment_amount || 0) > 0 ||
+      (trip.second_payment_amount || 0) > 0 ||
+      (trip.final_payment_amount || 0) > 0;
 
     let nextPaymentAmount: number | null = null;
     let nextPaymentDueDate: string | null = null;
 
-    for (const p of plan) {
-      if (p.amount > 0 && !paidTypes.has(p.type)) {
-        nextPaymentAmount = calcAmount(p.amount, p.payType, totalPrice);
-        nextPaymentDueDate = p.date || null;
-        break;
+    if (hasManualPlan) {
+      const plan = [
+        { type: "first_payment", amount: trip.first_payment_amount || 0, payType: trip.first_payment_type || "amount", date: trip.first_payment_date },
+        { type: "second_payment", amount: trip.second_payment_amount || 0, payType: trip.second_payment_type || "amount", date: trip.second_payment_date },
+        { type: "final_payment", amount: trip.final_payment_amount || 0, payType: trip.final_payment_type || "amount", date: trip.final_payment_date },
+      ];
+
+      for (const p of plan) {
+        if (p.amount > 0 && !paidTypes.has(p.type)) {
+          nextPaymentAmount = calcAmount(p.amount, p.payType, totalPrice);
+          nextPaymentDueDate = p.date || null;
+          break;
+        }
+      }
+    } else {
+      // Auto-generate payment plan based on days until departure
+      const departure = new Date(trip.departure_date);
+      const bookingDate = new Date(activeBooking.created_at || now.toISOString());
+      const daysUntilDeparture = Math.floor(
+        (departure.getTime() - bookingDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      const hours48 = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+      const toDateStr = (d: Date) => d.toISOString().split("T")[0];
+      const ensureFuture = (d: Date): Date => (d <= now ? hours48 : d);
+      const day90Before = new Date(departure);
+      day90Before.setDate(day90Before.getDate() - 90);
+      const day30Before = new Date(departure);
+      day30Before.setDate(day30Before.getDate() - 30);
+
+      type AutoItem = { type: string; amount: number; date: string };
+      let autoPlan: AutoItem[] = [];
+
+      if (daysUntilDeparture > 120) {
+        const first = Math.ceil(totalPrice * 0.30);
+        const second = Math.ceil(totalPrice * 0.35);
+        const final_ = totalPrice - first - second;
+        autoPlan = [
+          { type: "first_payment", amount: first, date: toDateStr(ensureFuture(hours48)) },
+          { type: "second_payment", amount: second, date: toDateStr(ensureFuture(day90Before)) },
+          { type: "final_payment", amount: final_, date: toDateStr(ensureFuture(day30Before)) },
+        ];
+      } else if (daysUntilDeparture >= 61) {
+        const first = Math.ceil(totalPrice * 0.50);
+        const final_ = totalPrice - first;
+        autoPlan = [
+          { type: "first_payment", amount: first, date: toDateStr(ensureFuture(hours48)) },
+          { type: "final_payment", amount: final_, date: toDateStr(ensureFuture(day30Before)) },
+        ];
+      } else {
+        autoPlan = [
+          { type: "full_payment", amount: totalPrice, date: toDateStr(ensureFuture(hours48)) },
+        ];
+      }
+
+      for (const p of autoPlan) {
+        if (!paidTypes.has(p.type)) {
+          nextPaymentAmount = p.amount;
+          nextPaymentDueDate = p.date;
+          break;
+        }
       }
     }
 

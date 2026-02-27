@@ -19,10 +19,6 @@ export interface PaymentPlan {
 
 /**
  * Calculate the actual amount in kronor for a payment
- * @param value - The stored value (percent or amount)
- * @param type - Whether the value is a percentage or fixed amount
- * @param totalPrice - The total price to calculate percentage from
- * @returns The actual amount in kronor
  */
 export function calculatePaymentAmount(
   value: number,
@@ -37,9 +33,6 @@ export function calculatePaymentAmount(
 
 /**
  * Calculate all payment plan amounts
- * @param paymentPlan - The payment plan with types
- * @param totalPrice - The total price for the booking
- * @returns Object with calculated amounts for each payment
  */
 export function calculatePaymentPlanAmounts(
   paymentPlan: PaymentPlan,
@@ -78,10 +71,6 @@ export function calculatePaymentPlanAmounts(
 
 /**
  * Format payment display with optional percentage info
- * @param value - The stored value
- * @param type - The payment type
- * @param totalPrice - Total price for percentage calculation
- * @returns Formatted string showing amount (and percentage if applicable)
  */
 export function formatPaymentDisplay(
   value: number,
@@ -95,4 +84,203 @@ export function formatPaymentDisplay(
     return `${formattedAmount} kr (${value}%)`;
   }
   return `${formattedAmount} kr`;
+}
+
+/**
+ * Check if a trip has a manually configured payment plan
+ */
+export function hasManualPaymentPlan(trip: {
+  first_payment_amount?: number;
+  second_payment_amount?: number;
+  final_payment_amount?: number;
+}): boolean {
+  return (
+    (trip.first_payment_amount || 0) > 0 ||
+    (trip.second_payment_amount || 0) > 0 ||
+    (trip.final_payment_amount || 0) > 0
+  );
+}
+
+/**
+ * Auto-generated payment plan item
+ */
+export interface AutoPaymentPlanItem {
+  type: "first_payment" | "second_payment" | "final_payment" | "full_payment";
+  label: string;
+  amount: number;
+  date: string;
+  percentLabel?: string;
+}
+
+/**
+ * Generate an automatic payment plan based on days between booking and departure.
+ * 
+ * Rules:
+ * - >120 days: 30% within 48h, 35% at 90 days before, 35% at 30 days before
+ * - 61–120 days: 50% within 48h, 50% at 30 days before
+ * - ≤60 days: 100% within 48h
+ * 
+ * If a calculated due date has already passed, it falls back to 48h from now.
+ */
+export function generateAutoPaymentPlan(
+  departureDate: string,
+  bookingDate: string,
+  totalPrice: number
+): AutoPaymentPlanItem[] {
+  const departure = new Date(departureDate);
+  const booking = new Date(bookingDate);
+  const now = new Date();
+
+  const daysUntilDeparture = Math.floor(
+    (departure.getTime() - booking.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  const hours48 = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+  const toDateStr = (d: Date) => d.toISOString().split("T")[0];
+
+  // Ensure a due date hasn't passed; if so, use 48h from now
+  const ensureFuture = (d: Date): Date => {
+    return d <= now ? hours48 : d;
+  };
+
+  const day90Before = new Date(departure);
+  day90Before.setDate(day90Before.getDate() - 90);
+
+  const day30Before = new Date(departure);
+  day30Before.setDate(day30Before.getDate() - 30);
+
+  if (daysUntilDeparture > 120) {
+    // Scenario 1: 30% / 35% / 35%
+    const first = Math.ceil(totalPrice * 0.30);
+    const second = Math.ceil(totalPrice * 0.35);
+    const final_ = totalPrice - first - second;
+    return [
+      {
+        type: "first_payment",
+        label: "Delbetalning 1 (30%)",
+        amount: first,
+        date: toDateStr(ensureFuture(hours48)),
+        percentLabel: "30%",
+      },
+      {
+        type: "second_payment",
+        label: "Delbetalning 2 (35%)",
+        amount: second,
+        date: toDateStr(ensureFuture(day90Before)),
+        percentLabel: "35%",
+      },
+      {
+        type: "final_payment",
+        label: "Slutbetalning (35%)",
+        amount: final_,
+        date: toDateStr(ensureFuture(day30Before)),
+        percentLabel: "35%",
+      },
+    ];
+  } else if (daysUntilDeparture >= 61) {
+    // Scenario 2: 50% / 50%
+    const first = Math.ceil(totalPrice * 0.50);
+    const final_ = totalPrice - first;
+    return [
+      {
+        type: "first_payment",
+        label: "Delbetalning 1 (50%)",
+        amount: first,
+        date: toDateStr(ensureFuture(hours48)),
+        percentLabel: "50%",
+      },
+      {
+        type: "final_payment",
+        label: "Slutbetalning (50%)",
+        amount: final_,
+        date: toDateStr(ensureFuture(day30Before)),
+        percentLabel: "50%",
+      },
+    ];
+  } else {
+    // Scenario 3: 100% within 48h
+    return [
+      {
+        type: "full_payment",
+        label: "Fullständig betalning",
+        amount: totalPrice,
+        date: toDateStr(ensureFuture(hours48)),
+      },
+    ];
+  }
+}
+
+/**
+ * Build a resolved payment plan from trip data, with auto-generation fallback.
+ * Returns a unified array of payment plan items regardless of source.
+ */
+export function resolvePaymentPlan(
+  trip: {
+    departure_date: string;
+    first_payment_amount?: number;
+    first_payment_type?: PaymentValueType;
+    first_payment_date?: string | null;
+    second_payment_amount?: number;
+    second_payment_type?: PaymentValueType;
+    second_payment_date?: string | null;
+    final_payment_amount?: number;
+    final_payment_type?: PaymentValueType;
+    final_payment_date?: string | null;
+  },
+  totalPrice: number,
+  bookingCreatedAt: string
+): AutoPaymentPlanItem[] {
+  if (hasManualPaymentPlan(trip)) {
+    // Use the manual plan
+    const items: AutoPaymentPlanItem[] = [];
+    if ((trip.first_payment_amount || 0) > 0) {
+      const amt = calculatePaymentAmount(
+        trip.first_payment_amount!,
+        trip.first_payment_type || "amount",
+        totalPrice
+      );
+      items.push({
+        type: "first_payment",
+        label: trip.first_payment_type === "percent"
+          ? `Delbetalning 1 (${trip.first_payment_amount}%)`
+          : "Delbetalning 1",
+        amount: amt,
+        date: trip.first_payment_date || "",
+      });
+    }
+    if ((trip.second_payment_amount || 0) > 0) {
+      const amt = calculatePaymentAmount(
+        trip.second_payment_amount!,
+        trip.second_payment_type || "amount",
+        totalPrice
+      );
+      items.push({
+        type: "second_payment",
+        label: trip.second_payment_type === "percent"
+          ? `Delbetalning 2 (${trip.second_payment_amount}%)`
+          : "Delbetalning 2",
+        amount: amt,
+        date: trip.second_payment_date || "",
+      });
+    }
+    if ((trip.final_payment_amount || 0) > 0) {
+      const amt = calculatePaymentAmount(
+        trip.final_payment_amount!,
+        trip.final_payment_type || "amount",
+        totalPrice
+      );
+      items.push({
+        type: "final_payment",
+        label: trip.final_payment_type === "percent"
+          ? `Slutbetalning (${trip.final_payment_amount}%)`
+          : "Slutbetalning",
+        amount: amt,
+        date: trip.final_payment_date || "",
+      });
+    }
+    return items;
+  }
+
+  // No manual plan → auto-generate
+  return generateAutoPaymentPlan(trip.departure_date, bookingCreatedAt, totalPrice);
 }

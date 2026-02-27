@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plane, Calendar, MapPin, CreditCard, CheckCircle, Wallet, Info } from "lucide-react";
-import { calculatePaymentAmount, type PaymentValueType } from "@/lib/paymentCalculations";
+import { resolvePaymentPlan, type PaymentValueType } from "@/lib/paymentCalculations";
 import { TripBookingDetailsDialog } from "@/components/TripBookingDetailsDialog";
 
 interface DashboardSummaryCardsProps {
@@ -75,31 +75,12 @@ export const DashboardSummaryCards = ({
         .map((p) => p.payment_type)
     );
 
-    const plan = [
-      {
-        type: "first_payment",
-        amount: trip.first_payment_amount || 0,
-        payType: (trip.first_payment_type || "amount") as PaymentValueType,
-        date: trip.first_payment_date,
-      },
-      {
-        type: "second_payment",
-        amount: trip.second_payment_amount || 0,
-        payType: (trip.second_payment_type || "amount") as PaymentValueType,
-        date: trip.second_payment_date,
-      },
-      {
-        type: "final_payment",
-        amount: trip.final_payment_amount || 0,
-        payType: (trip.final_payment_type || "amount") as PaymentValueType,
-        date: trip.final_payment_date,
-      },
-    ];
+    const planItems = resolvePaymentPlan(trip, totalPrice, activeBooking.created_at);
 
-    for (const p of plan) {
+    for (const p of planItems) {
       if (p.amount > 0 && !paidTypes.has(p.type)) {
         return {
-          amount: calculatePaymentAmount(p.amount, p.payType, totalPrice),
+          amount: p.amount,
           dueDate: p.date || null,
         };
       }
@@ -124,15 +105,21 @@ export const DashboardSummaryCards = ({
   const paymentProgress = useMemo(() => {
     if (!activeBooking?.trips || !payments) return null;
     const trip = activeBooking.trips;
+    const isBooker = activeBooking.user_id === userId;
+    const travelers = activeBooking.travelers || 1;
+    const totalPrice = isBooker
+      ? Number(activeBooking.total_price)
+      : Math.ceil(Number(activeBooking.total_price) / travelers);
     const paidTypes = new Set(
       payments
         .filter((p) => p.trip_booking_id === activeBooking.id)
         .map((p) => p.payment_type)
     );
-    const totalSteps = [trip.first_payment_amount, trip.second_payment_amount, trip.final_payment_amount].filter((a) => a > 0).length;
-    const completedSteps = ["first_payment", "second_payment", "final_payment"].filter((t) => paidTypes.has(t)).length;
+    const planItems = resolvePaymentPlan(trip, totalPrice, activeBooking.created_at);
+    const totalSteps = planItems.length;
+    const completedSteps = planItems.filter((p) => paidTypes.has(p.type)).length;
     return { totalSteps, completedSteps };
-  }, [activeBooking, payments]);
+  }, [activeBooking, payments, userId]);
 
   const badgeInfo = useMemo(() => {
     if (!paymentProgress || !activeBooking) return null;

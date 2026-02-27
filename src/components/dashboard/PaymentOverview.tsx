@@ -17,7 +17,7 @@ import {
   TrendingUp,
   CalendarClock,
 } from "lucide-react";
-import { calculatePaymentAmount, type PaymentValueType } from "@/lib/paymentCalculations";
+import { calculatePaymentAmount, resolvePaymentPlan, type PaymentValueType } from "@/lib/paymentCalculations";
 
 interface PaymentOverviewProps {
   userId: string;
@@ -30,6 +30,7 @@ interface TripBookingWithTrip {
   created_at: string;
   trips: {
     name: string;
+    departure_date: string;
     first_payment_amount: number;
     first_payment_type: PaymentValueType;
     first_payment_date: string | null;
@@ -68,6 +69,7 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
           created_at,
           trips (
             name,
+            departure_date,
             first_payment_amount,
             first_payment_type,
             first_payment_date,
@@ -184,46 +186,9 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
       );
       const paidTypes = new Set(bookingPayments.map((p) => p.payment_type));
       
-      const paymentPlan = [
-        {
-          type: "first_payment",
-          label: booking.trips.first_payment_type === "percent" 
-            ? `Delbetalning 1 (${booking.trips.first_payment_amount}%)`
-            : "Delbetalning 1",
-          amount: calculatePaymentAmount(
-            booking.trips.first_payment_amount,
-            booking.trips.first_payment_type || "amount",
-            totalPrice
-          ),
-          date: booking.trips.first_payment_date,
-        },
-        {
-          type: "second_payment",
-          label: booking.trips.second_payment_type === "percent"
-            ? `Delbetalning 2 (${booking.trips.second_payment_amount}%)`
-            : "Delbetalning 2",
-          amount: calculatePaymentAmount(
-            booking.trips.second_payment_amount,
-            booking.trips.second_payment_type || "amount",
-            totalPrice
-          ),
-          date: booking.trips.second_payment_date,
-        },
-        {
-          type: "final_payment",
-          label: booking.trips.final_payment_type === "percent"
-            ? `Slutbetalning (${booking.trips.final_payment_amount}%)`
-            : "Slutbetalning",
-          amount: calculatePaymentAmount(
-            booking.trips.final_payment_amount,
-            booking.trips.final_payment_type || "amount",
-            totalPrice
-          ),
-          date: booking.trips.final_payment_date,
-        },
-      ];
+      const planItems = resolvePaymentPlan(booking.trips, totalPrice, booking.created_at);
       
-      paymentPlan.forEach((pp) => {
+      planItems.forEach((pp) => {
         if (pp.amount > 0 && pp.date && !paidTypes.has(pp.type)) {
           upcoming.push({
             bookingId: booking.id,
