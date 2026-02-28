@@ -132,12 +132,8 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
     },
   });
 
-  const getTotalPrice = (trip: NonNullable<typeof trips>[0]) => {
-    return (
-      Number(trip.first_payment_amount || 0) +
-      Number(trip.second_payment_amount || 0) +
-      Number(trip.final_payment_amount || 0)
-    );
+  const getDisplayedPrice = (trip: NonNullable<typeof trips>[0]) => {
+    return Number(trip.price || 0);
   };
 
   if (isLoading) {
@@ -337,7 +333,7 @@ export const TripsList = ({ onEditTrip }: TripsListProps) => {
                       </div>
                     </TableCell>
                     <TableCell className="font-semibold">
-                      {getTotalPrice(trip).toLocaleString("sv-SE")} kr
+                      {getDisplayedPrice(trip).toLocaleString("sv-SE")} kr
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
