@@ -450,11 +450,11 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
                               <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded font-medium">Huvudbild</span>
                             </div>
                           )}
-                          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-1 right-1 flex gap-1">
                             <Button type="button" variant={isMain ? "default" : "secondary"} size="icon" className="h-6 w-6" onClick={() => setMainImageIndex(idx)} title="Sätt som huvudbild" disabled={isMain}>
                               <Star className={cn("h-3 w-3", isMain && "fill-current")} />
                             </Button>
-                            <Button type="button" variant="destructive" size="icon" className="h-6 w-6" onClick={() => { setExistingImageUrls(prev => prev.filter((_, i) => i !== idx)); if (idx === mainImageIndex) setMainImageIndex(0); else if (idx < mainImageIndex) setMainImageIndex(prev => prev - 1); }}>
+                            <Button type="button" variant="destructive" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => { setExistingImageUrls(prev => prev.filter((_, i) => i !== idx)); if (idx === mainImageIndex) setMainImageIndex(0); else if (idx < mainImageIndex) setMainImageIndex(prev => prev - 1); }}>
                               <X className="h-3 w-3" />
                             </Button>
                           </div>
@@ -496,11 +496,11 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
                               <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded font-medium">Huvudbild</span>
                             </div>
                           )}
-                          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-1 right-1 flex gap-1">
                             <Button type="button" variant={isMain ? "default" : "secondary"} size="icon" className="h-6 w-6" onClick={() => setMainImageIndex(globalIdx)} title="Sätt som huvudbild" disabled={isMain}>
                               <Star className={cn("h-3 w-3", isMain && "fill-current")} />
                             </Button>
-                            <Button type="button" variant="destructive" size="icon" className="h-6 w-6" onClick={() => { removeImageAt(idx); if (globalIdx === mainImageIndex) setMainImageIndex(0); else if (globalIdx < mainImageIndex) setMainImageIndex(prev => prev - 1); }}>
+                            <Button type="button" variant="destructive" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => { removeImageAt(idx); if (globalIdx === mainImageIndex) setMainImageIndex(0); else if (globalIdx < mainImageIndex) setMainImageIndex(prev => prev - 1); }}>
                               <X className="h-3 w-3" />
                             </Button>
                           </div>
