@@ -175,6 +175,13 @@ export const TripBookingsList = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "preliminary":
+        return (
+          <Badge className="bg-amber-500 text-white">
+            <Clock className="w-3 h-3 mr-1" />
+            Preliminärt bokad
+          </Badge>
+        );
       case "confirmed":
         return (
           <Badge className="bg-palm text-palm-foreground">
@@ -306,6 +313,7 @@ export const TripBookingsList = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="preliminary">Preliminärt bokad</SelectItem>
                             <SelectItem value="pending">Väntar</SelectItem>
                             <SelectItem value="confirmed">Bekräftad</SelectItem>
                             <SelectItem value="cancelled">Avbokad</SelectItem>
@@ -361,7 +369,7 @@ export const TripBookingsList = () => {
                 <>
                   Vill du ändra status för <strong>{pendingStatusChange.bookingName}</strong> till{" "}
                   <strong>
-                    {{ pending: "Väntar", confirmed: "Bekräftad", cancelled: "Avbokad" }[pendingStatusChange.status] || pendingStatusChange.status}
+                    {{ preliminary: "Preliminärt bokad", pending: "Väntar", confirmed: "Bekräftad", cancelled: "Avbokad" }[pendingStatusChange.status] || pendingStatusChange.status}
                   </strong>?
                   {(pendingStatusChange.status === "confirmed" || pendingStatusChange.status === "cancelled") && (
                     <span className="block mt-2 text-sm">Ett automatiskt e-postmeddelande kommer att skickas till kunden.</span>

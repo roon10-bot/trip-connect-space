@@ -230,6 +230,13 @@ export const AdminBookingsList = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "preliminary":
+        return (
+          <Badge className="bg-amber-500 text-white">
+            <Clock className="w-3 h-3 mr-1" />
+            Preliminärt bokad
+          </Badge>
+        );
       case "confirmed":
         return (
           <Badge className="bg-palm text-palm-foreground">
@@ -442,6 +449,7 @@ export const AdminBookingsList = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="preliminary">Preliminärt bokad</SelectItem>
                           <SelectItem value="pending">Väntar</SelectItem>
                           <SelectItem value="confirmed">Bekräftad</SelectItem>
                           <SelectItem value="cancelled">Avbokad</SelectItem>
