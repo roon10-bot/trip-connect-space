@@ -133,6 +133,12 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
     if (tpl.accommodation_address) setAccommodationAddress(tpl.accommodation_address);
     if (tpl.accommodation_description) setAccommodationDescription(tpl.accommodation_description);
     if (tpl.accommodation_facilities) setAccommodationFacilities(Array.isArray(tpl.accommodation_facilities) ? tpl.accommodation_facilities.join(", ") : "");
+    // Pricing from template
+    if (tpl.base_price_accommodation != null) setBasePriceAccommodation(String(tpl.base_price_accommodation));
+    if (tpl.base_price_flight != null) setBasePriceFlight(String(tpl.base_price_flight));
+    if (tpl.base_price_extras != null) setBasePriceExtras(String(tpl.base_price_extras));
+    if (tpl.base_price != null) form.setValue("base_price", Number(tpl.base_price));
+    if (tpl.price != null) form.setValue("price", Number(tpl.price));
     // Images from template
     const galleryUrls = tpl.image_urls?.length ? tpl.image_urls : (tpl.image_url ? [tpl.image_url] : []);
     const mainUrl = tpl.image_url || galleryUrls[0] || null;
