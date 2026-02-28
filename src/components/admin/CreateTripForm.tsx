@@ -101,6 +101,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const [basePriceAccommodation, setBasePriceAccommodation] = useState<string>("0");
   const [basePriceFlight, setBasePriceFlight] = useState<string>("0");
   const [basePriceExtras, setBasePriceExtras] = useState<string>("0");
+  const [templateImageUrls, setTemplateImageUrls] = useState<string[]>([]);
 
   // Fetch templates for quick-fill
   const { data: templates } = useQuery({
@@ -131,6 +132,12 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
     if (tpl.accommodation_address) setAccommodationAddress(tpl.accommodation_address);
     if (tpl.accommodation_description) setAccommodationDescription(tpl.accommodation_description);
     if (tpl.accommodation_facilities) setAccommodationFacilities(Array.isArray(tpl.accommodation_facilities) ? tpl.accommodation_facilities.join(", ") : "");
+    // Images from template
+    if (tpl.image_url) {
+      setTemplateImageUrls([tpl.image_url]);
+      setImagePreviews([tpl.image_url]);
+      setImageFiles([]);
+    }
     toast.success(`Mall "${tpl.template_name}" tillämpad`);
   };
 
@@ -292,7 +299,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
 
       if (tripError) throw tripError;
 
-      // Then upload images (max 5MB per image)
+      // Upload new image files if any
       if (imageFiles.length > 0 && tripData) {
         const firstImageUrl = await uploadTripImages(tripData.id, imageFiles);
         if (firstImageUrl) {
@@ -303,6 +310,21 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
 
           if (updateError) throw updateError;
         }
+      }
+      // Copy template images if no new files were uploaded
+      if (imageFiles.length === 0 && templateImageUrls.length > 0 && tripData) {
+        for (let i = 0; i < templateImageUrls.length; i++) {
+          const { error: insertError } = await supabase.from("trip_images").insert({
+            trip_id: tripData.id,
+            image_url: templateImageUrls[i],
+            display_order: i,
+          });
+          if (insertError) console.error("Copy template image error:", insertError);
+        }
+        await supabase
+          .from("trips")
+          .update({ image_url: templateImageUrls[0] })
+          .eq("id", tripData.id);
       }
     },
     onSuccess: () => {
@@ -319,6 +341,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       setBasePriceAccommodation("0");
       setBasePriceFlight("0");
       setBasePriceExtras("0");
+      setTemplateImageUrls([]);
       onSuccess?.();
     },
     onError: (error) => {
