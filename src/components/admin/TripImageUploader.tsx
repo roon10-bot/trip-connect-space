@@ -121,17 +121,42 @@ export const TripImageUploader = ({ tripId }: TripImageUploaderProps) => {
   });
 
   const setMainImageMutation = useMutation({
-    mutationFn: async (imageUrl: string) => {
-      const { error } = await supabase
+    mutationFn: async ({ imageId, imageUrl }: { imageId: string; imageUrl: string }) => {
+      const { error: tripError } = await supabase
         .from("trips")
         .update({ image_url: imageUrl })
         .eq("id", tripId);
 
-      if (error) throw error;
+      if (tripError) throw tripError;
+
+      const { data: tripImages, error: imagesError } = await supabase
+        .from("trip_images")
+        .select("id, image_url")
+        .eq("trip_id", tripId)
+        .order("display_order", { ascending: true });
+
+      if (imagesError) throw imagesError;
+
+      if (!tripImages || tripImages.length === 0) return;
+
+      const selectedImage = tripImages.find((img) => img.id === imageId);
+      if (!selectedImage) return;
+
+      const reordered = [selectedImage, ...tripImages.filter((img) => img.id !== imageId)];
+
+      const updates = reordered.map((img, index) =>
+        supabase.from("trip_images").update({ display_order: index }).eq("id", img.id)
+      );
+
+      const results = await Promise.all(updates);
+      const failed = results.find((res) => res.error);
+      if (failed?.error) throw failed.error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trip-main-image", tripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-images", tripId] });
       queryClient.invalidateQueries({ queryKey: ["admin-trips"] });
+      queryClient.invalidateQueries({ queryKey: ["trip-images-search"] });
       toast.success("Huvudbild uppdaterad");
     },
     onError: () => {
@@ -217,7 +242,7 @@ export const TripImageUploader = ({ tripId }: TripImageUploaderProps) => {
                       variant={isMain ? "default" : "secondary"}
                       size="icon"
                       className="h-6 w-6"
-                      onClick={() => setMainImageMutation.mutate(image.image_url)}
+                      onClick={() => setMainImageMutation.mutate({ imageId: image.id, imageUrl: image.image_url })}
                       title="Sätt som huvudbild"
                       disabled={isMain}
                     >
