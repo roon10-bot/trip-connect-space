@@ -375,6 +375,17 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   });
 
   const onSubmit = (values: TripFormValues) => {
+    // For splitveckan, calculate price from base components since the field is read-only
+    if (values.trip_type === "splitveckan") {
+      const maxPersons = Number(values.max_persons) || 1;
+      const calcPrice = calculateSplitPricePerPerson(
+        Number(basePriceAccommodation),
+        Number(basePriceFlight),
+        Number(basePriceExtras),
+        maxPersons
+      );
+      values.price = calcPrice;
+    }
     createTripMutation.mutate(values);
   };
 
