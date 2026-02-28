@@ -207,11 +207,17 @@ export const TripBookingDetailsDialog = ({
     return Math.max(0, effectiveTotal - totalPaid);
   }, [effectiveTotal, totalPaid]);
 
+  // Minimum custom amount = first unpaid payment option amount
+  const minCustomAmount = useMemo(() => {
+    if (paymentOptions.length === 0) return 1;
+    return paymentOptions[0]?.amount || 1;
+  }, [paymentOptions]);
+
   const parsedCustomAmount = useMemo(() => {
     const val = Number(customAmount);
-    if (isNaN(val) || val <= 0) return 0;
+    if (isNaN(val) || val < minCustomAmount) return 0;
     return Math.min(val, remainingBalance);
-  }, [customAmount, remainingBalance]);
+  }, [customAmount, remainingBalance, minCustomAmount]);
 
   const selectedAmount = useMemo(() => {
     const planTotal = paymentOptions
@@ -752,7 +758,7 @@ export const TripBookingDetailsDialog = ({
                             <div>
                               <p className="font-medium">Valfritt belopp</p>
                               <p className="text-sm text-muted-foreground">
-                                Max {remainingBalance.toLocaleString("sv-SE")} kr
+                                Min {minCustomAmount.toLocaleString("sv-SE")} kr · Max {remainingBalance.toLocaleString("sv-SE")} kr
                               </p>
                             </div>
                           </div>
@@ -760,7 +766,7 @@ export const TripBookingDetailsDialog = ({
                             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                               <Input
                                 type="number"
-                                min={1}
+                                min={minCustomAmount}
                                 max={remainingBalance}
                                 value={customAmount}
                                 onChange={(e) => setCustomAmount(e.target.value)}
@@ -772,6 +778,13 @@ export const TripBookingDetailsDialog = ({
                             </div>
                           )}
                         </label>
+
+                        {/* Validation message for custom amount below minimum */}
+                        {useCustomAmount && customAmount !== "" && Number(customAmount) > 0 && Number(customAmount) < minCustomAmount && (
+                          <p className="text-sm text-destructive mt-2">
+                            Minsta belopp att betala är {minCustomAmount.toLocaleString("sv-SE")} kr
+                          </p>
+                        )}
 
                         {/* Selected Amount Summary */}
                         {(selectedPayments.size > 0 || (useCustomAmount && parsedCustomAmount > 0)) && (
