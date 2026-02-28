@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Upload, X, GripVertical, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, Star } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface TripImage {
   id: string;
@@ -18,6 +19,20 @@ interface TripImageUploaderProps {
 export const TripImageUploader = ({ tripId }: TripImageUploaderProps) => {
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
+
+  // Get current main image URL from trips table
+  const { data: trip } = useQuery({
+    queryKey: ["trip-main-image", tripId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trips")
+        .select("image_url")
+        .eq("id", tripId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: images, isLoading } = useQuery({
     queryKey: ["trip-images", tripId],
@@ -105,12 +120,33 @@ export const TripImageUploader = ({ tripId }: TripImageUploaderProps) => {
     },
   });
 
+  const setMainImageMutation = useMutation({
+    mutationFn: async (imageUrl: string) => {
+      const { error } = await supabase
+        .from("trips")
+        .update({ image_url: imageUrl })
+        .eq("id", tripId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["trip-main-image", tripId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-trips"] });
+      toast.success("Huvudbild uppdaterad");
+    },
+    onError: () => {
+      toast.error("Kunde inte uppdatera huvudbild");
+    },
+  });
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       uploadMutation.mutate(files);
     }
   };
+
+  const isMainImage = (imageUrl: string) => trip?.image_url === imageUrl;
 
   if (isLoading) {
     return (
@@ -153,29 +189,55 @@ export const TripImageUploader = ({ tripId }: TripImageUploaderProps) => {
       </div>
 
       {images && images.length > 0 ? (
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-          {images.map((image, index) => (
-            <div key={image.id} className="relative group">
-              <img
-                src={image.image_url}
-                alt={`Resebild ${index + 1}`}
-                className="w-full aspect-square object-cover rounded-lg border"
-              />
-              <div className="absolute top-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
-                {index + 1}
-              </div>
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => deleteMutation.mutate(image.id)}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          ))}
-        </div>
+        <>
+          <p className="text-xs text-muted-foreground">Klicka på ⭐ för att välja huvudbild som visas mot kund.</p>
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+            {images.map((image, index) => {
+              const isMain = isMainImage(image.image_url);
+              return (
+                <div key={image.id} className={cn("relative group rounded-lg overflow-hidden border-2", isMain ? "border-primary ring-2 ring-primary/30" : "border-transparent")}>
+                  <img
+                    src={image.image_url}
+                    alt={`Resebild ${index + 1}`}
+                    className="w-full aspect-square object-cover"
+                  />
+                  <div className="absolute top-1 left-1 flex gap-1">
+                    <span className="bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
+                      {index + 1}
+                    </span>
+                    {isMain && (
+                      <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded font-medium">
+                        Huvudbild
+                      </span>
+                    )}
+                  </div>
+                  <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      type="button"
+                      variant={isMain ? "default" : "secondary"}
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => setMainImageMutation.mutate(image.image_url)}
+                      title="Sätt som huvudbild"
+                      disabled={isMain}
+                    >
+                      <Star className={cn("h-3 w-3", isMain && "fill-current")} />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => deleteMutation.mutate(image.id)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
       ) : (
         <div className="text-center py-6 border-2 border-dashed rounded-lg">
           <p className="text-sm text-muted-foreground">
