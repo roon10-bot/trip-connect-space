@@ -45,7 +45,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, FileText, Loader2, Upload, X, Image } from "lucide-react";
+import { Plus, Pencil, Trash2, FileText, Loader2, Upload, X, Image, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TRIP_TYPE_LABELS: Record<string, string> = {
@@ -108,6 +108,7 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [mainImageIndex, setMainImageIndex] = useState<number>(0);
 
   const form = useForm<TemplateFormValues>({
     resolver: zodResolver(templateSchema),
@@ -137,7 +138,11 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
       setAccommodationFacilities((template.accommodation_facilities || []).join(", "));
       setAccommodationAddress(template.accommodation_address || "");
       setAccommodationDescription(template.accommodation_description || "");
-      setExistingImageUrls(template.image_urls?.length ? template.image_urls : (template.image_url ? [template.image_url] : []));
+      const urls = template.image_urls?.length ? template.image_urls : (template.image_url ? [template.image_url] : []);
+      setExistingImageUrls(urls);
+      // Find which image is the main one
+      const mainIdx = template.image_url ? urls.indexOf(template.image_url) : 0;
+      setMainImageIndex(mainIdx >= 0 ? mainIdx : 0);
       setImageFiles([]);
       setImagePreviews([]);
     } else if (open && !template) {
@@ -155,6 +160,7 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
       setAccommodationAddress("");
       setAccommodationDescription("");
       setExistingImageUrls([]);
+      setMainImageIndex(0);
       setImageFiles([]);
       setImagePreviews([]);
     }
@@ -213,7 +219,7 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
       accommodation_address: accommodationAddress || null,
       accommodation_description: accommodationDescription || null,
     };
-    onSave({ ...result, _imageFiles: imageFiles, _existingImageUrls: existingImageUrls });
+    onSave({ ...result, _imageFiles: imageFiles, _existingImageUrls: existingImageUrls, _mainImageIndex: mainImageIndex });
   };
 
   return (
@@ -427,32 +433,34 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
             <div className="space-y-4">
               <h3 className="text-lg font-semibold border-b pb-2">Bilder</h3>
               <p className="text-sm text-muted-foreground">
-                Ladda upp bilder som kopplas till mallen (max 5 MB per bild)
+                Ladda upp bilder som kopplas till mallen (max 5 MB per bild). Klicka på ⭐ för att välja huvudbild.
               </p>
 
               {existingImageUrls.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs text-muted-foreground">Befintliga bilder:</p>
                   <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                    {existingImageUrls.map((url, idx) => (
-                      <div key={idx} className="relative group w-full">
-                        <img
-                          src={url}
-                          alt={`Mallbild ${idx + 1}`}
-                          className="w-full aspect-square object-cover rounded-lg border"
-                          loading="lazy"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => setExistingImageUrls(prev => prev.filter((_, i) => i !== idx))}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
+                    {existingImageUrls.map((url, idx) => {
+                      const isMain = idx === mainImageIndex;
+                      return (
+                        <div key={idx} className={cn("relative group w-full rounded-lg overflow-hidden border-2", isMain ? "border-primary ring-2 ring-primary/30" : "border-transparent")}>
+                          <img src={url} alt={`Mallbild ${idx + 1}`} className="w-full aspect-square object-cover" loading="lazy" />
+                          {isMain && (
+                            <div className="absolute top-1 left-1">
+                              <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded font-medium">Huvudbild</span>
+                            </div>
+                          )}
+                          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button type="button" variant={isMain ? "default" : "secondary"} size="icon" className="h-6 w-6" onClick={() => setMainImageIndex(idx)} title="Sätt som huvudbild" disabled={isMain}>
+                              <Star className={cn("h-3 w-3", isMain && "fill-current")} />
+                            </Button>
+                            <Button type="button" variant="destructive" size="icon" className="h-6 w-6" onClick={() => { setExistingImageUrls(prev => prev.filter((_, i) => i !== idx)); if (idx === mainImageIndex) setMainImageIndex(0); else if (idx < mainImageIndex) setMainImageIndex(prev => prev - 1); }}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -462,16 +470,10 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
                   <div className="flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
                     <Upload className="h-5 w-5 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      {imagePreviews.length > 0 ? "Lägg till fler" : "Välj bilder"}
+                      {(imagePreviews.length > 0 || existingImageUrls.length > 0) ? "Lägg till fler" : "Välj bilder"}
                     </span>
                   </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
+                  <input type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
                 </label>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Image className="h-4 w-4" />
@@ -480,26 +482,32 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
               </div>
 
               {imagePreviews.length > 0 && (
-                <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                  {imagePreviews.map((src, idx) => (
-                    <div key={`${idx}-${src.slice(0, 16)}`} className="relative group">
-                      <img
-                        src={src}
-                        alt={`Förhandsvisning ${idx + 1}`}
-                        className="w-full aspect-square object-cover rounded-lg border"
-                        loading="lazy"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => removeImageAt(idx)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">Nya bilder (laddas upp vid sparande):</p>
+                  <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                    {imagePreviews.map((src, idx) => {
+                      const globalIdx = existingImageUrls.length + idx;
+                      const isMain = globalIdx === mainImageIndex;
+                      return (
+                        <div key={`${idx}-${src.slice(0, 16)}`} className={cn("relative group rounded-lg overflow-hidden border-2", isMain ? "border-primary ring-2 ring-primary/30" : "border-transparent")}>
+                          <img src={src} alt={`Förhandsvisning ${idx + 1}`} className="w-full aspect-square object-cover" loading="lazy" />
+                          {isMain && (
+                            <div className="absolute top-1 left-1">
+                              <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded font-medium">Huvudbild</span>
+                            </div>
+                          )}
+                          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button type="button" variant={isMain ? "default" : "secondary"} size="icon" className="h-6 w-6" onClick={() => setMainImageIndex(globalIdx)} title="Sätt som huvudbild" disabled={isMain}>
+                              <Star className={cn("h-3 w-3", isMain && "fill-current")} />
+                            </Button>
+                            <Button type="button" variant="destructive" size="icon" className="h-6 w-6" onClick={() => { removeImageAt(idx); if (globalIdx === mainImageIndex) setMainImageIndex(0); else if (globalIdx < mainImageIndex) setMainImageIndex(prev => prev - 1); }}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -561,7 +569,8 @@ export const TripTemplatesList = () => {
     mutationFn: async (values: Record<string, unknown>) => {
       const imageFiles = (values._imageFiles as File[]) || [];
       const existingImageUrls = (values._existingImageUrls as string[]) || [];
-      const { _imageFiles, _existingImageUrls, ...dbValues } = values;
+      const mainIdx = (values._mainImageIndex as number) || 0;
+      const { _imageFiles, _existingImageUrls, _mainImageIndex, ...dbValues } = values;
 
       const { data, error } = await supabase
         .from("trip_templates" as any)
@@ -570,7 +579,6 @@ export const TripTemplatesList = () => {
         .single();
       if (error) throw error;
 
-      // Combine existing + newly uploaded URLs
       let allUrls = [...existingImageUrls];
       if (imageFiles.length > 0 && data) {
         const newUrls = await uploadTemplateImages((data as any).id, imageFiles);
@@ -578,9 +586,10 @@ export const TripTemplatesList = () => {
       }
 
       if (allUrls.length > 0 && data) {
+        const mainUrl = allUrls[mainIdx] || allUrls[0];
         await supabase
           .from("trip_templates" as any)
-          .update({ image_url: allUrls[0], image_urls: allUrls } as any)
+          .update({ image_url: mainUrl, image_urls: allUrls } as any)
           .eq("id", (data as any).id);
       }
     },
@@ -596,7 +605,8 @@ export const TripTemplatesList = () => {
     mutationFn: async ({ id, values }: { id: string; values: Record<string, unknown> }) => {
       const imageFiles = (values._imageFiles as File[]) || [];
       const existingImageUrls = (values._existingImageUrls as string[]) || [];
-      const { _imageFiles, _existingImageUrls, ...dbValues } = values;
+      const mainIdx = (values._mainImageIndex as number) || 0;
+      const { _imageFiles, _existingImageUrls, _mainImageIndex, ...dbValues } = values;
 
       let allUrls = [...existingImageUrls];
       if (imageFiles.length > 0) {
@@ -604,9 +614,10 @@ export const TripTemplatesList = () => {
         allUrls = [...allUrls, ...newUrls];
       }
 
+      const mainUrl = allUrls[mainIdx] || allUrls[0] || null;
       const { error } = await supabase
         .from("trip_templates" as any)
-        .update({ ...dbValues, image_url: allUrls[0] || null, image_urls: allUrls } as any)
+        .update({ ...dbValues, image_url: mainUrl, image_urls: allUrls } as any)
         .eq("id", id);
       if (error) throw error;
     },
