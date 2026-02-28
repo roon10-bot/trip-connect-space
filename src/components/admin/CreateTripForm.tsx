@@ -133,9 +133,10 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
     if (tpl.accommodation_description) setAccommodationDescription(tpl.accommodation_description);
     if (tpl.accommodation_facilities) setAccommodationFacilities(Array.isArray(tpl.accommodation_facilities) ? tpl.accommodation_facilities.join(", ") : "");
     // Images from template
-    if (tpl.image_url) {
-      setTemplateImageUrls([tpl.image_url]);
-      setImagePreviews([tpl.image_url]);
+    const urls = tpl.image_urls?.length ? tpl.image_urls : (tpl.image_url ? [tpl.image_url] : []);
+    if (urls.length > 0) {
+      setTemplateImageUrls(urls);
+      setImagePreviews(urls);
       setImageFiles([]);
     }
     toast.success(`Mall "${tpl.template_name}" tillämpad`);
