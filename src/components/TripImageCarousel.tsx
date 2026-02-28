@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TripImageCarouselProps {
   images: { id: string; image_url: string }[];
   fallbackImage?: string | null;
+  mainImageUrl?: string | null;
   tripName?: string;
   className?: string;
 }
@@ -12,18 +13,36 @@ interface TripImageCarouselProps {
 export const TripImageCarousel = ({ 
   images, 
   fallbackImage,
+  mainImageUrl,
   tripName,
   className 
 }: TripImageCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Use fallback if no images
-  const allImages = images.length > 0 
-    ? images 
-    : fallbackImage 
-      ? [{ id: "fallback", image_url: fallbackImage }] 
-      : [];
+  const allImages = useMemo(
+    () =>
+      images.length > 0
+        ? images
+        : fallbackImage
+          ? [{ id: "fallback", image_url: fallbackImage }]
+          : [],
+    [images, fallbackImage]
+  );
 
+  const imageSignature = allImages.map((img) => img.image_url).join("|");
+
+  useEffect(() => {
+    if (!allImages.length) {
+      setCurrentIndex(0);
+      return;
+    }
+
+    if (mainImageUrl) {
+      const mainIdx = allImages.findIndex((img) => img.image_url === mainImageUrl);
+      setCurrentIndex(mainIdx >= 0 ? mainIdx : 0);
+    }
+  }, [mainImageUrl, imageSignature]);
   if (allImages.length === 0) {
     return (
       <div className={cn("bg-muted flex items-center justify-center", className)}>

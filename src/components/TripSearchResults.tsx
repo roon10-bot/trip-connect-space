@@ -144,6 +144,7 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
                   <TripImageCarousel 
                     images={imagesByTrip[trip.id] || []}
                     fallbackImage={trip.image_url}
+                    mainImageUrl={trip.image_url}
                     tripName={trip.name}
                     className="h-52"
                   />
