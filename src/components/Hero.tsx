@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, lazy, Suspense } from "react";
 import { Play, Pause } from "lucide-react";
 import heroVideo from "@/assets/hero-video.mp4";
+import heroOgImage from "/images/studentresor-og.jpg";
 
 // Lazy-load BookingWidget so it's not in the critical JS bundle
 const BookingWidget = lazy(() => import("./BookingWidget").then(m => ({ default: m.BookingWidget })));
@@ -42,7 +43,8 @@ export const Hero = () => {
           loop
           muted
           playsInline
-          preload="metadata"
+          preload="auto"
+          poster={heroOgImage}
           className="w-full h-full object-cover"
           style={{ backgroundColor: 'hsl(var(--foreground))' }}
         >
