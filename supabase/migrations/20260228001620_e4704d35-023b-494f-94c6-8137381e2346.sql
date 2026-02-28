@@ -1,0 +1,1 @@
+ALTER TABLE public.trip_templates ADD COLUMN image_urls text[] DEFAULT '{}'::text[];

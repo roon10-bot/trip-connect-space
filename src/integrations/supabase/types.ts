@@ -735,6 +735,7 @@ export type Database = {
           first_payment_type: string | null
           id: string
           image_url: string | null
+          image_urls: string[] | null
           max_persons: number | null
           min_persons: number | null
           name: string | null
@@ -769,6 +770,7 @@ export type Database = {
           first_payment_type?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           max_persons?: number | null
           min_persons?: number | null
           name?: string | null
@@ -803,6 +805,7 @@ export type Database = {
           first_payment_type?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           max_persons?: number | null
           min_persons?: number | null
           name?: string | null

@@ -71,6 +71,7 @@ interface TripTemplate {
   accommodation_address: string | null;
   accommodation_description: string | null;
   image_url: string | null;
+  image_urls: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -106,7 +107,7 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
   const [accommodationDescription, setAccommodationDescription] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
 
   const form = useForm<TemplateFormValues>({
     resolver: zodResolver(templateSchema),
@@ -136,7 +137,7 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
       setAccommodationFacilities((template.accommodation_facilities || []).join(", "));
       setAccommodationAddress(template.accommodation_address || "");
       setAccommodationDescription(template.accommodation_description || "");
-      setExistingImageUrl(template.image_url || null);
+      setExistingImageUrls(template.image_urls?.length ? template.image_urls : (template.image_url ? [template.image_url] : []));
       setImageFiles([]);
       setImagePreviews([]);
     } else if (open && !template) {
@@ -153,7 +154,7 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
       setAccommodationFacilities("");
       setAccommodationAddress("");
       setAccommodationDescription("");
-      setExistingImageUrl(null);
+      setExistingImageUrls([]);
       setImageFiles([]);
       setImagePreviews([]);
     }
@@ -212,7 +213,7 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
       accommodation_address: accommodationAddress || null,
       accommodation_description: accommodationDescription || null,
     };
-    onSave({ ...result, _imageFiles: imageFiles, _existingImageUrl: existingImageUrl });
+    onSave({ ...result, _imageFiles: imageFiles, _existingImageUrls: existingImageUrls });
   };
 
   return (
@@ -429,25 +430,29 @@ const TemplateFormDialog = ({ open, onOpenChange, template, onSave, saving }: Te
                 Ladda upp bilder som kopplas till mallen (max 5 MB per bild)
               </p>
 
-              {existingImageUrl && imageFiles.length === 0 && (
+              {existingImageUrls.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground">Befintlig bild:</p>
-                  <div className="relative group w-32">
-                    <img
-                      src={existingImageUrl}
-                      alt="Mallbild"
-                      className="w-full aspect-square object-cover rounded-lg border"
-                      loading="lazy"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => setExistingImageUrl(null)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
+                  <p className="text-xs text-muted-foreground">Befintliga bilder:</p>
+                  <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                    {existingImageUrls.map((url, idx) => (
+                      <div key={idx} className="relative group w-full">
+                        <img
+                          src={url}
+                          alt={`Mallbild ${idx + 1}`}
+                          className="w-full aspect-square object-cover rounded-lg border"
+                          loading="lazy"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => setExistingImageUrls(prev => prev.filter((_, i) => i !== idx))}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -536,9 +541,8 @@ export const TripTemplatesList = () => {
     },
   });
 
-  const uploadTemplateImages = async (templateId: string, files: File[]): Promise<string | null> => {
-    if (!files.length) return null;
-    let firstUrl: string | null = null;
+  const uploadTemplateImages = async (templateId: string, files: File[]): Promise<string[]> => {
+    const urls: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const fileExt = file.name.split(".").pop();
@@ -548,18 +552,17 @@ export const TripTemplatesList = () => {
         .upload(fileName, file);
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from("trip-images").getPublicUrl(fileName);
-      if (!firstUrl) firstUrl = publicUrl;
+      urls.push(publicUrl);
     }
-    return firstUrl;
+    return urls;
   };
 
   const createMutation = useMutation({
     mutationFn: async (values: Record<string, unknown>) => {
       const imageFiles = (values._imageFiles as File[]) || [];
-      const existingImageUrl = values._existingImageUrl as string | null;
-      const { _imageFiles, _existingImageUrl, ...dbValues } = values;
+      const existingImageUrls = (values._existingImageUrls as string[]) || [];
+      const { _imageFiles, _existingImageUrls, ...dbValues } = values;
 
-      // Insert template first
       const { data, error } = await supabase
         .from("trip_templates" as any)
         .insert({ ...dbValues, created_by: user?.id } as any)
@@ -567,15 +570,18 @@ export const TripTemplatesList = () => {
         .single();
       if (error) throw error;
 
-      // Upload images if any
+      // Combine existing + newly uploaded URLs
+      let allUrls = [...existingImageUrls];
       if (imageFiles.length > 0 && data) {
-        const imageUrl = await uploadTemplateImages((data as any).id, imageFiles);
-        if (imageUrl) {
-          await supabase
-            .from("trip_templates" as any)
-            .update({ image_url: imageUrl } as any)
-            .eq("id", (data as any).id);
-        }
+        const newUrls = await uploadTemplateImages((data as any).id, imageFiles);
+        allUrls = [...allUrls, ...newUrls];
+      }
+
+      if (allUrls.length > 0 && data) {
+        await supabase
+          .from("trip_templates" as any)
+          .update({ image_url: allUrls[0], image_urls: allUrls } as any)
+          .eq("id", (data as any).id);
       }
     },
     onSuccess: () => {
@@ -589,18 +595,18 @@ export const TripTemplatesList = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ id, values }: { id: string; values: Record<string, unknown> }) => {
       const imageFiles = (values._imageFiles as File[]) || [];
-      const existingImageUrl = values._existingImageUrl as string | null;
-      const { _imageFiles, _existingImageUrl, ...dbValues } = values;
+      const existingImageUrls = (values._existingImageUrls as string[]) || [];
+      const { _imageFiles, _existingImageUrls, ...dbValues } = values;
 
-      // Upload new images if any
-      let imageUrl = existingImageUrl;
+      let allUrls = [...existingImageUrls];
       if (imageFiles.length > 0) {
-        imageUrl = await uploadTemplateImages(id, imageFiles);
+        const newUrls = await uploadTemplateImages(id, imageFiles);
+        allUrls = [...allUrls, ...newUrls];
       }
 
       const { error } = await supabase
         .from("trip_templates" as any)
-        .update({ ...dbValues, image_url: imageUrl } as any)
+        .update({ ...dbValues, image_url: allUrls[0] || null, image_urls: allUrls } as any)
         .eq("id", id);
       if (error) throw error;
     },
