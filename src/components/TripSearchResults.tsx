@@ -70,7 +70,7 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
 
   const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
   const cheapestFlightPrice = flightData?.offers?.[0]
-    ? parseFloat(flightData.offers[0].price_per_passenger)
+    ? parseFloat(flightData.offers[0].price_per_passenger_sek)
     : null;
 
   // Fetch all trip images for these trips (must be before any early return)
