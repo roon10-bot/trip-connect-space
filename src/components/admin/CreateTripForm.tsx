@@ -99,7 +99,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const [accommodationDescription, setAccommodationDescription] = useState<string>("");
   const [useManualPaymentPlan, setUseManualPaymentPlan] = useState(false);
   const [basePriceAccommodation, setBasePriceAccommodation] = useState<string>("0");
-  const [basePriceFlight, setBasePriceFlight] = useState<string>("0");
+  
   const [basePriceExtras, setBasePriceExtras] = useState<string>("0");
   const [templateImageUrls, setTemplateImageUrls] = useState<string[]>([]);
   const [templateMainImageUrl, setTemplateMainImageUrl] = useState<string | null>(null);
@@ -135,7 +135,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
     if (tpl.accommodation_facilities) setAccommodationFacilities(Array.isArray(tpl.accommodation_facilities) ? tpl.accommodation_facilities.join(", ") : "");
     // Pricing from template
     if (tpl.base_price_accommodation != null) setBasePriceAccommodation(String(tpl.base_price_accommodation));
-    if (tpl.base_price_flight != null) setBasePriceFlight(String(tpl.base_price_flight));
+    
     if (tpl.base_price_extras != null) setBasePriceExtras(String(tpl.base_price_extras));
     if (tpl.base_price != null) form.setValue("base_price", Number(tpl.base_price));
     if (tpl.price != null) form.setValue("price", Number(tpl.price));
@@ -311,7 +311,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
         accommodation_address: accommodationAddress || null,
         accommodation_description: accommodationDescription || null,
         base_price_accommodation: Number(basePriceAccommodation) || 0,
-        base_price_flight: Number(basePriceFlight) || 0,
+        base_price_flight: 0,
         base_price_extras: Number(basePriceExtras) || 0,
       } as any).select('id').single();
 
@@ -361,7 +361,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       setAccommodationAddress("");
       setAccommodationDescription("");
       setBasePriceAccommodation("0");
-      setBasePriceFlight("0");
+      
       setBasePriceExtras("0");
       setTemplateImageUrls([]);
       setTemplateMainImageUrl(null);
@@ -380,7 +380,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       const maxPersons = Number(values.max_persons) || 1;
       const calcPrice = calculateSplitPricePerPerson(
         Number(basePriceAccommodation),
-        Number(basePriceFlight),
+        0,
         Number(basePriceExtras),
         maxPersons
       );
@@ -582,21 +582,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                           value={basePriceAccommodation}
                           onChange={(e) => {
                             setBasePriceAccommodation(e.target.value);
-                            const total = Number(e.target.value || 0) + Number(basePriceFlight || 0) + Number(basePriceExtras || 0);
-                            form.setValue("base_price", total);
-                          }}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Baspris för flyg (kr)</label>
-                        <Input
-                          type="number"
-                          min={0}
-                          placeholder="t.ex. 3000"
-                          value={basePriceFlight}
-                          onChange={(e) => {
-                            setBasePriceFlight(e.target.value);
-                            const total = Number(basePriceAccommodation || 0) + Number(e.target.value || 0) + Number(basePriceExtras || 0);
+                            const total = Number(e.target.value || 0) + Number(basePriceExtras || 0);
                             form.setValue("base_price", total);
                           }}
                         />
@@ -610,7 +596,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                           value={basePriceExtras}
                           onChange={(e) => {
                             setBasePriceExtras(e.target.value);
-                            const total = Number(basePriceAccommodation || 0) + Number(basePriceFlight || 0) + Number(e.target.value || 0);
+                            const total = Number(basePriceAccommodation || 0) + Number(e.target.value || 0);
                             form.setValue("base_price", total);
                           }}
                         />
@@ -625,7 +611,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                         value={Number(form.watch("base_price")) || 0}
                         placeholder="Beräknas automatiskt"
                       />
-                      <p className="text-sm text-muted-foreground">Summa av boende + flyg + extras</p>
+                      <p className="text-sm text-muted-foreground">Summa av boende + extras</p>
                     </div>
                   </>
                 )}
@@ -763,7 +749,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                         Number(basePriceAccommodation) > 0 && Number(form.watch("max_persons")) > 0
                           ? calculateSplitPricePerPerson(
                               Number(basePriceAccommodation),
-                              Number(basePriceFlight),
+                              0,
                               Number(basePriceExtras),
                               Number(form.watch("max_persons"))
                             )
@@ -771,7 +757,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                       }
                       placeholder="Beräknas automatiskt"
                     />
-                    <p className="text-sm text-muted-foreground">Beräknat pris per person ((boende / antal + flyg + extras) × 1.20)</p>
+                    <p className="text-sm text-muted-foreground">Beräknat pris per person ((boende / antal + extras) × 1.20). Flygpris tillkommer dynamiskt.</p>
                   </div>
                 ) : (
                   <FormField
@@ -796,7 +782,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                 <div className="bg-muted/50 border rounded-lg p-4 space-y-3">
                   <h4 className="font-semibold text-sm">Prisberäkning per person (Splitveckan)</h4>
                   <p className="text-xs text-muted-foreground">
-                    Formel: ((boende / antal) + flyg + extras) × 1.20
+                    Formel: ((boende / antal) + extras) × 1.20 (flygpris tillkommer dynamiskt)
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {Array.from(
@@ -805,7 +791,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                     ).map((persons) => {
                       const pricePerPerson = calculateSplitPricePerPerson(
                         Number(basePriceAccommodation) || 0,
-                        Number(basePriceFlight) || 0,
+                        0,
                         Number(basePriceExtras) || 0,
                         persons
                       );
