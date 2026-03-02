@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.swish-callback]
 verify_jwt = false
+
+[functions.search-flights]
+verify_jwt = false
