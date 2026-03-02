@@ -73,21 +73,7 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
     ? parseFloat(flightData.offers[0].price_per_passenger)
     : null;
 
-  if (isLoading) {
-    return (
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-card rounded-xl p-6 animate-pulse">
-            <div className="h-6 bg-muted rounded w-2/3 mb-4" />
-            <div className="h-4 bg-muted rounded w-1/2 mb-2" />
-            <div className="h-4 bg-muted rounded w-3/4" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  // Fetch all trip images for these trips
+  // Fetch all trip images for these trips (must be before any early return)
   const tripIds = trips.map(t => t.id);
   const { data: allTripImages } = useQuery({
     queryKey: ["trip-images-search", tripIds],
@@ -104,6 +90,20 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
     },
     enabled: tripIds.length > 0,
   });
+
+  if (isLoading) {
+    return (
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-card rounded-xl p-6 animate-pulse">
+            <div className="h-6 bg-muted rounded w-2/3 mb-4" />
+            <div className="h-4 bg-muted rounded w-1/2 mb-2" />
+            <div className="h-4 bg-muted rounded w-3/4" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   // Group images by trip_id
   const imagesByTrip = (allTripImages || []).reduce((acc, img) => {
