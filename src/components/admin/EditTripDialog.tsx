@@ -95,7 +95,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
   const [accommodationAddress, setAccommodationAddress] = useState<string>("");
   const [accommodationDescription, setAccommodationDescription] = useState<string>("");
   const [basePriceAccommodation, setBasePriceAccommodation] = useState<string>("0");
-  const [basePriceFlight, setBasePriceFlight] = useState<string>("0");
+  
   const [basePriceExtras, setBasePriceExtras] = useState<string>("0");
 
   const { data: trip, isLoading: tripLoading } = useQuery({
@@ -165,7 +165,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
       setAccommodationAddress(trip.accommodation_address || "");
       setAccommodationDescription(trip.accommodation_description || "");
       setBasePriceAccommodation(((trip as any).base_price_accommodation || 0).toString());
-      setBasePriceFlight(((trip as any).base_price_flight || 0).toString());
+      
       setBasePriceExtras(((trip as any).base_price_extras || 0).toString());
     }
   }, [trip, form]);
@@ -205,7 +205,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
           accommodation_address: accommodationAddress || null,
           accommodation_description: accommodationDescription || null,
           base_price_accommodation: Number(basePriceAccommodation) || 0,
-          base_price_flight: Number(basePriceFlight) || 0,
+          base_price_flight: 0,
           base_price_extras: Number(basePriceExtras) || 0,
         } as any)
         .eq("id", tripId);
@@ -226,6 +226,17 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
   });
 
   const onSubmit = (values: TripFormValues) => {
+    // For splitveckan, calculate price from base components since the field is read-only
+    if (values.trip_type === "splitveckan") {
+      const maxPersons = Number(values.max_persons) || 1;
+      const calcPrice = calculateSplitPricePerPerson(
+        Number(basePriceAccommodation),
+        0,
+        Number(basePriceExtras),
+        maxPersons
+      );
+      values.price = calcPrice;
+    }
     updateTripMutation.mutate(values);
   };
 
@@ -369,21 +380,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                               value={basePriceAccommodation}
                               onChange={(e) => {
                                 setBasePriceAccommodation(e.target.value);
-                                const total = Number(e.target.value || 0) + Number(basePriceFlight || 0) + Number(basePriceExtras || 0);
-                                form.setValue("base_price", total);
-                              }}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">Baspris för flyg (kr)</label>
-                            <Input
-                              type="number"
-                              min={0}
-                              placeholder="t.ex. 3000"
-                              value={basePriceFlight}
-                              onChange={(e) => {
-                                setBasePriceFlight(e.target.value);
-                                const total = Number(basePriceAccommodation || 0) + Number(e.target.value || 0) + Number(basePriceExtras || 0);
+                                const total = Number(e.target.value || 0) + Number(basePriceExtras || 0);
                                 form.setValue("base_price", total);
                               }}
                             />
@@ -397,7 +394,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                               value={basePriceExtras}
                               onChange={(e) => {
                                 setBasePriceExtras(e.target.value);
-                                const total = Number(basePriceAccommodation || 0) + Number(basePriceFlight || 0) + Number(e.target.value || 0);
+                                const total = Number(basePriceAccommodation || 0) + Number(e.target.value || 0);
                                 form.setValue("base_price", total);
                               }}
                             />
@@ -412,7 +409,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                             value={Number(form.watch("base_price")) || 0}
                             placeholder="Beräknas automatiskt"
                           />
-                          <p className="text-sm text-muted-foreground">Summa av boende + flyg + extras</p>
+                          <p className="text-sm text-muted-foreground">Summa av boende + extras</p>
                         </div>
                       </>
                     ) : (
@@ -560,9 +557,9 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                           disabled
                           value={
                             Number(basePriceAccommodation) > 0 && Number(form.watch("max_persons")) > 0
-                              ? calculateSplitPricePerPerson(
+                               ? calculateSplitPricePerPerson(
                                   Number(basePriceAccommodation),
-                                  Number(basePriceFlight),
+                                  0,
                                   Number(basePriceExtras),
                                   Number(form.watch("max_persons"))
                                 )
@@ -570,7 +567,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                           }
                           placeholder="Beräknas automatiskt"
                         />
-                        <p className="text-sm text-muted-foreground">Beräknat pris per person ((boende / antal + flyg + extras) × 1.20)</p>
+                        <p className="text-sm text-muted-foreground">Beräknat pris per person ((boende / antal + extras) × 1.20). Flygpris tillkommer dynamiskt.</p>
                       </div>
                     ) : (
                       <FormField
@@ -595,7 +592,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                     <div className="bg-muted/50 border rounded-lg p-4 space-y-3">
                       <h4 className="font-semibold text-sm">Prisberäkning per person (Splitveckan)</h4>
                       <p className="text-xs text-muted-foreground">
-                        Formel: ((boende / antal) + flyg + extras) × 1.20
+                        Formel: ((boende / antal) + extras) × 1.20 (flygpris tillkommer dynamiskt)
                       </p>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         {Array.from(
@@ -604,7 +601,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                         ).map((persons) => {
                           const pricePerPerson = calculateSplitPricePerPerson(
                             Number(basePriceAccommodation) || 0,
-                            Number(basePriceFlight) || 0,
+                            0,
                             Number(basePriceExtras) || 0,
                             persons
                           );
