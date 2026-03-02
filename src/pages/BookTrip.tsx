@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
+import { useFlightSearch, type FlightOffer } from "@/hooks/useFlightSearch";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -115,6 +116,25 @@ const BookTrip = () => {
     },
     enabled: !!id,
   });
+
+  // Extract IATA code from departure_location like "Kastrup (CPH)"
+  const departureIATA = useMemo(() => {
+    if (!trip?.departure_location) return null;
+    const match = trip.departure_location.match(/\(([A-Z]{3})\)/);
+    return match?.[1] || null;
+  }, [trip?.departure_location]);
+
+  // Fetch flight info for the booking page
+  const flightSearchParams = departureIATA && trip ? {
+    origin: departureIATA,
+    destination: "SPU",
+    departure_date: trip.departure_date,
+    return_date: trip.return_date,
+    passengers: 1,
+  } : null;
+
+  const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
+  const cheapestFlight = flightData?.offers?.[0] || null;
 
   // Sync travelersInfo array length with travelers count and set departure location from trip
   useEffect(() => {
@@ -519,6 +539,8 @@ const BookTrip = () => {
               appliedDiscount={appliedDiscount}
               totalPrice={calculateTotalPrice()}
               formatTripType={formatTripType}
+              flightOffer={cheapestFlight}
+              flightLoading={flightLoading}
             />
           </div>
         </div>
