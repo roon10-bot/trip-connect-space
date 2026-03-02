@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface FlightOffer {
   id: string;
-  total_amount: string;
-  total_currency: string;
-  price_per_passenger: string;
+  total_amount_original: string;
+  total_currency_original: string;
+  total_amount_sek: string;
+  price_per_passenger_sek: string;
   airline: string;
   airline_logo: string | null;
   slices: {
@@ -30,6 +31,7 @@ interface SearchFlightsParams {
 export interface FlightSearchResult {
   offers: FlightOffer[];
   total_offers: number;
+  exchange_rate: number;
   is_test: boolean;
 }
 
