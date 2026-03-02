@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { departureToIATA } from "@/hooks/useFlightSearch";
 import { useSearchParams } from "react-router-dom";
 import { CalendarIcon, Minus, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -230,7 +231,12 @@ const SearchTrips = () => {
         </div>
 
         {/* Search Results */}
-        <TripSearchResults trips={trips || []} isLoading={isLoading} />
+        <TripSearchResults
+          trips={trips || []}
+          isLoading={isLoading}
+          departureIATA={departure !== "all" ? departureToIATA[departure] : undefined}
+          guests={guests}
+        />
 
         {/* No results message */}
         {!isLoading && trips?.length === 0 && <div className="mt-8 text-center py-12 bg-card rounded-xl border border-border">
