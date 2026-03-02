@@ -25,6 +25,7 @@ interface SearchFlightsParams {
   origin: string; // IATA code e.g. "CPH"
   destination: string; // IATA code e.g. "SPU"
   departure_date: string; // YYYY-MM-DD
+  return_date?: string; // YYYY-MM-DD for round-trip
   passengers: number;
 }
 

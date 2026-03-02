@@ -19,7 +19,7 @@ serve(async (req: Request) => {
       throw new Error("DUFFEL_API_KEY is not configured");
     }
 
-    const { origin, destination, departure_date, passengers } = await req.json();
+    const { origin, destination, departure_date, return_date, passengers } = await req.json();
 
     if (!origin || !destination || !departure_date) {
       return new Response(
@@ -28,16 +28,17 @@ serve(async (req: Request) => {
       );
     }
 
-    // Step 1: Create an offer request
+    // Step 1: Create an offer request (round-trip if return_date provided)
+    const slices: any[] = [
+      { origin, destination, departure_date },
+    ];
+    if (return_date) {
+      slices.push({ origin: destination, destination: origin, departure_date: return_date });
+    }
+
     const offerRequestBody = {
       data: {
-        slices: [
-          {
-            origin,
-            destination,
-            departure_date,
-          },
-        ],
+        slices,
         passengers: Array.from({ length: passengers || 1 }, () => ({ type: "adult" })),
         cabin_class: "economy",
       },
