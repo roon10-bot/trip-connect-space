@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
-import { Calendar, Plane, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { getSplitPricePerPerson, calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
+import { Calendar, Plane, Users, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AccommodationInfoDialog } from "./AccommodationInfoDialog";
 import { format } from "date-fns";
@@ -17,6 +17,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { TripImageCarousel } from "./TripImageCarousel";
+import { useFlightSearch, departureToIATA, type FlightOffer } from "@/hooks/useFlightSearch";
 
 interface Trip {
   id: string;
@@ -32,6 +33,9 @@ interface Trip {
   min_persons?: number | null;
   max_persons?: number | null;
   base_price?: number | null;
+  base_price_accommodation?: number;
+  base_price_flight?: number;
+  base_price_extras?: number;
   is_fullbooked?: boolean;
   accommodation_rooms?: number | null;
   accommodation_size_sqm?: number | null;
@@ -50,9 +54,25 @@ interface TripImage {
 interface TripSearchResultsProps {
   trips: Trip[];
   isLoading: boolean;
+  departureIATA?: string;
+  guests?: number;
 }
 
-export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) => {
+export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 }: TripSearchResultsProps) => {
+  // Pick the first trip to determine flight search params (same departure date pattern)
+  const firstTrip = trips[0];
+  const flightSearchParams = departureIATA && firstTrip ? {
+    origin: departureIATA,
+    destination: "SPU", // Split, Croatia - primary destination
+    departure_date: firstTrip.departure_date,
+    passengers: 1, // price per passenger
+  } : null;
+
+  const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
+  const cheapestFlightPrice = flightData?.offers?.[0]
+    ? parseFloat(flightData.offers[0].price_per_passenger)
+    : null;
+
   if (isLoading) {
     return (
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -211,16 +231,44 @@ export const TripSearchResults = ({ trips, isLoading }: TripSearchResultsProps) 
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <span className="text-xs text-muted-foreground">Pris från</span>
-                        <p className="text-2xl font-bold text-primary">
-                          {(() => {
-                            if (trip.trip_type === "splitveckan" && trip.max_persons) {
-                              const p = getSplitPricePerPerson(trip, Number(trip.max_persons));
-                              return p > 0 ? p.toLocaleString("sv-SE") : trip.price.toLocaleString("sv-SE");
-                            }
-                            return trip.price.toLocaleString("sv-SE");
-                          })()} kr
-                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          {cheapestFlightPrice ? "Dynamiskt pris" : "Pris från"}
+                        </span>
+                        {flightLoading && departureIATA ? (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span className="text-sm">Hämtar flygpris...</span>
+                          </div>
+                        ) : (
+                          <p className="text-2xl font-bold text-primary">
+                            {(() => {
+                              // If we have a Duffel flight price, use it for dynamic pricing
+                              if (cheapestFlightPrice && trip.trip_type === "splitveckan" && trip.max_persons) {
+                                const accommodation = Number(trip.base_price_accommodation) || 0;
+                                const extras = Number(trip.base_price_extras) || 0;
+                                const dynamicPrice = calculateSplitPricePerPerson(
+                                  accommodation, cheapestFlightPrice, extras, Number(trip.max_persons)
+                                );
+                                return dynamicPrice > 0 ? dynamicPrice.toLocaleString("sv-SE") : trip.price.toLocaleString("sv-SE");
+                              }
+                              if (cheapestFlightPrice) {
+                                // Non-split: flight + accommodation + extras with 20% margin
+                                const accommodation = Number(trip.base_price_accommodation) || 0;
+                                const extras = Number(trip.base_price_extras) || 0;
+                                const dynamicPrice = Math.ceil((accommodation + cheapestFlightPrice + extras) * 1.20);
+                                return dynamicPrice > 0 ? dynamicPrice.toLocaleString("sv-SE") : trip.price.toLocaleString("sv-SE");
+                              }
+                              if (trip.trip_type === "splitveckan" && trip.max_persons) {
+                                const p = getSplitPricePerPerson(trip, Number(trip.max_persons));
+                                return p > 0 ? p.toLocaleString("sv-SE") : trip.price.toLocaleString("sv-SE");
+                              }
+                              return trip.price.toLocaleString("sv-SE");
+                            })()} kr
+                          </p>
+                        )}
+                        {cheapestFlightPrice && flightData?.is_test && (
+                          <span className="text-[10px] text-muted-foreground/60">Testpris (Duffel)</span>
+                        )}
                       </div>
                       
                       {trip.is_fullbooked ? (
