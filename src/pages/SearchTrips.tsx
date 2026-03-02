@@ -80,7 +80,7 @@ const SearchTrips = () => {
         const endDate = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
         query = query.gte("departure_date", startDate).lt("departure_date", endDate);
       }
-      query = query.gte("max_persons", guests);
+      query = query.gte("max_persons", guests).lte("min_persons", guests);
       const { data, error } = await query;
       if (error) throw error;
       return data;
