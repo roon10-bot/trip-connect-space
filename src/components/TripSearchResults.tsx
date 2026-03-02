@@ -233,7 +233,7 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <span className="text-xs text-muted-foreground">
-                          {cheapestFlightPrice ? "Dynamiskt pris" : "Pris från"}
+                          Pris från
                         </span>
                         {flightLoading && departureIATA ? (
                           <div className="flex items-center gap-2 text-muted-foreground">
