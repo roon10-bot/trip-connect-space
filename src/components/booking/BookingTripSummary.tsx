@@ -1,9 +1,10 @@
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { Calendar, MapPin, Users, Tag, Plane, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Users, Tag, Plane, Loader2, ChevronDown } from "lucide-react";
 import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AccommodationInfoDialog } from "@/components/AccommodationInfoDialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { FlightOffer } from "@/hooks/useFlightSearch";
 
 interface Trip {
@@ -109,31 +110,36 @@ export const BookingTripSummary = ({
           </div>
         )}
         {flightOffer && !flightLoading && (
-          <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <Plane className="w-4 h-4 text-primary" />
-              <span>Flyg med {flightOffer.airline}</span>
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors w-full group">
+              <Plane className="w-4 h-4" />
+              <span>Flyginfo – {flightOffer.airline}</span>
               {flightOffer.airline_logo && (
-                <img src={flightOffer.airline_logo} alt={flightOffer.airline} className="h-4 w-auto ml-auto" />
+                <img src={flightOffer.airline_logo} alt={flightOffer.airline} className="h-4 w-auto ml-auto mr-1" />
               )}
-            </div>
-            {flightOffer.slices?.map((slice, i) => (
-              <div key={i} className="text-xs text-muted-foreground pl-6 space-y-0.5">
-                <div className="font-medium text-foreground/80">
-                  {i === 0 ? "Utresa" : "Hemresa"}: {slice.origin} → {slice.destination}
-                </div>
-                <div>
-                  Avgång: {new Date(slice.departure_time).toLocaleString("sv-SE", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                </div>
-                <div>
-                  Ankomst: {new Date(slice.arrival_time).toLocaleString("sv-SE", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                </div>
-                {slice.stops > 0 && (
-                  <div className="text-amber-600">{slice.stops} mellanlandning</div>
-                )}
+              <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="bg-muted/50 rounded-lg p-3 mt-2 space-y-2">
+                {flightOffer.slices?.map((slice, i) => (
+                  <div key={i} className="text-xs text-muted-foreground space-y-0.5">
+                    <div className="font-medium text-foreground/80">
+                      {i === 0 ? "Utresa" : "Hemresa"}: {slice.origin} → {slice.destination}
+                    </div>
+                    <div>
+                      Avgång: {new Date(slice.departure_time).toLocaleString("sv-SE", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                    <div>
+                      Ankomst: {new Date(slice.arrival_time).toLocaleString("sv-SE", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                    {slice.stops > 0 && (
+                      <div className="text-destructive">{slice.stops} mellanlandning</div>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
         <div className="border-t border-border pt-4 space-y-3">
