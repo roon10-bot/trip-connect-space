@@ -560,7 +560,10 @@ export type Database = {
           notes: string | null
           partner_id: string
           payout_date: string
+          period_end: string | null
+          period_start: string | null
           reference: string | null
+          status: string
         }
         Insert: {
           amount: number
@@ -572,7 +575,10 @@ export type Database = {
           notes?: string | null
           partner_id: string
           payout_date: string
+          period_end?: string | null
+          period_start?: string | null
           reference?: string | null
+          status?: string
         }
         Update: {
           amount?: number
@@ -584,7 +590,10 @@ export type Database = {
           notes?: string | null
           partner_id?: string
           payout_date?: string
+          period_end?: string | null
+          period_start?: string | null
           reference?: string | null
+          status?: string
         }
         Relationships: [
           {
@@ -686,6 +695,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      partner_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: string
+          old_status: string | null
+          partner_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: string
+          old_status?: string | null
+          partner_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string
+          old_status?: string | null
+          partner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_status_history_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
