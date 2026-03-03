@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
 import loginHero from "@/assets/login-hero.png";
+import { HostRegistrationForm, type IndividualFormData, type CompanyFormData } from "@/components/auth/HostRegistrationForm";
 
 const signupSchema = z.object({
   firstName: z.string().trim().min(1, "Förnamn krävs"),
@@ -33,9 +34,12 @@ type SignupFormData = z.infer<typeof signupSchema>;
 type LoginFormData = z.infer<typeof loginSchema>;
 type AuthFormData = SignupFormData | LoginFormData;
 
+type AccountType = "traveler" | "host";
+
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
+  const [accountType, setAccountType] = useState<AccountType>("traveler");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
@@ -53,13 +57,10 @@ const Auth = () => {
     return hash && (hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=magiclink"));
   };
 
-  // Listen for auth events from magic link / recovery token processing
   useEffect(() => {
-    // Set immediately if hash is present (before auth event fires)
     if (hasMagicLinkHash()) {
       setIsSettingPassword(true);
     }
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         if (hasMagicLinkHash()) {
@@ -79,7 +80,6 @@ const Auth = () => {
     resolver: zodResolver(isLogin ? loginSchema : signupSchema),
   });
 
-  // Handle redirect after successful login
   useEffect(() => {
     if (shouldRedirect && user && !adminLoading) {
       navigate(isAdmin ? "/admin" : "/dashboard");
@@ -87,7 +87,6 @@ const Auth = () => {
     }
   }, [shouldRedirect, user, isAdmin, adminLoading, navigate]);
 
-  // Handle already logged in users (but not if setting password via magic link)
   useEffect(() => {
     if (user && !adminLoading && !isSettingPassword) {
       navigate(isAdmin ? "/admin" : "/dashboard");
@@ -96,16 +95,11 @@ const Auth = () => {
 
   const onSubmit = async (data: AuthFormData) => {
     setIsLoading(true);
-
     try {
       if (isLogin) {
         const { error } = await signIn(data.email, data.password);
         if (error) {
-          if (error.message.includes("Invalid login credentials")) {
-            toast.error("Felaktiga inloggningsuppgifter");
-          } else {
-            toast.error(error.message);
-          }
+          toast.error(error.message.includes("Invalid login credentials") ? "Felaktiga inloggningsuppgifter" : error.message);
         } else {
           toast.success("Välkommen tillbaka!");
           setShouldRedirect(true);
@@ -114,21 +108,93 @@ const Auth = () => {
         const fullName = `${'firstName' in data ? data.firstName : ''} ${'lastName' in data ? data.lastName : ''}`.trim();
         const { error } = await signUp(data.email, data.password, fullName);
         if (error) {
-          if (error.message.includes("already registered")) {
-            toast.error("E-postadressen är redan registrerad");
-          } else {
-            toast.error(error.message);
-          }
+          toast.error(error.message.includes("already registered") ? "E-postadressen är redan registrerad" : error.message);
         } else {
           toast.success("Konto skapat! Du är nu inloggad.");
           setShouldRedirect(true);
         }
       }
-    } catch (error) {
+    } catch {
       toast.error("Ett oväntat fel uppstod");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleHostSubmit = async (
+    email: string,
+    password: string,
+    fullName: string,
+    partnerData: Record<string, any>
+  ) => {
+    setIsLoading(true);
+    try {
+      const { data: authData, error: authError } = await signUp(email, password, fullName);
+      if (authError) {
+        toast.error(authError.message.includes("already registered") ? "E-postadressen är redan registrerad" : authError.message);
+        return;
+      }
+      
+      const userId = authData?.user?.id;
+      if (!userId) {
+        toast.error("Kunde inte skapa kontot. Försök igen.");
+        return;
+      }
+
+      // Insert partner role
+      await supabase.from("user_roles").insert({ user_id: userId, role: "partner" as any });
+
+      // Insert partner profile
+      await supabase.from("partner_profiles" as any).insert({
+        user_id: userId,
+        ...partnerData,
+      });
+
+      toast.success("Värdkonto skapat! Du är nu inloggad.");
+      setShouldRedirect(true);
+    } catch {
+      toast.error("Ett oväntat fel uppstod");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleIndividualSubmit = (data: IndividualFormData) => {
+    const fullName = `${data.firstName} ${data.lastName}`;
+    handleHostSubmit(data.email, data.password, fullName, {
+      partner_type: "individual",
+      first_name: data.firstName,
+      last_name: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      personal_id: data.personalId || null,
+      address: data.address,
+      city: data.city,
+      country: data.country,
+      iban: data.iban,
+      bank_name: data.bankName,
+      bank_address: data.bankAddress || null,
+      certifies_rental_rights: true,
+      certifies_local_taxes: true,
+    });
+  };
+
+  const handleCompanySubmit = (data: CompanyFormData) => {
+    handleHostSubmit(data.email, data.password, data.contactPerson, {
+      partner_type: "company",
+      company_name: data.companyName,
+      organization_number: data.organizationNumber,
+      contact_person: data.contactPerson,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      city: data.city,
+      country: data.country,
+      iban: data.iban,
+      swift: data.swift,
+      currency: data.currency,
+      certifies_company_authority: true,
+    });
   };
 
   const handleSetPassword = async (e: React.FormEvent) => {
@@ -171,11 +237,14 @@ const Auth = () => {
     }
   };
 
-
   const toggleMode = () => {
     setIsLogin(!isLogin);
+    setAccountType("traveler");
     reset();
   };
+
+  const showTravelerSignup = !isLogin && accountType === "traveler";
+  const showHostSignup = !isLogin && accountType === "host";
 
   return (
     <div className="min-h-screen flex">
@@ -183,7 +252,7 @@ const Auth = () => {
       <div className="hidden lg:flex lg:w-1/2 relative">
         <img
           src={loginHero}
-           alt="Studenter seglar i Kroatiens skärgård"
+          alt="Studenter seglar i Kroatiens skärgård"
           className="w-full h-full object-cover brightness-50 contrast-75"
         />
         <div className="absolute inset-0 bg-[#0C4D73]/70" />
@@ -193,26 +262,44 @@ const Auth = () => {
               <img src={studentresorLogo} alt="Studentresor" className="h-10 opacity-80" />
             </Link>
             <h2 className="text-3xl font-serif font-semibold text-white/90 mb-4">
-              Din resa. Samlad på ett ställe.
+              {showHostSignup ? "Bli värd hos Studentresor" : "Din resa. Samlad på ett ställe."}
             </h2>
             <p className="text-white/60 text-base">
-              Skapa ett konto för att hantera din bokning, betalningar och viktiga uppdateringar inför resan.
+              {showHostSignup
+                ? "Registrera dig som värd för att erbjuda boenden och upplevelser till våra resenärer."
+                : "Skapa ett konto för att hantera din bokning, betalningar och viktiga uppdateringar inför resan."}
             </p>
           </div>
           <div>
-            <ul className="grid grid-cols-2 gap-x-6 gap-y-2 mb-4">
-              {[
-                "Se och betala dina delbetalningar",
-                "Ladda ner biljetter och dokument",
-                "Fyll i uppgifter & allergier",
-                "Få uppdateringar direkt från oss",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-2 text-white/50 text-xs">
-                  <Check className="w-3.5 h-3.5 text-white/35 shrink-0" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
+            {showHostSignup ? (
+              <ul className="grid grid-cols-2 gap-x-6 gap-y-2 mb-4">
+                {[
+                  "Hantera dina boenden",
+                  "Sätt priser och tillgänglighet",
+                  "Se bokningar och intäkter",
+                  "Direktkontakt med Studentresor",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-white/50 text-xs">
+                    <Check className="w-3.5 h-3.5 text-white/35 shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ul className="grid grid-cols-2 gap-x-6 gap-y-2 mb-4">
+                {[
+                  "Se och betala dina delbetalningar",
+                  "Ladda ner biljetter och dokument",
+                  "Fyll i uppgifter & allergier",
+                  "Få uppdateringar direkt från oss",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-white/50 text-xs">
+                    <Check className="w-3.5 h-3.5 text-white/35 shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
             <p className="text-white/25 text-[10px]">
               Ställd resegaranti hos Kammarkollegiet • Säker betalning via Stripe • 24/7 support under resan
             </p>
@@ -221,7 +308,7 @@ const Auth = () => {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -235,18 +322,44 @@ const Auth = () => {
             </Link>
           </div>
 
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
               {isSettingPassword ? "Välj ditt lösenord" : isLogin ? "Logga in" : "Skapa konto"}
             </h1>
-            {(isSettingPassword || !isLogin) && (
+            {isSettingPassword && (
               <p className="text-muted-foreground">
-                {isSettingPassword
-                  ? "Ange ett lösenord för att aktivera ditt konto"
-                  : "Använd din e-post för att skapa ett konto och få full kontroll över din resa."}
+                Ange ett lösenord för att aktivera ditt konto
               </p>
             )}
           </div>
+
+          {/* Tabs: Resenär / Värd – only for signup */}
+          {!isLogin && !isSettingPassword && (
+            <div className="flex rounded-lg bg-muted p-1 mb-6">
+              <button
+                type="button"
+                onClick={() => setAccountType("traveler")}
+                className={`flex-1 py-2.5 text-sm font-medium rounded-md transition-all ${
+                  accountType === "traveler"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Resenär
+              </button>
+              <button
+                type="button"
+                onClick={() => setAccountType("host")}
+                className={`flex-1 py-2.5 text-sm font-medium rounded-md transition-all ${
+                  accountType === "host"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Värd
+              </button>
+            </div>
+          )}
 
           {isSettingPassword ? (
             <form onSubmit={handleSetPassword} className="space-y-6">
@@ -278,95 +391,98 @@ const Auth = () => {
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Spara lösenord"}
               </Button>
             </form>
+          ) : showHostSignup ? (
+            /* ─── Host Registration ─── */
+            <HostRegistrationForm
+              onSubmitIndividual={handleIndividualSubmit}
+              onSubmitCompany={handleCompanySubmit}
+              isLoading={isLoading}
+            />
           ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
-
-
-              {!isLogin && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">Förnamn</Label>
-                    <Input
-                      id="firstName"
-                      placeholder="Förnamn"
-                      {...register("firstName" as any)}
-                      className="h-12"
-                    />
-                    {(errors as any).firstName && (
-                      <p className="text-sm text-destructive">{(errors as any).firstName.message}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Efternamn</Label>
-                    <Input
-                      id="lastName"
-                      placeholder="Efternamn"
-                      {...register("lastName" as any)}
-                      className="h-12"
-                    />
-                    {(errors as any).lastName && (
-                      <p className="text-sm text-destructive">{(errors as any).lastName.message}</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="email">E-post</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="din@email.se"
-                  {...register("email")}
-                  className="h-12"
-                />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Lösenord</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    {...register("password")}
-                    className="h-12 pr-12"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password.message}</p>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full h-12 bg-gradient-ocean hover:opacity-90 text-lg font-semibold"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : isLogin ? (
-                  "Logga in"
-                ) : (
-                  "Skapa konto"
-                )}
-              </Button>
-            </form>
-          )}
-
-          {!isSettingPassword && (
+            /* ─── Traveler / Login Form ─── */
             <>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {showTravelerSignup && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">Förnamn</Label>
+                      <Input
+                        id="firstName"
+                        placeholder="Förnamn"
+                        {...register("firstName" as any)}
+                        className="h-12"
+                      />
+                      {(errors as any).firstName && (
+                        <p className="text-sm text-destructive">{(errors as any).firstName.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Efternamn</Label>
+                      <Input
+                        id="lastName"
+                        placeholder="Efternamn"
+                        {...register("lastName" as any)}
+                        className="h-12"
+                      />
+                      {(errors as any).lastName && (
+                        <p className="text-sm text-destructive">{(errors as any).lastName.message}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-post</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="din@email.se"
+                    {...register("email")}
+                    className="h-12"
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive">{errors.email.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Lösenord</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      {...register("password")}
+                      className="h-12 pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-sm text-destructive">{errors.password.message}</p>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 bg-gradient-ocean hover:opacity-90 text-lg font-semibold"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : isLogin ? (
+                    "Logga in"
+                  ) : (
+                    "Skapa konto"
+                  )}
+                </Button>
+              </form>
+
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-border" />
@@ -396,9 +512,16 @@ const Auth = () => {
                 Fortsätt med Google
               </Button>
 
+              {!isLogin && (
+                <p className="mt-6 text-center text-xs text-muted-foreground">
+                  Genom att skapa konto godkänner du våra{" "}
+                  <Link to="/kontovillkor" className="underline hover:text-foreground">användarvillkor</Link>{" "}
+                  och{" "}
+                  <Link to="/kontovillkor#integritetspolicy" className="underline hover:text-foreground">integritetspolicy</Link>.
+                </p>
+              )}
             </>
           )}
-
 
           <div className="mt-6 text-center">
             <button
@@ -410,15 +533,6 @@ const Auth = () => {
                 : "Har du redan ett konto? Logga in"}
             </button>
           </div>
-
-          {!isLogin && (
-            <p className="mt-6 text-center text-xs text-muted-foreground">
-              Genom att skapa konto godkänner du våra{" "}
-              <Link to="/kontovillkor" className="underline hover:text-foreground">användarvillkor</Link>{" "}
-              och{" "}
-              <Link to="/kontovillkor#integritetspolicy" className="underline hover:text-foreground">integritetspolicy</Link>.
-            </p>
-          )}
         </motion.div>
       </div>
     </div>

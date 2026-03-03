@@ -443,6 +443,90 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_profiles: {
+        Row: {
+          address: string
+          bank_address: string | null
+          bank_name: string | null
+          certifies_company_authority: boolean
+          certifies_local_taxes: boolean
+          certifies_rental_rights: boolean
+          city: string
+          company_name: string | null
+          contact_person: string | null
+          country: string
+          created_at: string
+          currency: string | null
+          email: string
+          first_name: string | null
+          iban: string
+          id: string
+          last_name: string | null
+          organization_number: string | null
+          partner_type: string
+          personal_id: string | null
+          phone: string
+          status: string
+          swift: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          bank_address?: string | null
+          bank_name?: string | null
+          certifies_company_authority?: boolean
+          certifies_local_taxes?: boolean
+          certifies_rental_rights?: boolean
+          city: string
+          company_name?: string | null
+          contact_person?: string | null
+          country: string
+          created_at?: string
+          currency?: string | null
+          email: string
+          first_name?: string | null
+          iban: string
+          id?: string
+          last_name?: string | null
+          organization_number?: string | null
+          partner_type: string
+          personal_id?: string | null
+          phone: string
+          status?: string
+          swift?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          bank_address?: string | null
+          bank_name?: string | null
+          certifies_company_authority?: boolean
+          certifies_local_taxes?: boolean
+          certifies_rental_rights?: boolean
+          city?: string
+          company_name?: string | null
+          contact_person?: string | null
+          country?: string
+          created_at?: string
+          currency?: string | null
+          email?: string
+          first_name?: string | null
+          iban?: string
+          id?: string
+          last_name?: string | null
+          organization_number?: string | null
+          partner_type?: string
+          personal_id?: string | null
+          phone?: string
+          status?: string
+          swift?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -976,7 +1060,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "partner"
       payment_value_type: "percent" | "amount"
       trip_type: "seglingsvecka" | "splitveckan" | "studentveckan"
     }
@@ -1106,7 +1190,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "partner"],
       payment_value_type: ["percent", "amount"],
       trip_type: ["seglingsvecka", "splitveckan", "studentveckan"],
     },
