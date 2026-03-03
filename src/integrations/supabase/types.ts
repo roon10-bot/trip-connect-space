@@ -363,6 +363,47 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_availability: {
+        Row: {
+          created_at: string
+          id: string
+          is_blocked: boolean
+          listing_id: string
+          price_per_week: number
+          updated_at: string
+          week_end: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_blocked?: boolean
+          listing_id: string
+          price_per_week: number
+          updated_at?: string
+          week_end: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_blocked?: boolean
+          listing_id?: string
+          price_per_week?: number
+          updated_at?: string
+          week_end?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_availability_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "partner_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_bookings: {
         Row: {
           created_at: string
@@ -442,6 +483,125 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      partner_listings: {
+        Row: {
+          address: string | null
+          capacity: number
+          country: string
+          created_at: string
+          description: string | null
+          destination: string
+          facilities: string[] | null
+          id: string
+          image_url: string | null
+          image_urls: string[] | null
+          name: string
+          partner_id: string
+          rooms: number | null
+          size_sqm: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          capacity?: number
+          country: string
+          created_at?: string
+          description?: string | null
+          destination: string
+          facilities?: string[] | null
+          id?: string
+          image_url?: string | null
+          image_urls?: string[] | null
+          name: string
+          partner_id: string
+          rooms?: number | null
+          size_sqm?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          capacity?: number
+          country?: string
+          created_at?: string
+          description?: string | null
+          destination?: string
+          facilities?: string[] | null
+          id?: string
+          image_url?: string | null
+          image_urls?: string[] | null
+          name?: string
+          partner_id?: string
+          rooms?: number | null
+          size_sqm?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_listings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_payouts: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          id: string
+          listing_id: string | null
+          notes: string | null
+          partner_id: string
+          payout_date: string
+          reference: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          listing_id?: string | null
+          notes?: string | null
+          partner_id: string
+          payout_date: string
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          listing_id?: string | null
+          notes?: string | null
+          partner_id?: string
+          payout_date?: string
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_payouts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "partner_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_payouts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partner_profiles: {
         Row: {
