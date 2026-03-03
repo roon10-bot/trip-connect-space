@@ -16,6 +16,8 @@ import { AdminMeetingSlots } from "@/components/admin/AdminMeetingSlots";
 import { AdminEmailTemplates } from "@/components/admin/AdminEmailTemplates";
 import { TripBookingDocuments } from "@/components/admin/TripBookingDocuments";
 import { TripTemplatesList } from "@/components/admin/TripTemplatesList";
+import { AdminPartnersList } from "@/components/admin/AdminPartnersList";
+import { AdminListingsList } from "@/components/admin/AdminListingsList";
 import { Shield, LogOut, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -87,6 +89,10 @@ const Admin = () => {
         return <TripBookingDocuments />;
       case "trip-templates":
         return <TripTemplatesList />;
+      case "partners":
+        return <AdminPartnersList />;
+      case "partner-listings":
+        return <AdminListingsList />;
       default:
         return <AdminDashboard isAdmin={isAdmin} userId={user?.id} />;
     }
@@ -105,6 +111,8 @@ const Admin = () => {
     "email-templates": "Redigera e-postmallar",
     documents: "Ladda upp flygbiljetter och dokument till kunder",
     "trip-templates": "Skapa och hantera resmallar",
+    partners: "Hantera värdansökningar",
+    "partner-listings": "Godkänn boenden från värdar",
   };
 
   return (
