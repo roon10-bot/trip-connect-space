@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAdmin } from "@/hooks/useAdmin";
+import { usePartner } from "@/hooks/usePartner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +50,7 @@ const Auth = () => {
   const [newPassword, setNewPassword] = useState("");
   const { signIn, signUp, user } = useAuth();
   const { isAdmin, isLoading: adminLoading } = useAdmin();
+  const { partnerProfile, isLoading: partnerLoading } = usePartner();
   const navigate = useNavigate();
 
   // Check if URL contains magic link / invite / recovery hash
@@ -80,18 +82,24 @@ const Auth = () => {
     resolver: zodResolver(isLogin ? loginSchema : signupSchema),
   });
 
-  useEffect(() => {
-    if (shouldRedirect && user && !adminLoading) {
-      navigate(isAdmin ? "/admin" : "/dashboard");
-      setShouldRedirect(false);
-    }
-  }, [shouldRedirect, user, isAdmin, adminLoading, navigate]);
+  const getRedirectPath = () => {
+    if (isAdmin) return "/admin";
+    if (partnerProfile) return "/partner";
+    return "/dashboard";
+  };
 
   useEffect(() => {
-    if (user && !adminLoading && !isSettingPassword) {
-      navigate(isAdmin ? "/admin" : "/dashboard");
+    if (shouldRedirect && user && !adminLoading && !partnerLoading) {
+      navigate(getRedirectPath());
+      setShouldRedirect(false);
     }
-  }, [user, isAdmin, adminLoading, navigate, isSettingPassword]);
+  }, [shouldRedirect, user, isAdmin, adminLoading, partnerLoading, partnerProfile, navigate]);
+
+  useEffect(() => {
+    if (user && !adminLoading && !partnerLoading && !isSettingPassword) {
+      navigate(getRedirectPath());
+    }
+  }, [user, isAdmin, adminLoading, partnerLoading, partnerProfile, navigate, isSettingPassword]);
 
   const onSubmit = async (data: AuthFormData) => {
     setIsLoading(true);
