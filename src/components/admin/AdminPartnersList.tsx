@@ -151,6 +151,7 @@ export const AdminPartnersList = () => {
           </DialogHeader>
           {selectedPartner && (
             <div className="space-y-4 text-sm">
+              <h4 className="font-semibold text-foreground">Grunduppgifter</h4>
               <div className="grid grid-cols-2 gap-3">
                 <Detail label="Typ" value={selectedPartner.partner_type === "individual" ? "Privatperson" : "Företag"} />
                 {selectedPartner.partner_type === "individual" ? (
@@ -170,8 +171,24 @@ export const AdminPartnersList = () => {
                 <Detail label="Adress" value={selectedPartner.address} />
                 <Detail label="Stad" value={selectedPartner.city} />
                 <Detail label="Land" value={selectedPartner.country} />
+              </div>
+
+              <h4 className="font-semibold text-foreground pt-2">Bankuppgifter</h4>
+              <div className="grid grid-cols-2 gap-3">
                 <Detail label="IBAN" value={selectedPartner.iban} />
-                <Detail label="Bank" value={selectedPartner.bank_name || "—"} />
+                <Detail label="SWIFT/BIC" value={selectedPartner.swift} />
+                <Detail label="Bank" value={selectedPartner.bank_name} />
+                <Detail label="Bankadress" value={selectedPartner.bank_address} />
+                <Detail label="Valuta" value={selectedPartner.currency} />
+              </div>
+
+              <h4 className="font-semibold text-foreground pt-2">Intyg</h4>
+              <div className="grid grid-cols-1 gap-1">
+                <CertDetail label="Intygar uthyrningsrätt" checked={selectedPartner.certifies_rental_rights} />
+                <CertDetail label="Intygar lokal skatteredovisning" checked={selectedPartner.certifies_local_taxes} />
+                {selectedPartner.partner_type === "company" && (
+                  <CertDetail label="Intygar behörighet att företräda företaget" checked={selectedPartner.certifies_company_authority} />
+                )}
               </div>
               {selectedPartner.status === "pending" && (
                 <div className="flex gap-3 pt-2">
@@ -204,5 +221,16 @@ const Detail = ({ label, value }: { label: string; value: string | null }) => (
   <div>
     <span className="text-muted-foreground">{label}</span>
     <p className="font-medium text-foreground">{value || "—"}</p>
+  </div>
+);
+
+const CertDetail = ({ label, checked }: { label: string; checked: boolean }) => (
+  <div className="flex items-center gap-2">
+    {checked ? (
+      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+    ) : (
+      <XCircle className="w-4 h-4 text-red-600 shrink-0" />
+    )}
+    <span className="text-foreground">{label}</span>
   </div>
 );
