@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.search-flights]
 verify_jwt = false
+
+[functions.admin-notifications]
+verify_jwt = false
