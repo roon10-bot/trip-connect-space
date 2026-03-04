@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Menu, X, LogOut, User as UserIcon, Shield, ChevronDown } from "lucide-react";
+import { Menu, X, LogOut, User as UserIcon, Shield, Home, ChevronDown } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
+import { usePartner } from "@/hooks/usePartner";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
 import {
   DropdownMenu,
@@ -19,6 +20,7 @@ export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { isAdmin } = useAdmin();
+  const { partnerProfile } = usePartner();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -168,6 +170,17 @@ export const Header = () => {
                   Admin
                 </Link>
               )}
+              {partnerProfile && (
+                <Link
+                  to="/partner"
+                  className={`font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
+                    useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
+                  }`}
+                >
+                  <Home className="w-4 h-4" />
+                  Värdportal
+                </Link>
+              )}
 
               {/* Auth Buttons */}
               {user ? (
@@ -308,6 +321,16 @@ export const Header = () => {
                       >
                         <Shield className="w-6 h-6" />
                         Admin
+                      </Link>
+                    )}
+                    {partnerProfile && (
+                      <Link
+                        to="/partner"
+                        className="text-white text-2xl font-serif font-bold py-2 hover:text-primary transition-colors flex items-center gap-3"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Home className="w-6 h-6" />
+                        Värdportal
                       </Link>
                     )}
                   </>
