@@ -163,6 +163,12 @@ const Auth = () => {
       }
 
       toast.success("Värdkonto skapat! Din ansökan granskas av oss innan du får tillgång till värdportalen.");
+
+      // Notify admin about new partner registration (fire and forget)
+      supabase.functions.invoke("admin-notifications", {
+        body: { type: "partner_registered", data: partnerData },
+      }).catch((err) => console.error("Admin notification failed:", err));
+
       navigate("/partner");
     } catch {
       toast.error("Ett oväntat fel uppstod");

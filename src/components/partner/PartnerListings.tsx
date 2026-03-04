@@ -99,12 +99,26 @@ export const PartnerListings = ({ partnerId }: Props) => {
       });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["partnerListings"] });
       setOpen(false);
       setUploadedImages([]);
       setMainImageIndex(0);
       toast.success("Boendet har skapats och väntar på godkännande");
+
+      // Notify admin about new listing (fire and forget)
+      supabase.functions.invoke("admin-notifications", {
+        body: {
+          type: "listing_created",
+          data: {
+            name: variables.name,
+            destination: variables.destination,
+            country: variables.country,
+            capacity: variables.capacity,
+            rooms: variables.rooms,
+          },
+        },
+      }).catch((err) => console.error("Admin notification failed:", err));
     },
     onError: () => toast.error("Kunde inte skapa boendet"),
   });
