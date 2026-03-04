@@ -1137,6 +1137,7 @@ export type Database = {
           max_persons: number | null
           min_persons: number | null
           name: string
+          partner_listing_id: string | null
           price: number
           return_date: string
           second_payment_amount: number
@@ -1174,6 +1175,7 @@ export type Database = {
           max_persons?: number | null
           min_persons?: number | null
           name: string
+          partner_listing_id?: string | null
           price?: number
           return_date: string
           second_payment_amount?: number
@@ -1211,6 +1213,7 @@ export type Database = {
           max_persons?: number | null
           min_persons?: number | null
           name?: string
+          partner_listing_id?: string | null
           price?: number
           return_date?: string
           second_payment_amount?: number
@@ -1219,7 +1222,15 @@ export type Database = {
           trip_type?: Database["public"]["Enums"]["trip_type"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trips_partner_listing_id_fkey"
+            columns: ["partner_listing_id"]
+            isOneToOne: false
+            referencedRelation: "partner_listings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
