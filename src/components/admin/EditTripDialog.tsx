@@ -373,17 +373,30 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                         <div className="md:col-span-2 grid md:grid-cols-3 gap-4">
                           <div className="space-y-2">
                             <label className="text-sm font-medium">Baspris för boende (kr)</label>
-                            <Input
-                              type="number"
-                              min={0}
-                              placeholder="t.ex. 10000"
-                              value={basePriceAccommodation}
-                              onChange={(e) => {
-                                setBasePriceAccommodation(e.target.value);
-                                const total = Number(e.target.value || 0) + Number(basePriceExtras || 0);
-                                form.setValue("base_price", total);
-                              }}
-                            />
+                            {(trip as any)?.partner_listing_id ? (
+                              <>
+                                <Input
+                                  type="number"
+                                  readOnly
+                                  disabled
+                                  value={basePriceAccommodation}
+                                  className="bg-muted"
+                                />
+                                <p className="text-xs text-muted-foreground">Satt av värden – kan inte ändras här</p>
+                              </>
+                            ) : (
+                              <Input
+                                type="number"
+                                min={0}
+                                placeholder="t.ex. 10000"
+                                value={basePriceAccommodation}
+                                onChange={(e) => {
+                                  setBasePriceAccommodation(e.target.value);
+                                  const total = Number(e.target.value || 0) + Number(basePriceExtras || 0);
+                                  form.setValue("base_price", total);
+                                }}
+                              />
+                            )}
                           </div>
                           <div className="space-y-2">
                             <label className="text-sm font-medium">Baspris Extras (kr)</label>
