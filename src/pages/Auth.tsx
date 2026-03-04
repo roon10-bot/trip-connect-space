@@ -141,17 +141,21 @@ const Auth = () => {
         return;
       }
 
-      // Insert partner role
-      await supabase.from("user_roles").insert({ user_id: userId, role: "partner" as any });
-
-      // Insert partner profile
-      await supabase.from("partner_profiles" as any).insert({
+      // Insert partner profile with status 'pending'
+      // Partner role is assigned automatically by DB trigger when admin approves
+      const { error: profileError } = await supabase.from("partner_profiles").insert({
         user_id: userId,
         ...partnerData,
-      });
+      } as any);
 
-      toast.success("Värdkonto skapat! Du är nu inloggad.");
-      setShouldRedirect(true);
+      if (profileError) {
+        console.error("Partner profile insert error:", profileError);
+        toast.error("Kunde inte skapa värdprofilen. Kontakta support.");
+        return;
+      }
+
+      toast.success("Värdkonto skapat! Din ansökan granskas av oss innan du får tillgång till värdportalen.");
+      navigate("/partner");
     } catch {
       toast.error("Ett oväntat fel uppstod");
     } finally {
