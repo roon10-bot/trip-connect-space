@@ -219,7 +219,7 @@ const Auth = () => {
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.length < 8) {
-      toast.error("Lösenordet måste vara minst 8 tecken");
+      toast.error(t("auth.minChars"));
       return;
     }
     setIsLoading(true);
@@ -228,12 +228,12 @@ const Auth = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("Lösenord sparat! Du är nu inloggad.");
+        toast.success(t("auth.passwordSaved"));
         setIsSettingPassword(false);
         setShouldRedirect(true);
       }
     } catch {
-      toast.error("Ett oväntat fel uppstod");
+      toast.error(t("auth.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
