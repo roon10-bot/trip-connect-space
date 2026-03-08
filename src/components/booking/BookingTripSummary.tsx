@@ -3,6 +3,7 @@ import { sv } from "date-fns/locale";
 import { Calendar, MapPin, Users, Tag, Plane, Loader2, ChevronDown } from "lucide-react";
 import { getSplitPricePerPerson, calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AccommodationInfoDialog } from "@/components/AccommodationInfoDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { FlightOffer } from "@/hooks/useFlightSearch";
@@ -16,6 +17,9 @@ interface Trip {
   departure_location: string;
   price: number;
   base_price?: number | null;
+  base_price_accommodation?: number | null;
+  base_price_extras?: number | null;
+  base_price_flight?: number | null;
   min_persons?: number | null;
   max_persons?: number | null;
   accommodation_rooms?: number | null;
@@ -37,6 +41,7 @@ interface BookingTripSummaryProps {
   formatTripType: (type: string) => string;
   flightOffer?: FlightOffer | null;
   flightLoading?: boolean;
+  dynamicFlightPricePerPerson?: number | null;
 }
 
 export const BookingTripSummary = ({
@@ -47,15 +52,30 @@ export const BookingTripSummary = ({
   formatTripType,
   flightOffer,
   flightLoading,
+  dynamicFlightPricePerPerson,
 }: BookingTripSummaryProps) => {
-  // For Splitveckan, calculate price per person based on group size
+  // Calculate price per person using dynamic flight price when available
   const isSplitVeckan = trip.trip_type === "splitveckan";
-  const pricePerPerson = isSplitVeckan && travelers > 0
-    ? (getSplitPricePerPerson(trip, travelers) || trip.price)
-    : trip.price;
+  let pricePerPerson: number;
+  
+  if (dynamicFlightPricePerPerson !== null && dynamicFlightPricePerPerson !== undefined) {
+    const accommodation = Number(trip.base_price_accommodation) || 0;
+    const extras = Number(trip.base_price_extras) || 0;
+    if (isSplitVeckan && travelers > 0) {
+      pricePerPerson = calculateSplitPricePerPerson(accommodation, dynamicFlightPricePerPerson, extras, travelers);
+    } else {
+      pricePerPerson = Math.ceil((accommodation + dynamicFlightPricePerPerson + extras) * 1.20);
+    }
+    if (pricePerPerson <= 0) pricePerPerson = trip.price;
+  } else if (isSplitVeckan && travelers > 0) {
+    pricePerPerson = getSplitPricePerPerson(trip, travelers) || trip.price;
+  } else {
+    pricePerPerson = trip.price;
+  }
   
   const baseTotal = pricePerPerson * travelers;
   const discountAmount = baseTotal - totalPrice;
+  const pricesLoading = flightLoading;
 
   return (
     <Card className="shadow-elegant sticky top-28">
@@ -146,7 +166,11 @@ export const BookingTripSummary = ({
           {/* Price per person */}
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Pris per person</span>
-            <span className="font-medium">{pricePerPerson.toLocaleString("sv-SE")} kr</span>
+            {pricesLoading ? (
+              <Skeleton className="h-4 w-16" />
+            ) : (
+              <span className="font-medium">{pricePerPerson.toLocaleString("sv-SE")} kr</span>
+            )}
           </div>
 
           {/* Travelers */}
@@ -161,7 +185,11 @@ export const BookingTripSummary = ({
           {/* Subtotal */}
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Delsumma</span>
-            <span className="font-medium">{baseTotal.toLocaleString("sv-SE")} kr</span>
+            {pricesLoading ? (
+              <Skeleton className="h-4 w-20" />
+            ) : (
+              <span className="font-medium">{baseTotal.toLocaleString("sv-SE")} kr</span>
+            )}
           </div>
 
           {/* Discount */}
@@ -179,9 +207,13 @@ export const BookingTripSummary = ({
           <div className="border-t border-border pt-3">
             <div className="flex justify-between items-center">
               <span className="font-semibold">Totalpris</span>
-              <span className="text-2xl font-bold text-primary">
-                {totalPrice.toLocaleString("sv-SE")} kr
-              </span>
+              {pricesLoading ? (
+                <Skeleton className="h-8 w-28" />
+              ) : (
+                <span className="text-2xl font-bold text-primary">
+                  {totalPrice.toLocaleString("sv-SE")} kr
+                </span>
+              )}
             </div>
           </div>
         </div>
