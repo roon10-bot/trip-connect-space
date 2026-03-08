@@ -142,8 +142,8 @@ const Partner = () => {
         </div>
       </header>
 
-      <div className="flex flex-1">
-        <aside className="w-64 bg-ocean text-white min-h-0 p-6 overflow-auto">
+      <div className="flex flex-1 min-h-0">
+        <aside className="w-64 shrink-0 bg-ocean text-white min-h-0 p-6 overflow-auto">
           <nav className="space-y-1.5">
             {menuItems.map((item) => (
               <button
@@ -162,7 +162,7 @@ const Partner = () => {
           </nav>
         </aside>
 
-        <main className="flex-1 p-10 overflow-auto">
+        <main className="flex-1 min-w-0 p-10 overflow-auto">
           <motion.div
             key={currentView}
             initial={{ opacity: 0, x: 20 }}
