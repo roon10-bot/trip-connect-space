@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const Settings = () => {
+  const { t } = useTranslation();
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -32,9 +34,9 @@ const Settings = () => {
   const handleLogout = async () => {
     const { error } = await signOut();
     if (error) {
-      toast.error("Kunde inte logga ut. Försök igen.");
+      toast.error(t("settings.logoutError"));
     } else {
-      toast.success("Du har loggats ut.");
+      toast.success(t("settings.logoutSuccess"));
       navigate("/");
     }
   };
@@ -57,21 +59,21 @@ const Settings = () => {
           onClick={() => navigate("/dashboard")}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Tillbaka till dashboard
+          {t("settings.backToDashboard")}
         </Button>
 
         <h1 className="text-3xl font-serif font-bold text-foreground mb-8">
-          Inställningar
+          {t("settings.title")}
         </h1>
 
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Konto</CardTitle>
+              <CardTitle className="text-lg">{t("settings.account")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Inloggad som {user?.email}
+                {t("settings.loggedInAs", { email: user?.email })}
               </p>
 
               <Button
@@ -80,7 +82,7 @@ const Settings = () => {
                 onClick={handleLogout}
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Logga ut
+                {t("settings.logOut")}
               </Button>
 
               <AlertDialog>
@@ -90,34 +92,32 @@ const Settings = () => {
                     className="w-full justify-start text-destructive border-destructive/30 hover:bg-destructive/10"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Radera mitt konto
+                    {t("settings.deleteAccount")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Radera konto</AlertDialogTitle>
+                    <AlertDialogTitle>{t("settings.deleteTitle")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      För att radera ditt konto och all tillhörande data,
-                      vänligen kontakta oss på{" "}
+                      {t("settings.deleteDesc")}{" "}
                       <a
                         href="mailto:info@studentresor.com"
                         className="text-primary underline"
                       >
                         info@studentresor.com
                       </a>{" "}
-                      med ämnesraden "Radera mitt konto". Vi behandlar din
-                      begäran inom 30 dagar.
+                      {t("settings.deleteProcessTime")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Stäng</AlertDialogCancel>
+                    <AlertDialogCancel>{t("settings.close")}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => {
                         window.location.href =
-                          "mailto:info@studentresor.com?subject=Radera%20mitt%20konto";
+                          `mailto:info@studentresor.com?subject=${encodeURIComponent(t("settings.deleteEmailSubject"))}`;
                       }}
                     >
-                      Skicka e-post
+                      {t("settings.sendEmail")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
