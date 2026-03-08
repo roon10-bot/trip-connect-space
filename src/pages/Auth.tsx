@@ -109,23 +109,23 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await signIn(data.email, data.password);
         if (error) {
-          toast.error(error.message.includes("Invalid login credentials") ? "Felaktiga inloggningsuppgifter" : error.message);
+          toast.error(error.message.includes("Invalid login credentials") ? t("auth.invalidCredentials") : error.message);
         } else {
-          toast.success("Välkommen tillbaka!");
+          toast.success(t("auth.welcomeBack"));
           setShouldRedirect(true);
         }
       } else {
         const fullName = `${'firstName' in data ? data.firstName : ''} ${'lastName' in data ? data.lastName : ''}`.trim();
         const { error } = await signUp(data.email, data.password, fullName);
         if (error) {
-          toast.error(error.message.includes("already registered") ? "E-postadressen är redan registrerad" : error.message);
+          toast.error(error.message.includes("already registered") ? t("auth.emailRegistered") : error.message);
         } else {
-          toast.success("Konto skapat! Du är nu inloggad.");
+          toast.success(t("auth.accountCreated"));
           setShouldRedirect(true);
         }
       }
     } catch {
-      toast.error("Ett oväntat fel uppstod");
+      toast.error(t("auth.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
