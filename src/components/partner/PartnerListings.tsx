@@ -1,9 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Home, Loader2 } from "lucide-react";
+import { Plus, Home, Loader2, Pause, Play, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface Props {
   partnerId: string;
@@ -11,6 +23,10 @@ interface Props {
 }
 
 export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
+  const queryClient = useQueryClient();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
   const { data: listings, isLoading } = useQuery({
     queryKey: ["partnerListings", partnerId],
     queryFn: async () => {
@@ -23,6 +39,43 @@ export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
       return data;
     },
   });
+
+  const handleToggleStatus = async (listingId: string, currentStatus: string) => {
+    const newStatus = currentStatus === "suspended" ? "pending" : "suspended";
+    setActionLoading(listingId);
+    try {
+      const { error } = await supabase
+        .from("partner_listings")
+        .update({ status: newStatus })
+        .eq("id", listingId);
+      if (error) throw error;
+      toast.success(newStatus === "suspended" ? "Boendet har avaktiverats" : "Boendet har aktiverats och väntar på godkännande");
+      queryClient.invalidateQueries({ queryKey: ["partnerListings", partnerId] });
+    } catch {
+      toast.error("Något gick fel");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setActionLoading(deleteId);
+    try {
+      const { error } = await supabase
+        .from("partner_listings")
+        .delete()
+        .eq("id", deleteId);
+      if (error) throw error;
+      toast.success("Boendet har raderats");
+      queryClient.invalidateQueries({ queryKey: ["partnerListings", partnerId] });
+    } catch {
+      toast.error("Kunde inte radera boendet. Kontrollera att det inte har aktiva bokningar.");
+    } finally {
+      setDeleteId(null);
+      setActionLoading(null);
+    }
+  };
 
   const statusColors: Record<string, string> = {
     pending: "bg-amber-100 text-amber-800",
@@ -37,6 +90,10 @@ export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
     rejected: "Nekad",
     suspended: "Pausad",
   };
+
+  const canDeactivate = (status: string) => ["approved", "pending"].includes(status);
+  const canReactivate = (status: string) => status === "suspended";
+  const canDelete = (status: string) => ["pending", "suspended"].includes(status);
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
@@ -62,7 +119,7 @@ export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
       ) : (
         <div className="grid gap-4">
           {listings.map((listing) => (
-            <Card key={listing.id}>
+            <Card key={listing.id} className={listing.status === "suspended" ? "opacity-70" : ""}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -109,11 +166,74 @@ export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
                     )}
                   </div>
                 )}
+
+                {/* Actions */}
+                <div className="flex gap-2 mt-4 pt-3 border-t border-border">
+                  {canDeactivate(listing.status) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={actionLoading === listing.id}
+                      onClick={() => handleToggleStatus(listing.id, listing.status)}
+                    >
+                      {actionLoading === listing.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                      ) : (
+                        <Pause className="w-4 h-4 mr-1" />
+                      )}
+                      Avaktivera
+                    </Button>
+                  )}
+                  {canReactivate(listing.status) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={actionLoading === listing.id}
+                      onClick={() => handleToggleStatus(listing.id, listing.status)}
+                    >
+                      {actionLoading === listing.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                      ) : (
+                        <Play className="w-4 h-4 mr-1" />
+                      )}
+                      Aktivera igen
+                    </Button>
+                  )}
+                  {canDelete(listing.status) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                      disabled={actionLoading === listing.id}
+                      onClick={() => setDeleteId(listing.id)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Radera
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Radera boende</AlertDialogTitle>
+            <AlertDialogDescription>
+              Är du säker på att du vill radera detta boende? Denna åtgärd kan inte ångras.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+              Radera
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
