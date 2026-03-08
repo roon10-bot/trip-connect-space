@@ -19,6 +19,7 @@ const Partner = () => {
   const { partnerProfile, isApproved, isPending, isRejected, isLoading } = usePartner();
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<PartnerView>("listings");
+  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
