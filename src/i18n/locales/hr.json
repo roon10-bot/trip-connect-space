@@ -1,0 +1,46 @@
+{
+  "nav": {
+    "ourTrips": "Naša putovanja",
+    "aboutUs": "O nama",
+    "contact": "Kontakt",
+    "faq": "FAQ",
+    "forSchools": "Za učeničke vijeće i odbore",
+    "forSchoolsShort": "Učeničko vijeće",
+    "myBookings": "Moje rezervacije",
+    "admin": "Admin",
+    "hostPortal": "Portal domaćina",
+    "myAccount": "Moj račun",
+    "logOut": "Odjava",
+    "logIn": "Prijava",
+    "createAccount": "Kreiraj račun",
+    "openMenu": "Otvori izbornik",
+    "closeMenu": "Zatvori izbornik",
+    "questionsAndAnswers": "Pitanja i odgovori"
+  },
+  "hero": {
+    "title": "Sanjate o <1>nezaboravnom</1> maturalnom putovanju?",
+    "subtitle": "Avantura života vas čeka, rezervirajte svoje putovanje već danas.",
+    "pauseVideo": "Pauziraj video",
+    "playVideo": "Pokreni video"
+  },
+  "footer": {
+    "ourTrips": "Naša putovanja",
+    "information": "Informacije",
+    "travelTerms": "Opći uvjeti putovanja",
+    "questionsAndAnswers": "Pitanja i odgovori",
+    "contact": "Kontakt",
+    "contactTitle": "Kontakt",
+    "allRightsReserved": "Sva prava pridržana.",
+    "travelGuarantee": "Studentlife Sweden AB ima jamstvo putovanja kod Kammarkollegiet."
+  },
+  "trips": {
+    "segelveckan": "Tjedan jedrenja",
+    "splitveckan": "Tjedan u Splitu",
+    "studentveckan": "Studentski tjedan"
+  },
+  "language": {
+    "sv": "Svenska",
+    "en": "English",
+    "hr": "Hrvatski"
+  }
+}

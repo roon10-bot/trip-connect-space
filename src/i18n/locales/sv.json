@@ -1,0 +1,46 @@
+{
+  "nav": {
+    "ourTrips": "Våra resor",
+    "aboutUs": "Om Oss",
+    "contact": "Kontakt",
+    "faq": "FAQ",
+    "forSchools": "För elevkårer & studentkommittéer",
+    "forSchoolsShort": "Elevkårer",
+    "myBookings": "Mina bokningar",
+    "admin": "Admin",
+    "hostPortal": "Värdportal",
+    "myAccount": "Mitt konto",
+    "logOut": "Logga ut",
+    "logIn": "Logga in",
+    "createAccount": "Skapa konto",
+    "openMenu": "Öppna meny",
+    "closeMenu": "Stäng meny",
+    "questionsAndAnswers": "Frågor och Svar"
+  },
+  "hero": {
+    "title": "Drömmer ni om en <1>oförglömlig</1> studentresa?",
+    "subtitle": "Ert livs äventyr väntar runt hörnet, boka din resa redan idag.",
+    "pauseVideo": "Pausa video",
+    "playVideo": "Spela video"
+  },
+  "footer": {
+    "ourTrips": "Våra resor",
+    "information": "Information",
+    "travelTerms": "Allmänna resevillkor",
+    "questionsAndAnswers": "Frågor och svar",
+    "contact": "Kontakt",
+    "contactTitle": "Kontakt",
+    "allRightsReserved": "Alla rättigheter förbehållna.",
+    "travelGuarantee": "Studentlife Sweden AB har ordnat resegaranti hos Kammarkollegiet."
+  },
+  "trips": {
+    "segelveckan": "Segelveckan",
+    "splitveckan": "Splitveckan",
+    "studentveckan": "Studentveckan"
+  },
+  "language": {
+    "sv": "Svenska",
+    "en": "English",
+    "hr": "Hrvatski"
+  }
+}
