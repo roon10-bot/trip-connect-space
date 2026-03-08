@@ -9,6 +9,7 @@ import { PartnerListings } from "@/components/partner/PartnerListings";
 import { PartnerAvailability } from "@/components/partner/PartnerAvailability";
 import { PartnerBookings } from "@/components/partner/PartnerBookings";
 import { PartnerPayouts } from "@/components/partner/PartnerPayouts";
+import { CreateListingWizard } from "@/components/partner/CreateListingWizard";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
 
 type PartnerView = "listings" | "availability" | "bookings" | "payouts";
@@ -18,6 +19,7 @@ const Partner = () => {
   const { partnerProfile, isApproved, isPending, isRejected, isLoading } = usePartner();
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<PartnerView>("listings");
+  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -87,6 +89,16 @@ const Partner = () => {
 
   if (!isApproved) return null;
 
+  if (showWizard) {
+    return (
+      <CreateListingWizard
+        partnerId={partnerProfile.id}
+        onClose={() => setShowWizard(false)}
+        onComplete={() => setShowWizard(false)}
+      />
+    );
+  }
+
   const menuItems = [
     { label: "Mina boenden", value: "listings" as PartnerView, icon: Home },
     { label: "Tillgänglighet & Priser", value: "availability" as PartnerView, icon: CalendarDays },
@@ -102,7 +114,7 @@ const Partner = () => {
   const renderContent = () => {
     switch (currentView) {
       case "listings":
-        return <PartnerListings partnerId={partnerProfile.id} />;
+        return <PartnerListings partnerId={partnerProfile.id} onCreateNew={() => setShowWizard(true)} />;
       case "availability":
         return <PartnerAvailability partnerId={partnerProfile.id} />;
       case "bookings":
