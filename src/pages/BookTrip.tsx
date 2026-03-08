@@ -235,17 +235,17 @@ const BookTrip = () => {
     }
 
     if (data.max_uses && data.current_uses >= data.max_uses) {
-      toast.error("Rabattkoden har redan använts maximalt antal gånger");
+      toast.error(t("bookTrip.discountMaxUsed"));
       return;
     }
 
     const now = new Date();
     if (data.valid_from && new Date(data.valid_from) > now) {
-      toast.error("Rabattkoden är inte aktiv än");
+      toast.error(t("bookTrip.discountNotActive"));
       return;
     }
     if (data.valid_until && new Date(data.valid_until) < now) {
-      toast.error("Rabattkoden har gått ut");
+      toast.error(t("bookTrip.discountExpired"));
       return;
     }
 
