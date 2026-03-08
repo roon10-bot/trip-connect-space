@@ -194,8 +194,8 @@ export const DashboardSummaryCards = ({
                 <Plane className="w-6 h-6 text-ocean" />
               </div>
               <div>
-                <p className="text-lg font-semibold text-foreground">Ingen resa</p>
-                <p className="text-muted-foreground">Boka din första resa!</p>
+                <p className="text-lg font-semibold text-foreground">{t("dashboard.noTrip")}</p>
+                <p className="text-muted-foreground">{t("dashboard.noTripDesc")}</p>
               </div>
             </div>
           )}
