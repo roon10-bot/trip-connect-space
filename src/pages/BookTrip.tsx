@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { getSplitPricePerPerson, calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { useFlightSearch, type FlightOffer } from "@/hooks/useFlightSearch";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
