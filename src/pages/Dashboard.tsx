@@ -21,6 +21,7 @@ import { Calendar, MapPin, CheckCircle, XCircle, Clock, ChevronRight, History } 
 import { toast } from "sonner";
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
