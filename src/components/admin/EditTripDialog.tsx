@@ -122,7 +122,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
       if (!partnerListingId) return null;
       const { data, error } = await supabase
         .from("partner_listings")
-        .select("daily_price")
+        .select("daily_price, capacity")
         .eq("id", partnerListingId)
         .single();
       if (error) throw error;
