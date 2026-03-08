@@ -188,26 +188,7 @@ export const Header = () => {
           >
             <div className="flex flex-col h-full pt-20 pb-8 px-6 overflow-y-auto">
               <nav className="flex flex-col gap-1">
-                {/* Language switcher at top of mobile menu */}
-                <div className="mb-4 flex gap-2">
-                  {[
-                    { code: "sv", flag: "🇸🇪" },
-                    { code: "en", flag: "🇬🇧" },
-                    { code: "hr", flag: "🇭🇷" },
-                  ].map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => {
-                        const { i18n } = require("react-i18next");
-                        // handled via hook below
-                      }}
-                      className="text-2xl"
-                    >
-                      {lang.flag}
-                    </button>
-                  ))}
-                </div>
-                <MobileLanguageSwitcher />
+              <MobileLanguageSwitcher />
 
                 <div className="mb-4">
                   <p className="text-white/50 text-sm uppercase tracking-wider mb-3">{t("nav.ourTrips")}</p>
