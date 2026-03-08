@@ -409,7 +409,18 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                                   value={basePriceAccommodation}
                                   className="bg-muted"
                                 />
-                                <p className="text-xs text-muted-foreground">Satt av värden – kan inte ändras här</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {partnerListing?.daily_price ? (
+                                    <>Dygnspris {Number(partnerListing.daily_price).toLocaleString("sv-SE")} kr × {(() => {
+                                      const dep = form.getValues("departure_date");
+                                      const ret = form.getValues("return_date");
+                                      if (dep && ret) {
+                                        return Math.max(1, Math.round((ret.getTime() - dep.getTime()) / (1000 * 60 * 60 * 24)));
+                                      }
+                                      return "?";
+                                    })()} nätter – beräknas automatiskt</>
+                                  ) : "Satt av värden – kan inte ändras här"}
+                                </p>
                               </>
                             ) : (
                               <Input
