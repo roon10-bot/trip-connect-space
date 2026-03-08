@@ -331,11 +331,11 @@ const Auth = () => {
 
           <div className="text-center mb-6">
             <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
-              {isSettingPassword ? "Välj ditt lösenord" : isLogin ? "Logga in" : "Skapa konto"}
+              {isSettingPassword ? t("auth.setPassword") : isLogin ? t("auth.login") : t("auth.createAccount")}
             </h1>
             {isSettingPassword && (
               <p className="text-muted-foreground">
-                Ange ett lösenord för att aktivera ditt konto
+                {t("auth.setPasswordDesc")}
               </p>
             )}
           </div>
