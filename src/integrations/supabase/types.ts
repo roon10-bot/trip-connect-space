@@ -486,10 +486,14 @@ export type Database = {
       }
       partner_listings: {
         Row: {
+          access_type: string | null
           address: string | null
+          bathrooms: number | null
+          beds: number | null
           capacity: number
           country: string
           created_at: string
+          daily_price: number | null
           description: string | null
           destination: string
           facilities: string[] | null
@@ -498,16 +502,21 @@ export type Database = {
           image_urls: string[] | null
           name: string
           partner_id: string
+          property_type: string | null
           rooms: number | null
           size_sqm: number | null
           status: string
           updated_at: string
         }
         Insert: {
+          access_type?: string | null
           address?: string | null
+          bathrooms?: number | null
+          beds?: number | null
           capacity?: number
           country: string
           created_at?: string
+          daily_price?: number | null
           description?: string | null
           destination: string
           facilities?: string[] | null
@@ -516,16 +525,21 @@ export type Database = {
           image_urls?: string[] | null
           name: string
           partner_id: string
+          property_type?: string | null
           rooms?: number | null
           size_sqm?: number | null
           status?: string
           updated_at?: string
         }
         Update: {
+          access_type?: string | null
           address?: string | null
+          bathrooms?: number | null
+          beds?: number | null
           capacity?: number
           country?: string
           created_at?: string
+          daily_price?: number | null
           description?: string | null
           destination?: string
           facilities?: string[] | null
@@ -534,6 +548,7 @@ export type Database = {
           image_urls?: string[] | null
           name?: string
           partner_id?: string
+          property_type?: string | null
           rooms?: number | null
           size_sqm?: number | null
           status?: string
