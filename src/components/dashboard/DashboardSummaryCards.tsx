@@ -263,9 +263,9 @@ export const DashboardSummaryCards = ({
                 <Wallet className="w-6 h-6 text-palm" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">Betalningstatus</p>
+                <p className="text-sm font-medium text-foreground">{t("dashboard.paymentStatus")}</p>
                 <p className="text-xs text-muted-foreground">
-                  {totalPaid.toLocaleString("sv-SE")} kr av {totalPrice.toLocaleString("sv-SE")} kr betalt av totalpriset
+                  {t("dashboard.paidOf", { paid: totalPaid.toLocaleString("sv-SE"), total: totalPrice.toLocaleString("sv-SE") })}
                 </p>
               </div>
               <span className="text-lg font-bold text-foreground">{paidPercent}%</span>
