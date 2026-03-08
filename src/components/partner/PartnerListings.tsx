@@ -11,13 +11,6 @@ interface Props {
 }
 
 export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
-  const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [mainImageIndex, setMainImageIndex] = useState<number>(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const { data: listings, isLoading } = useQuery({
     queryKey: ["partnerListings", partnerId],
     queryFn: async () => {
@@ -30,116 +23,6 @@ export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
       return data;
     },
   });
-
-  const handleImageUpload = async (files: FileList) => {
-    setIsUploading(true);
-    const newUrls: string[] = [];
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} är för stor (max 5 MB)`);
-        continue;
-      }
-
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${partnerId}/${Date.now()}-${i}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("partner-listing-images")
-        .upload(fileName, file);
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        toast.error(`Kunde inte ladda upp ${file.name}`);
-        continue;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("partner-listing-images")
-        .getPublicUrl(fileName);
-
-      newUrls.push(publicUrl);
-    }
-
-    setUploadedImages((prev) => [...prev, ...newUrls]);
-    setIsUploading(false);
-    if (newUrls.length > 0) toast.success(`${newUrls.length} bild(er) uppladdade`);
-  };
-
-  const removeImage = (index: number) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
-    if (mainImageIndex === index) setMainImageIndex(0);
-    else if (mainImageIndex > index) setMainImageIndex((prev) => prev - 1);
-  };
-
-  const createMutation = useMutation({
-    mutationFn: async (form: {
-      name: string;
-      description: string;
-      destination: string;
-      country: string;
-      address: string;
-      capacity: number;
-      rooms: number;
-      size_sqm: number;
-      facilities: string[];
-      image_url: string | null;
-      image_urls: string[];
-    }) => {
-      const { error } = await supabase.from("partner_listings").insert({
-        partner_id: partnerId,
-        ...form,
-      });
-      if (error) throw error;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["partnerListings"] });
-      setOpen(false);
-      setUploadedImages([]);
-      setMainImageIndex(0);
-      toast.success("Boendet har skapats och väntar på godkännande");
-
-      // Notify admin about new listing (fire and forget)
-      supabase.functions.invoke("admin-notifications", {
-        body: {
-          type: "listing_created",
-          data: {
-            name: variables.name,
-            destination: variables.destination,
-            country: variables.country,
-            capacity: variables.capacity,
-            rooms: variables.rooms,
-          },
-        },
-      }).catch((err) => console.error("Admin notification failed:", err));
-    },
-    onError: () => toast.error("Kunde inte skapa boendet"),
-  });
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const facilitiesStr = (fd.get("facilities") as string) || "";
-    const facilities = facilitiesStr
-      .split(",")
-      .map((f) => f.trim())
-      .filter(Boolean);
-
-    createMutation.mutate({
-      name: fd.get("name") as string,
-      description: fd.get("description") as string,
-      destination: fd.get("destination") as string,
-      country: fd.get("country") as string,
-      address: fd.get("address") as string,
-      capacity: Number(fd.get("capacity")) || 1,
-      rooms: Number(fd.get("rooms")) || 0,
-      size_sqm: Number(fd.get("size_sqm")) || 0,
-      facilities,
-      image_url: uploadedImages[mainImageIndex] || null,
-      image_urls: uploadedImages,
-    });
-  };
 
   const statusColors: Record<string, string> = {
     pending: "bg-amber-100 text-amber-800",
