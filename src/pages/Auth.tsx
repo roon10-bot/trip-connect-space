@@ -39,6 +39,7 @@ type AuthFormData = SignupFormData | LoginFormData;
 type AccountType = "traveler" | "host";
 
 const Auth = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [accountType, setAccountType] = useState<AccountType>("traveler");
