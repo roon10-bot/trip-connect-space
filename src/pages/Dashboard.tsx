@@ -221,7 +221,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-1 text-sm text-ocean opacity-0 group-hover:opacity-100 transition-opacity mt-1">
-            <span>Detaljer</span>
+            <span>{t("dashboard.details")}</span>
             <ChevronRight className="w-4 h-4" />
           </div>
         </div>
