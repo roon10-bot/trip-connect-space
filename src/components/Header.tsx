@@ -68,8 +68,8 @@ export const Header = () => {
             : "bg-transparent"
         }`}
       >
-        <div className="w-full px-6">
-          <div className="flex items-center justify-between h-16">
+        <div className="w-full px-4 lg:px-6">
+          <div className="flex items-center justify-between h-16 gap-2">
             {/* Logo - Far Left */}
             <Link to="/" className="flex items-center group shrink-0">
               <img 
@@ -77,14 +77,14 @@ export const Header = () => {
                 alt="Studentresor" 
                 width="140"
                 height="48"
-                className={`h-12 w-auto transition-all duration-300 ${useDarkText ? "brightness-0" : ""}`}
+                className={`h-10 lg:h-12 w-auto transition-all duration-300 ${useDarkText ? "brightness-0" : ""}`}
               />
             </Link>
 
             {/* Center - Main Navigation */}
-            <nav className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
+            <nav className="hidden lg:flex items-center gap-2 xl:gap-4 2xl:gap-6 min-w-0 flex-1 justify-center">
               <DropdownMenu modal={false}>
-                <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors outline-none whitespace-nowrap ${
+                <DropdownMenuTrigger className={`flex items-center gap-1 text-sm xl:text-base font-medium transition-colors outline-none whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}>
                   Våra resor
@@ -115,7 +115,7 @@ export const Header = () => {
 
               <Link
                 to="/om-oss"
-                className={`font-medium transition-colors whitespace-nowrap ${
+                className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
@@ -123,7 +123,7 @@ export const Header = () => {
               </Link>
               <Link
                 to="/kontakt"
-                className={`font-medium transition-colors whitespace-nowrap ${
+                className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
@@ -131,28 +131,29 @@ export const Header = () => {
               </Link>
               <Link
                 to="/faq"
-                className={`font-medium transition-colors whitespace-nowrap ${
+                className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
-                Frågor och Svar
+                FAQ
               </Link>
               <Link
                 to="/for-skolor"
-                className={`font-medium transition-colors whitespace-nowrap ${
+                className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
-                För elevkårer & studentkommittéer
+                <span className="hidden 2xl:inline">För elevkårer & studentkommittéer</span>
+                <span className="2xl:hidden">Elevkårer</span>
               </Link>
             </nav>
 
             {/* Right side - User links + Auth */}
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
               {user && (
                 <Link
                   to="/dashboard"
-                  className={`font-medium transition-colors whitespace-nowrap ${
+                  className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap ${
                     useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                   }`}
                 >
@@ -162,7 +163,7 @@ export const Header = () => {
               {isAdmin && (
                 <Link
                   to="/admin"
-                  className={`font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
+                  className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
                     useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                   }`}
                 >
@@ -173,7 +174,7 @@ export const Header = () => {
               {partnerProfile && (
                 <Link
                   to="/partner"
-                  className={`font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
+                  className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
                     useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                   }`}
                 >
@@ -184,20 +185,20 @@ export const Header = () => {
 
               {/* Auth Buttons */}
               {user ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <Link to="/settings">
-                    <Button variant="ghost" size="sm" className={`gap-2 ${useDarkText ? "" : "text-white hover:text-white/80 hover:bg-white/10"}`}>
+                    <Button variant="ghost" size="sm" className={`gap-1.5 ${useDarkText ? "" : "text-white hover:text-white/80 hover:bg-white/10"}`}>
                       <UserIcon className="w-4 h-4" />
-                      Mitt konto
+                      <span className="hidden xl:inline">Mitt konto</span>
                     </Button>
                   </Link>
-                  <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-2">
+                  <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-1.5">
                     <LogOut className="w-4 h-4" />
-                    Logga ut
+                    <span className="hidden xl:inline">Logga ut</span>
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <Link to="/auth">
                     <Button variant="ghost" size="sm" className={useDarkText ? "" : "text-white hover:text-white/80 hover:bg-white/10"}>
                       Logga in
@@ -214,7 +215,7 @@ export const Header = () => {
 
             {/* Mobile Menu Button */}
             <button
-              className={`md:hidden p-1.5 relative z-[110] ${isMenuOpen ? "text-white" : useDarkText ? "text-foreground" : "text-white"}`}
+              className={`lg:hidden p-1.5 relative z-[110] ${isMenuOpen ? "text-white" : useDarkText ? "text-foreground" : "text-white"}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? "Stäng meny" : "Öppna meny"}
               aria-expanded={isMenuOpen}
@@ -233,7 +234,7 @@ export const Header = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[100] md:hidden bg-accent"
+            className="fixed inset-0 z-[100] lg:hidden bg-accent"
           >
             <div className="flex flex-col h-full pt-20 pb-8 px-6 overflow-y-auto">
               <nav className="flex flex-col gap-1">
