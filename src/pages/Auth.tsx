@@ -281,23 +281,16 @@ const Auth = () => {
               <img src={studentresorLogo} alt="Studentresor" className="h-10 opacity-80" />
             </Link>
             <h2 className="text-3xl font-serif font-semibold text-white/90 mb-4">
-              {showHostSignup ? "Bli värd hos Studentresor" : "Din resa. Samlad på ett ställe."}
+              {showHostSignup ? t("auth.heroHost") : t("auth.heroTraveler")}
             </h2>
             <p className="text-white/60 text-base">
-              {showHostSignup
-                ? "Registrera dig som värd för att erbjuda boenden och upplevelser till våra resenärer."
-                : "Skapa ett konto för att hantera din bokning, betalningar och viktiga uppdateringar inför resan."}
+              {showHostSignup ? t("auth.heroHostDesc") : t("auth.heroTravelerDesc")}
             </p>
           </div>
           <div>
             {showHostSignup ? (
               <ul className="grid grid-cols-2 gap-x-6 gap-y-2 mb-4">
-                {[
-                  "Hantera dina boenden",
-                  "Sätt priser och tillgänglighet",
-                  "Se bokningar och intäkter",
-                  "Direktkontakt med Studentresor",
-                ].map((item) => (
+                {(t("auth.hostBenefits", { returnObjects: true }) as string[]).map((item) => (
                   <li key={item} className="flex items-center gap-2 text-white/50 text-xs">
                     <Check className="w-3.5 h-3.5 text-white/35 shrink-0" />
                     <span>{item}</span>
@@ -306,12 +299,7 @@ const Auth = () => {
               </ul>
             ) : (
               <ul className="grid grid-cols-2 gap-x-6 gap-y-2 mb-4">
-                {[
-                  "Se och betala dina delbetalningar",
-                  "Ladda ner biljetter och dokument",
-                  "Fyll i uppgifter & allergier",
-                  "Få uppdateringar direkt från oss",
-                ].map((item) => (
+                {(t("auth.travelerBenefits", { returnObjects: true }) as string[]).map((item) => (
                   <li key={item} className="flex items-center gap-2 text-white/50 text-xs">
                     <Check className="w-3.5 h-3.5 text-white/35 shrink-0" />
                     <span>{item}</span>
@@ -320,7 +308,7 @@ const Auth = () => {
               </ul>
             )}
             <p className="text-white/25 text-[10px]">
-              Ställd resegaranti hos Kammarkollegiet • Säker betalning via Stripe • 24/7 support under resan
+              {t("auth.guarantee")}
             </p>
           </div>
         </div>
