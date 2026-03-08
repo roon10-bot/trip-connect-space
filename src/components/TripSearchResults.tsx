@@ -66,7 +66,7 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
     destination: "SPU", // Split, Croatia - primary destination
     departure_date: firstTrip.departure_date,
     return_date: firstTrip.return_date,
-    passengers: 1, // price per passenger
+    passengers: guests, // use selected number of travelers
   } : null;
 
   const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
@@ -244,11 +244,11 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
                           <p className="text-2xl font-bold text-primary">
                             {(() => {
                               // If we have a Duffel flight price, use it for dynamic pricing
-                              if (cheapestFlightPrice && trip.trip_type === "splitveckan" && trip.max_persons) {
+                              if (cheapestFlightPrice && trip.trip_type === "splitveckan" && guests > 0) {
                                 const accommodation = Number(trip.base_price_accommodation) || 0;
                                 const extras = Number(trip.base_price_extras) || 0;
                                 const dynamicPrice = calculateSplitPricePerPerson(
-                                  accommodation, cheapestFlightPrice, extras, Number(trip.max_persons)
+                                  accommodation, cheapestFlightPrice, extras, guests
                                 );
                                 return dynamicPrice > 0 ? dynamicPrice.toLocaleString("sv-SE") : trip.price.toLocaleString("sv-SE");
                               }
