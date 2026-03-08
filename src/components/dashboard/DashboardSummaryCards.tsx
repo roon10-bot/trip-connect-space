@@ -126,16 +126,16 @@ export const DashboardSummaryCards = ({
   const badgeInfo = useMemo(() => {
     if (!paymentProgress || !activeBooking) return null;
     if (isOverdue && nextPayment?.dueDate) {
-      return { color: "bg-destructive/10 text-destructive", label: `Betalning förfallen` };
+      return { color: "bg-destructive/10 text-destructive", label: t("dashboard.overdueLabel") };
     }
     if (nextPayment?.dueDate) {
-      return { color: "bg-amber-100 text-amber-700", label: `Betalning förfaller ${format(new Date(nextPayment.dueDate), "d MMMM", { locale: sv })}` };
+      return { color: "bg-amber-100 text-amber-700", label: t("dashboard.dueDateLabel", { date: format(new Date(nextPayment.dueDate), "d MMMM", { locale: sv }) }) };
     }
     if (paymentProgress.completedSteps === paymentProgress.totalSteps) {
-      return { color: "bg-palm-light text-palm", label: "Allt betalt ✓" };
+      return { color: "bg-palm-light text-palm", label: t("dashboard.allPaidLabel") };
     }
-    return { color: "bg-ocean-light text-ocean", label: `${paymentProgress.completedSteps} av ${paymentProgress.totalSteps} betalningar genomförda` };
-  }, [paymentProgress, activeBooking, nextPayment, isOverdue]);
+    return { color: "bg-ocean-light text-ocean", label: t("dashboard.paymentsProgress", { completed: paymentProgress.completedSteps, total: paymentProgress.totalSteps }) };
+  }, [paymentProgress, activeBooking, nextPayment, isOverdue, t]);
 
   return (
     <motion.div
