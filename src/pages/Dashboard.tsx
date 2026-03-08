@@ -305,7 +305,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-3 mb-4">
               <XCircle className="w-5 h-5 text-muted-foreground" />
               <h2 className="text-xl font-serif font-semibold text-foreground">
-                Avbokade resor
+                {t("dashboard.cancelledTrips")}
               </h2>
             </div>
             <div className="space-y-3">
