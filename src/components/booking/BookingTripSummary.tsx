@@ -38,6 +38,7 @@ interface BookingTripSummaryProps {
   formatTripType: (type: string) => string;
   flightOffer?: FlightOffer | null;
   flightLoading?: boolean;
+  dynamicFlightPricePerPerson?: number | null;
 }
 
 export const BookingTripSummary = ({
