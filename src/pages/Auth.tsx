@@ -521,10 +521,10 @@ const Auth = () => {
 
               {!isLogin && (
                 <p className="mt-6 text-center text-xs text-muted-foreground">
-                  Genom att skapa konto godkänner du våra{" "}
-                  <Link to="/kontovillkor" className="underline hover:text-foreground">användarvillkor</Link>{" "}
-                  och{" "}
-                  <Link to="/kontovillkor#integritetspolicy" className="underline hover:text-foreground">integritetspolicy</Link>.
+                  {t("auth.termsAgree")}{" "}
+                  <Link to="/kontovillkor" className="underline hover:text-foreground">{t("auth.termsLink")}</Link>{" "}
+                  {t("auth.and")}{" "}
+                  <Link to="/kontovillkor#integritetspolicy" className="underline hover:text-foreground">{t("auth.privacyLink")}</Link>.
                 </p>
               )}
             </>
