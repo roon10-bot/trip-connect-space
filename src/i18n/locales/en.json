@@ -407,7 +407,7 @@
     "heroHostDesc": "Register as a host to offer accommodations and experiences to our travelers.",
     "travelerBenefits": ["View and pay your installments", "Download tickets and documents", "Fill in details & allergies", "Get updates directly from us"],
     "hostBenefits": ["Manage your listings", "Set prices and availability", "View bookings and revenue", "Direct contact with Studentresor"],
-    "guarantee": "Travel guarantee via Kammarkollegiet • Secure payment via Stripe • 24/7 support during the trip"
+    "guarantee": "Travel guarantee via Kammarkollegiet • Secure payment via Swish, Klarna & card • 24/7 support during the trip"
   },
   "search": {
     "title": "Your search",
