@@ -254,7 +254,7 @@ const BookTrip = () => {
       percent: data.discount_percent,
       amount: data.discount_amount,
     });
-    toast.success("Rabattkod tillämpad!");
+    toast.success(t("bookTrip.discountApplied"));
   };
 
   const removeDiscount = () => {
