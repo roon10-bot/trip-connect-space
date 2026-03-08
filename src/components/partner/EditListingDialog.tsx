@@ -136,9 +136,41 @@ export const EditListingDialog = ({ listing, open, onOpenChange }: Props) => {
     }
   };
 
+  const getChangedFields = () => {
+    const changes: { field: string; from: string; to: string }[] = [];
+    const check = (label: string, oldVal: any, newVal: any) => {
+      const o = String(oldVal ?? "");
+      const n = String(newVal ?? "");
+      if (o !== n) changes.push({ field: label, from: o, to: n });
+    };
+    check("Namn", listing.name, name);
+    check("Beskrivning", listing.description, description);
+    check("Adress", listing.address, address);
+    check("Stad", listing.destination, destination);
+    check("Land", listing.country, country);
+    check("Kapacitet", listing.capacity, capacity);
+    check("Sovrum", listing.rooms, rooms);
+    check("Sängar", listing.beds, beds);
+    check("Badrum", listing.bathrooms, bathrooms);
+    check("Dygnspris", listing.daily_price, dailyPrice);
+
+    const oldAmenities = (listing.facilities || []).sort().join(", ");
+    const newAmenities = [...amenities].sort().join(", ");
+    if (oldAmenities !== newAmenities) changes.push({ field: "Bekvämligheter", from: oldAmenities, to: newAmenities });
+
+    const oldImgCount = (listing.image_urls || []).length;
+    const newImgCount = images.length;
+    if (oldImgCount !== newImgCount) changes.push({ field: "Antal bilder", from: String(oldImgCount), to: String(newImgCount) });
+
+    if ((listing.image_url || "") !== (mainImage || images[0] || "")) changes.push({ field: "Omslagsbild", from: "ändrad", to: "ny bild" });
+
+    return changes;
+  };
+
   const updateMutation = useMutation({
     mutationFn: async () => {
-      const requiresReapproval = listing.status === "approved";
+      const changes = getChangedFields();
+
       const { error } = await supabase
         .from("partner_listings")
         .update({
@@ -155,19 +187,29 @@ export const EditListingDialog = ({ listing, open, onOpenChange }: Props) => {
           facilities: amenities,
           image_url: mainImage || images[0] || null,
           image_urls: images,
-          ...(requiresReapproval ? { status: "pending" } : {}),
         })
         .eq("id", listing.id);
       if (error) throw error;
+
+      // Send admin notification about changes
+      if (changes.length > 0) {
+        supabase.functions.invoke("admin-notifications", {
+          body: {
+            type: "listing_updated",
+            data: {
+              name: listing.name,
+              listing_id: listing.id,
+              destination: listing.destination,
+              country: listing.country,
+              changes,
+            },
+          },
+        }).catch(console.error);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["partnerListings"] });
-      const reapproval = listing.status === "approved";
-      toast.success(
-        reapproval
-          ? "Boendet har uppdaterats och väntar på nytt godkännande"
-          : "Boendet har uppdaterats"
-      );
+      toast.success("Boendet har uppdaterats");
       onOpenChange(false);
     },
     onError: () => toast.error("Kunde inte spara ändringarna"),
@@ -322,11 +364,6 @@ export const EditListingDialog = ({ listing, open, onOpenChange }: Props) => {
             )}
           </div>
 
-          {listing.status === "approved" && (
-            <p className="text-sm text-amber-600 bg-amber-50 rounded-lg p-3">
-              ⚠️ Ändringar i ett godkänt boende kräver nytt godkännande från administratören.
-            </p>
-          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-2">

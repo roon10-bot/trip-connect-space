@@ -54,6 +54,25 @@ serve(async (req) => {
         <br/>
         <p>Logga in i kontrollcentret för att granska och godkänna boendet.</p>
       `;
+    } else if (type === "listing_updated") {
+      subject = `Boende uppdaterat: ${data.name}`;
+      const changesRows = (data.changes || [])
+        .map((c: { field: string; from: string; to: string }) =>
+          `<tr><td style="padding:6px 12px;font-weight:bold;">${c.field}</td><td style="padding:6px 12px;color:#999;text-decoration:line-through;">${c.from || "–"}</td><td style="padding:6px 12px;">→ ${c.to || "–"}</td></tr>`
+        )
+        .join("");
+      htmlBody = `
+        <h2>Boende har uppdaterats av värd</h2>
+        <p><strong>Boende:</strong> ${data.name}</p>
+        <p><strong>Destination:</strong> ${data.destination}, ${data.country}</p>
+        <h3>Ändringar:</h3>
+        <table style="border-collapse:collapse;width:100%;max-width:600px;">
+          <tr style="background:#f5f5f5;"><th style="padding:6px 12px;text-align:left;">Fält</th><th style="padding:6px 12px;text-align:left;">Före</th><th style="padding:6px 12px;text-align:left;">Efter</th></tr>
+          ${changesRows}
+        </table>
+        <br/>
+        <p>Logga in i kontrollcentret för att granska ändringarna.</p>
+      `;
     } else {
       return new Response(
         JSON.stringify({ error: "Unknown notification type" }),
