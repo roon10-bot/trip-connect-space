@@ -248,10 +248,10 @@ const Dashboard = () => {
           className="mb-12"
         >
           <h1 className="text-4xl font-serif font-bold text-foreground mb-2">
-            Välkommen, {profile?.full_name || user?.email?.split("@")[0]}!
+            {t("dashboard.welcome", { name: profile?.full_name || user?.email?.split("@")[0] })}
           </h1>
           <p className="text-muted-foreground text-lg">
-            Här kan du se och hantera dina bokningar
+            {t("dashboard.subtitle")}
           </p>
         </motion.div>
 
