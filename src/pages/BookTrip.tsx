@@ -42,6 +42,7 @@ const createEmptyTraveler = (departureLocation = ""): TravelerInfo => ({
 });
 
 const BookTrip = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
