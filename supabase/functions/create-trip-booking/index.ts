@@ -168,13 +168,14 @@ serve(async (req: Request) => {
     try {
       const { data: tripData } = await supabaseAdmin
         .from("trips")
-        .select("name, departure_date, return_date")
+        .select("name, departure_date, return_date, partner_listing_id")
         .eq("id", trip_id)
         .maybeSingle();
 
       if (tripData) {
         const siteUrl = "https://studentresor.com";
 
+        // Send confirmation to customer
         await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-transactional-email`, {
           method: "POST",
           headers: {
@@ -195,6 +196,54 @@ serve(async (req: Request) => {
             action_url: `${siteUrl}/dashboard`,
           }),
         });
+
+        // Send notification to host if trip is linked to a partner listing
+        if (tripData.partner_listing_id) {
+          try {
+            const { data: listing } = await supabaseAdmin
+              .from("partner_listings")
+              .select("name, partner_id")
+              .eq("id", tripData.partner_listing_id)
+              .maybeSingle();
+
+            if (listing) {
+              const { data: partner } = await supabaseAdmin
+                .from("partner_profiles")
+                .select("email, first_name, last_name, contact_person, company_name")
+                .eq("id", listing.partner_id)
+                .maybeSingle();
+
+              if (partner) {
+                const hostName = partner.contact_person || partner.first_name || partner.company_name || "Värd";
+
+                await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-transactional-email`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                  },
+                  body: JSON.stringify({
+                    template_key: "host_booking_notification",
+                    to_email: partner.email,
+                    variables: {
+                      host_name: hostName,
+                      listing_name: listing.name,
+                      trip_name: tripData.name,
+                      departure_date: tripData.departure_date,
+                      return_date: tripData.return_date,
+                      travelers: String(travelers),
+                    },
+                    action_url: `${siteUrl}/partner`,
+                  }),
+                });
+
+                console.log(`[CREATE-TRIP-BOOKING] Host notification sent to ${partner.email}`);
+              }
+            }
+          } catch (hostEmailErr) {
+            console.error("Failed to send host booking notification email:", hostEmailErr);
+          }
+        }
       }
     } catch (emailErr) {
       console.error("Failed to send booking confirmation email");
