@@ -3,6 +3,7 @@ import { sv } from "date-fns/locale";
 import { Calendar, MapPin, Users, Tag, Plane, Loader2, ChevronDown } from "lucide-react";
 import { getSplitPricePerPerson, calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AccommodationInfoDialog } from "@/components/AccommodationInfoDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { FlightOffer } from "@/hooks/useFlightSearch";
