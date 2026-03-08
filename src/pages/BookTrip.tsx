@@ -469,12 +469,12 @@ const BookTrip = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-4 pt-32 pb-16 text-center">
-          <h1 className="text-3xl font-serif font-bold mb-4">Fullbokat</h1>
+          <h1 className="text-3xl font-serif font-bold mb-4">{t("bookTrip.fullbooked")}</h1>
           <p className="text-muted-foreground mb-6">
-            Tyvärr är {trip.name} fullbokad. Kolla gärna efter andra tillgängliga resor.
+            {t("bookTrip.fullbookedDesc", { name: trip.name })}
           </p>
           <Link to="/search">
-            <Button>Sök efter andra resor</Button>
+            <Button>{t("bookTrip.searchOther")}</Button>
           </Link>
         </div>
         <Footer />
