@@ -146,10 +146,10 @@ const Admin = () => {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-h-0">
         <AdminSidebar currentView={currentView} onViewChange={setCurrentView} />
         
-        <main className="flex-1 p-10 overflow-auto">
+        <main className="flex-1 min-w-0 p-10 overflow-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
