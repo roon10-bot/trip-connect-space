@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Home, Loader2, Pause, Play, Trash2 } from "lucide-react";
+import { Plus, Home, Loader2, Pause, Play, Trash2, Pencil } from "lucide-react";
+import { EditListingDialog } from "./EditListingDialog";
 import {
   AlertDialog,
   AlertDialogAction,
