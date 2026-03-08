@@ -184,7 +184,7 @@ export const DashboardSummaryCards = ({
                   }}
                 >
                   <Info className="w-4 h-4 mr-1" />
-                  Detaljer
+                  {t("dashboard.details")}
                 </Button>
               </div>
             </div>
