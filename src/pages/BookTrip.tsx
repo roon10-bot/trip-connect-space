@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
+import { getSplitPricePerPerson, calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { useFlightSearch, type FlightOffer } from "@/hooks/useFlightSearch";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -130,11 +130,14 @@ const BookTrip = () => {
     destination: "SPU",
     departure_date: trip.departure_date,
     return_date: trip.return_date,
-    passengers: 1,
+    passengers: travelers,
   } : null;
 
   const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
   const cheapestFlight = flightData?.offers?.[0] || null;
+  const dynamicFlightPricePerPerson = cheapestFlight
+    ? parseFloat(cheapestFlight.price_per_passenger_sek)
+    : null;
 
   // Sync travelersInfo array length with travelers count and set departure location from trip
   useEffect(() => {
@@ -162,9 +165,24 @@ const BookTrip = () => {
     if (!trip) return 0;
     
     let pricePerPerson = trip.price;
+    
     if (trip.trip_type === "splitveckan" && travelers > 0) {
-      const splitPrice = getSplitPricePerPerson(trip, travelers);
-      if (splitPrice > 0) pricePerPerson = splitPrice;
+      if (dynamicFlightPricePerPerson !== null) {
+        // Use dynamic Duffel flight price instead of static base_price_flight
+        const accommodation = Number(trip.base_price_accommodation) || 0;
+        const extras = Number(trip.base_price_extras) || 0;
+        const dynamicPrice = calculateSplitPricePerPerson(accommodation, dynamicFlightPricePerPerson, extras, travelers);
+        if (dynamicPrice > 0) pricePerPerson = dynamicPrice;
+      } else {
+        const splitPrice = getSplitPricePerPerson(trip, travelers);
+        if (splitPrice > 0) pricePerPerson = splitPrice;
+      }
+    } else if (dynamicFlightPricePerPerson !== null) {
+      // Non-split: use dynamic flight price
+      const accommodation = Number(trip.base_price_accommodation) || 0;
+      const extras = Number(trip.base_price_extras) || 0;
+      const dynamicPrice = Math.ceil((accommodation + dynamicFlightPricePerPerson + extras) * 1.20);
+      if (dynamicPrice > 0) pricePerPerson = dynamicPrice;
     }
     
     const baseTotal = pricePerPerson * travelers;
@@ -322,8 +340,20 @@ const BookTrip = () => {
       
       let pricePerPerson = trip.price;
       if (trip.trip_type === "splitveckan" && travelers > 0) {
-        const splitPrice = getSplitPricePerPerson(trip, travelers);
-        if (splitPrice > 0) pricePerPerson = splitPrice;
+        if (dynamicFlightPricePerPerson !== null) {
+          const accommodation = Number(trip.base_price_accommodation) || 0;
+          const extras = Number(trip.base_price_extras) || 0;
+          const dp = calculateSplitPricePerPerson(accommodation, dynamicFlightPricePerPerson, extras, travelers);
+          if (dp > 0) pricePerPerson = dp;
+        } else {
+          const splitPrice = getSplitPricePerPerson(trip, travelers);
+          if (splitPrice > 0) pricePerPerson = splitPrice;
+        }
+      } else if (dynamicFlightPricePerPerson !== null) {
+        const accommodation = Number(trip.base_price_accommodation) || 0;
+        const extras = Number(trip.base_price_extras) || 0;
+        const dp = Math.ceil((accommodation + dynamicFlightPricePerPerson + extras) * 1.20);
+        if (dp > 0) pricePerPerson = dp;
       }
       const baseTotal = pricePerPerson * travelers;
       const discountAmount = baseTotal - totalPrice;
