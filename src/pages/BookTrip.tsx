@@ -43,7 +43,15 @@ const createEmptyTraveler = (departureLocation = ""): TravelerInfo => ({
 const BookTrip = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading: authLoading, signUp } = useAuth();
+  
+  // Receive flight data from search results via router state
+  const routerState = location.state as {
+    guests?: number;
+    flightPricePerPerson?: number | null;
+    flightOffer?: FlightOffer | null;
+  } | null;
   
   const [startedWithoutAccount, setStartedWithoutAccount] = useState<boolean | null>(null);
   
