@@ -134,8 +134,12 @@ const BookTrip = () => {
     return match?.[1] || null;
   }, [trip?.departure_location]);
 
-  // Fetch flight info for the booking page
-  const flightSearchParams = departureIATA && trip ? {
+  // Only fetch flights if we don't have data from search results, or if travelers changed
+  const hasRouterFlightData = routerState?.flightPricePerPerson != null;
+  const travelersChanged = routerState?.guests != null && travelers !== routerState.guests;
+  const shouldFetchFlights = departureIATA && trip && (!hasRouterFlightData || travelersChanged);
+
+  const flightSearchParams = shouldFetchFlights ? {
     origin: departureIATA,
     destination: "SPU",
     departure_date: trip.departure_date,
@@ -144,10 +148,12 @@ const BookTrip = () => {
   } : null;
 
   const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
-  const cheapestFlight = flightData?.offers?.[0] || null;
-  const dynamicFlightPricePerPerson = cheapestFlight
-    ? parseFloat(cheapestFlight.price_per_passenger_sek)
-    : null;
+  
+  // Use router state flight data as default, override with fresh data if fetched
+  const cheapestFlight = flightData?.offers?.[0] || (hasRouterFlightData && !travelersChanged ? routerState?.flightOffer : null) || null;
+  const dynamicFlightPricePerPerson = flightData?.offers?.[0]
+    ? parseFloat(flightData.offers[0].price_per_passenger_sek)
+    : (hasRouterFlightData && !travelersChanged ? routerState.flightPricePerPerson : null);
 
   // Sync travelersInfo array length with travelers count and set departure location from trip
   useEffect(() => {
