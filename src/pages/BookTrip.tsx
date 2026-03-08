@@ -455,9 +455,9 @@ const BookTrip = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-4 pt-32 pb-16 text-center">
-          <h1 className="text-3xl font-serif font-bold mb-4">Resan hittades inte</h1>
+          <h1 className="text-3xl font-serif font-bold mb-4">{t("bookTrip.tripNotFound")}</h1>
           <Link to="/search">
-            <Button>Tillbaka till sök</Button>
+            <Button>{t("bookTrip.backToSearchBtn")}</Button>
           </Link>
         </div>
       </div>
