@@ -427,7 +427,7 @@ const BookTrip = () => {
       setBookingComplete(true);
     } catch (error) {
       console.error("Booking error:", error);
-      toast.error("Något gick fel. Försök igen.");
+      toast.error(t("bookTrip.somethingWentWrong"));
     } finally {
       setIsSubmitting(false);
     }
