@@ -114,7 +114,7 @@ const Partner = () => {
   const renderContent = () => {
     switch (currentView) {
       case "listings":
-        return <PartnerListings partnerId={partnerProfile.id} />;
+        return <PartnerListings partnerId={partnerProfile.id} onCreateNew={() => setShowWizard(true)} />;
       case "availability":
         return <PartnerAvailability partnerId={partnerProfile.id} />;
       case "bookings":
