@@ -253,13 +253,16 @@
       "24/7 on-site service"
     ],
     "includedTitle": "What's included",
+    "includedNote": "All logistics included – you focus on the experience.",
+    "itineraryNote": "Note: The route may be adjusted based on weather and conditions.",
     "safetyTitle": "Safety & organization",
     "safetyP1": "Studentresor is a Swedish travel organizer with travel guarantee. Our team is on site throughout the week.",
     "safetyP2": "We work with clear safety routines and structured events.",
     "safetyQuote": "Safety is a given. The experience is our signature.",
     "ctaTitle": "Ready to sail?",
     "ctaP1": "Spots are limited.",
-    "ctaP2": "Book your spot and experience graduation as it should be – from the sea."
+    "ctaP2": "Book your spot and experience graduation as it should be – from the sea.",
+    "ctaButton": "Book Sailing Week"
   },
   "splitveckan": {
     "label": "Split Week",
