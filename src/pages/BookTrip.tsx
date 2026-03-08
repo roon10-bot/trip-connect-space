@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { getSplitPricePerPerson, calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { useFlightSearch, type FlightOffer } from "@/hooks/useFlightSearch";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
@@ -43,7 +43,15 @@ const createEmptyTraveler = (departureLocation = ""): TravelerInfo => ({
 const BookTrip = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading: authLoading, signUp } = useAuth();
+  
+  // Receive flight data from search results via router state
+  const routerState = location.state as {
+    guests?: number;
+    flightPricePerPerson?: number | null;
+    flightOffer?: FlightOffer | null;
+  } | null;
   
   const [startedWithoutAccount, setStartedWithoutAccount] = useState<boolean | null>(null);
   
@@ -57,14 +65,16 @@ const BookTrip = () => {
   const totalSteps = needsAccountStep ? 4 : 3;
   
   const [currentStep, setCurrentStep] = useState(1);
-  const [travelers, setTravelers] = useState(1);
+  const [travelers, setTravelers] = useState(routerState?.guests || 1);
   const [discountCode, setDiscountCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<{
     code: string;
     percent: number | null;
     amount: number | null;
   } | null>(null);
-  const [travelersInfo, setTravelersInfo] = useState<TravelerInfo[]>([createEmptyTraveler()]);
+  const [travelersInfo, setTravelersInfo] = useState<TravelerInfo[]>(
+    Array.from({ length: routerState?.guests || 1 }, () => createEmptyTraveler())
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
@@ -124,8 +134,12 @@ const BookTrip = () => {
     return match?.[1] || null;
   }, [trip?.departure_location]);
 
-  // Fetch flight info for the booking page
-  const flightSearchParams = departureIATA && trip ? {
+  // Only fetch flights if we don't have data from search results, or if travelers changed
+  const hasRouterFlightData = routerState?.flightPricePerPerson != null;
+  const travelersChanged = routerState?.guests != null && travelers !== routerState.guests;
+  const shouldFetchFlights = departureIATA && trip && (!hasRouterFlightData || travelersChanged);
+
+  const flightSearchParams = shouldFetchFlights ? {
     origin: departureIATA,
     destination: "SPU",
     departure_date: trip.departure_date,
@@ -134,10 +148,12 @@ const BookTrip = () => {
   } : null;
 
   const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
-  const cheapestFlight = flightData?.offers?.[0] || null;
-  const dynamicFlightPricePerPerson = cheapestFlight
-    ? parseFloat(cheapestFlight.price_per_passenger_sek)
-    : null;
+  
+  // Use router state flight data as default, override with fresh data if fetched
+  const cheapestFlight = flightData?.offers?.[0] || (hasRouterFlightData && !travelersChanged ? routerState?.flightOffer : null) || null;
+  const dynamicFlightPricePerPerson = flightData?.offers?.[0]
+    ? parseFloat(flightData.offers[0].price_per_passenger_sek)
+    : (hasRouterFlightData && !travelersChanged ? routerState.flightPricePerPerson : null);
 
   // Sync travelersInfo array length with travelers count and set departure location from trip
   useEffect(() => {
