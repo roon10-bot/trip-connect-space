@@ -114,6 +114,33 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
     enabled: !!tripId && open,
   });
 
+  // Fetch linked partner listing's daily_price for auto-calculation
+  const partnerListingId = trip?.partner_listing_id;
+  const { data: partnerListing } = useQuery({
+    queryKey: ["partnerListing", partnerListingId],
+    queryFn: async () => {
+      if (!partnerListingId) return null;
+      const { data, error } = await supabase
+        .from("partner_listings")
+        .select("daily_price")
+        .eq("id", partnerListingId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!partnerListingId && open,
+  });
+
+  // Recalculate accommodation price when dates change for partner-linked trips
+  const recalcAccommodationPrice = useCallback((departureDate: Date, returnDate: Date) => {
+    if (!partnerListing?.daily_price) return;
+    const nights = Math.max(1, Math.round((returnDate.getTime() - departureDate.getTime()) / (1000 * 60 * 60 * 24)));
+    const newPrice = Number(partnerListing.daily_price) * nights;
+    setBasePriceAccommodation(newPrice.toString());
+    const total = newPrice + Number(basePriceExtras || 0);
+    form.setValue("base_price", total);
+  }, [partnerListing?.daily_price, basePriceExtras]);
+
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripSchema),
     defaultValues: {
@@ -382,7 +409,18 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                                   value={basePriceAccommodation}
                                   className="bg-muted"
                                 />
-                                <p className="text-xs text-muted-foreground">Satt av värden – kan inte ändras här</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {partnerListing?.daily_price ? (
+                                    <>Dygnspris {Number(partnerListing.daily_price).toLocaleString("sv-SE")} kr × {(() => {
+                                      const dep = form.getValues("departure_date");
+                                      const ret = form.getValues("return_date");
+                                      if (dep && ret) {
+                                        return Math.max(1, Math.round((ret.getTime() - dep.getTime()) / (1000 * 60 * 60 * 24)));
+                                      }
+                                      return "?";
+                                    })()} nätter – beräknas automatiskt</>
+                                  ) : "Satt av värden – kan inte ändras här"}
+                                </p>
                               </>
                             ) : (
                               <Input
@@ -499,6 +537,10 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                                 onSelect={(date) => {
                                   field.onChange(date);
                                   if (date) {
+                                    const returnDate = form.getValues("return_date");
+                                    if (returnDate && partnerListingId) {
+                                      recalcAccommodationPrice(date, returnDate);
+                                    }
                                     setTimeout(() => setReturnDateOpen(true), 150);
                                   }
                                 }}
@@ -544,6 +586,12 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                                 onSelect={(date) => {
                                   field.onChange(date);
                                   setReturnDateOpen(false);
+                                  if (date && partnerListingId) {
+                                    const depDate = form.getValues("departure_date");
+                                    if (depDate) {
+                                      recalcAccommodationPrice(depDate, date);
+                                    }
+                                  }
                                 }}
                                 disabled={(date) => {
                                   const dep = form.getValues("departure_date");
