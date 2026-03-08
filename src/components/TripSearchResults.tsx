@@ -66,7 +66,7 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
     destination: "SPU", // Split, Croatia - primary destination
     departure_date: firstTrip.departure_date,
     return_date: firstTrip.return_date,
-    passengers: 1, // price per passenger
+    passengers: guests, // use selected number of travelers
   } : null;
 
   const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
