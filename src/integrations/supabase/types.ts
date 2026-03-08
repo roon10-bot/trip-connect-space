@@ -325,6 +325,7 @@ export type Database = {
           footer_text: string
           heading: string
           id: string
+          is_active: boolean
           logo_url: string | null
           name: string
           primary_color: string
@@ -339,6 +340,7 @@ export type Database = {
           footer_text?: string
           heading?: string
           id?: string
+          is_active?: boolean
           logo_url?: string | null
           name: string
           primary_color?: string
@@ -353,6 +355,7 @@ export type Database = {
           footer_text?: string
           heading?: string
           id?: string
+          is_active?: boolean
           logo_url?: string | null
           name?: string
           primary_color?: string
