@@ -158,21 +158,21 @@ const Dashboard = () => {
         return (
           <Badge className="bg-palm text-palm-foreground">
             <CheckCircle className="w-3 h-3 mr-1" />
-            Bekräftad
+            {t("dashboard.confirmed")}
           </Badge>
         );
       case "pending":
         return (
           <Badge variant="secondary">
             <Clock className="w-3 h-3 mr-1" />
-            Väntar
+            {t("dashboard.pending")}
           </Badge>
         );
       case "cancelled":
         return (
           <Badge variant="destructive">
             <XCircle className="w-3 h-3 mr-1" />
-            Avbokad
+            {t("dashboard.cancelled")}
           </Badge>
         );
       default:
