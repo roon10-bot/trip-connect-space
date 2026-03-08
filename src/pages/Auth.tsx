@@ -81,7 +81,7 @@ const Auth = () => {
     formState: { errors },
     reset,
   } = useForm<AuthFormData>({
-    resolver: zodResolver(isLogin ? loginSchema : signupSchema),
+    resolver: zodResolver(isLogin ? loginSchema(t) : signupSchema(t)),
   });
 
   const getRedirectPath = () => {
