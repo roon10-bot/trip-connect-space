@@ -162,6 +162,13 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
     },
   });
 
+  // When partner listing loads, sync max_persons to listing capacity
+  useEffect(() => {
+    if (partnerListing?.capacity && trip?.partner_listing_id) {
+      form.setValue("max_persons", partnerListing.capacity);
+    }
+  }, [partnerListing?.capacity, trip?.partner_listing_id]);
+
   useEffect(() => {
     if (trip) {
       form.reset({
