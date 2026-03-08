@@ -49,15 +49,30 @@ export const BookingTripSummary = ({
   formatTripType,
   flightOffer,
   flightLoading,
+  dynamicFlightPricePerPerson,
 }: BookingTripSummaryProps) => {
-  // For Splitveckan, calculate price per person based on group size
+  // Calculate price per person using dynamic flight price when available
   const isSplitVeckan = trip.trip_type === "splitveckan";
-  const pricePerPerson = isSplitVeckan && travelers > 0
-    ? (getSplitPricePerPerson(trip, travelers) || trip.price)
-    : trip.price;
+  let pricePerPerson: number;
+  
+  if (dynamicFlightPricePerPerson !== null && dynamicFlightPricePerPerson !== undefined) {
+    const accommodation = Number(trip.base_price_accommodation) || 0;
+    const extras = Number(trip.base_price_extras) || 0;
+    if (isSplitVeckan && travelers > 0) {
+      pricePerPerson = calculateSplitPricePerPerson(accommodation, dynamicFlightPricePerPerson, extras, travelers);
+    } else {
+      pricePerPerson = Math.ceil((accommodation + dynamicFlightPricePerPerson + extras) * 1.20);
+    }
+    if (pricePerPerson <= 0) pricePerPerson = trip.price;
+  } else if (isSplitVeckan && travelers > 0) {
+    pricePerPerson = getSplitPricePerPerson(trip, travelers) || trip.price;
+  } else {
+    pricePerPerson = trip.price;
+  }
   
   const baseTotal = pricePerPerson * travelers;
   const discountAmount = baseTotal - totalPrice;
+  const pricesLoading = flightLoading;
 
   return (
     <Card className="shadow-elegant sticky top-28">
