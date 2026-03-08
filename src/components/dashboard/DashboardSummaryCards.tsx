@@ -31,6 +31,7 @@ export const DashboardSummaryCards = ({
   tripBookings,
   onPayClick,
 }: DashboardSummaryCardsProps) => {
+  const { t } = useTranslation();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsTab, setDetailsTab] = useState("passenger");
 
