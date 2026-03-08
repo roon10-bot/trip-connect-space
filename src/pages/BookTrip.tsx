@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { getSplitPricePerPerson, calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { useFlightSearch, type FlightOffer } from "@/hooks/useFlightSearch";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";

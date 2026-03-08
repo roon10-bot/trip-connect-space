@@ -277,7 +277,14 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
                           Fullbokat
                         </Button>
                       ) : (
-                        <Link to={`/book/trip/${trip.id}`}>
+                        <Link
+                          to={`/book/trip/${trip.id}`}
+                          state={{
+                            guests,
+                            flightPricePerPerson: cheapestFlightPrice,
+                            flightOffer: flightData?.offers?.[0] || null,
+                          }}
+                        >
                           <Button className="bg-sunset hover:bg-sunset/90 text-accent-foreground font-semibold px-6">
                             Boka resa
                           </Button>
