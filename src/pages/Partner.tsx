@@ -89,6 +89,16 @@ const Partner = () => {
 
   if (!isApproved) return null;
 
+  if (showWizard) {
+    return (
+      <CreateListingWizard
+        partnerId={partnerProfile.id}
+        onClose={() => setShowWizard(false)}
+        onComplete={() => setShowWizard(false)}
+      />
+    );
+  }
+
   const menuItems = [
     { label: "Mina boenden", value: "listings" as PartnerView, icon: Home },
     { label: "Tillgänglighet & Priser", value: "availability" as PartnerView, icon: CalendarDays },
