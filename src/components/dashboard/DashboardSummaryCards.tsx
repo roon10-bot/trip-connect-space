@@ -246,9 +246,9 @@ export const DashboardSummaryCards = ({
                 <div className="p-3 rounded-xl bg-palm-light">
                   <CheckCircle className="w-6 h-6 text-palm" />
                 </div>
-                <div>
-                  <p className="text-lg font-semibold text-palm">Allt betalt</p>
-                  <p className="text-muted-foreground">Inga kommande betalningar</p>
+              <div>
+                  <p className="text-lg font-semibold text-palm">{t("dashboard.allPaid")}</p>
+                  <p className="text-muted-foreground">{t("dashboard.noPendingPayments")}</p>
                 </div>
               </div>
             )}
