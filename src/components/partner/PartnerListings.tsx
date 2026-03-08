@@ -244,6 +244,14 @@ export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {editListing && (
+        <EditListingDialog
+          listing={editListing}
+          open={!!editListing}
+          onOpenChange={(open) => !open && setEditListing(null)}
+        />
+      )}
     </div>
   );
 };
