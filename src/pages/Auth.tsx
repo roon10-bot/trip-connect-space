@@ -246,11 +246,11 @@ const Auth = () => {
         redirect_uri: window.location.origin,
       });
       if (error) {
-        toast.error("Google-inloggning misslyckades");
+        toast.error(t("auth.googleFailed"));
         console.error("Google sign-in error:", error);
       }
     } catch {
-      toast.error("Google-inloggning misslyckades");
+      toast.error(t("auth.googleFailed"));
     } finally {
       setIsGoogleLoading(false);
     }
