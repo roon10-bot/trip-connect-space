@@ -29,6 +29,7 @@ interface EmailTemplate {
   footer_text: string;
   primary_color: string;
   logo_url: string | null;
+  is_active: boolean;
   updated_at: string;
 }
 
