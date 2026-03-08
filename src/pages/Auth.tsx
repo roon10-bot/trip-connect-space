@@ -483,9 +483,9 @@ const Auth = () => {
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : isLogin ? (
-                    "Logga in"
+                    t("auth.login")
                   ) : (
-                    "Skapa konto"
+                    t("auth.createAccount")
                   )}
                 </Button>
               </form>
