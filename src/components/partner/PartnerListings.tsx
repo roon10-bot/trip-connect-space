@@ -27,6 +27,7 @@ export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [editListing, setEditListing] = useState<any | null>(null);
 
   const { data: listings, isLoading } = useQuery({
     queryKey: ["partnerListings", partnerId],
