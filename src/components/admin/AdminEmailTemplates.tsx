@@ -74,6 +74,14 @@ const PLACEHOLDER_INFO: Record<string, string[]> = {
     "{{first_name}} – Avsändarens förnamn",
     "{{subject}} – Ämne",
   ],
+  host_booking_notification: [
+    "{{host_name}} – Värdens namn",
+    "{{listing_name}} – Boendets namn",
+    "{{trip_name}} – Resans namn",
+    "{{departure_date}} – Avresedatum",
+    "{{return_date}} – Hemresedatum",
+    "{{travelers}} – Antal resenärer",
+  ],
 };
 
 export const AdminEmailTemplates = () => {
