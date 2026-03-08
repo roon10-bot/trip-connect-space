@@ -20,25 +20,26 @@ import studentresorLogo from "@/assets/studentresor-logo.svg";
 import loginHero from "@/assets/login-hero.png";
 import { HostRegistrationForm, type IndividualFormData, type CompanyFormData } from "@/components/auth/HostRegistrationForm";
 
-const signupSchema = z.object({
-  firstName: z.string().trim().min(1, "Förnamn krävs"),
-  lastName: z.string().trim().min(1, "Efternamn krävs"),
-  email: z.string().email("Ange en giltig e-postadress"),
-  password: z.string().min(8, "Lösenordet måste vara minst 8 tecken"),
+const signupSchema = (t: (key: string) => string) => z.object({
+  firstName: z.string().trim().min(1, t("auth.firstNameRequired") || "Förnamn krävs"),
+  lastName: z.string().trim().min(1, t("auth.lastNameRequired") || "Efternamn krävs"),
+  email: z.string().email(t("auth.invalidEmail") || "Ange en giltig e-postadress"),
+  password: z.string().min(8, t("auth.minChars")),
 });
 
-const loginSchema = z.object({
-  email: z.string().email("Ange en giltig e-postadress"),
-  password: z.string().min(8, "Lösenordet måste vara minst 8 tecken"),
+const loginSchema = (t: (key: string) => string) => z.object({
+  email: z.string().email(t("auth.invalidEmail") || "Ange en giltig e-postadress"),
+  password: z.string().min(8, t("auth.minChars")),
 });
 
-type SignupFormData = z.infer<typeof signupSchema>;
-type LoginFormData = z.infer<typeof loginSchema>;
+type SignupFormData = z.infer<ReturnType<typeof signupSchema>>;
+type LoginFormData = z.infer<ReturnType<typeof loginSchema>>;
 type AuthFormData = SignupFormData | LoginFormData;
 
 type AccountType = "traveler" | "host";
 
 const Auth = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [accountType, setAccountType] = useState<AccountType>("traveler");
@@ -80,7 +81,7 @@ const Auth = () => {
     formState: { errors },
     reset,
   } = useForm<AuthFormData>({
-    resolver: zodResolver(isLogin ? loginSchema : signupSchema),
+    resolver: zodResolver(isLogin ? loginSchema(t) : signupSchema(t)),
   });
 
   const getRedirectPath = () => {
@@ -108,23 +109,23 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await signIn(data.email, data.password);
         if (error) {
-          toast.error(error.message.includes("Invalid login credentials") ? "Felaktiga inloggningsuppgifter" : error.message);
+          toast.error(error.message.includes("Invalid login credentials") ? t("auth.invalidCredentials") : error.message);
         } else {
-          toast.success("Välkommen tillbaka!");
+          toast.success(t("auth.welcomeBack"));
           setShouldRedirect(true);
         }
       } else {
         const fullName = `${'firstName' in data ? data.firstName : ''} ${'lastName' in data ? data.lastName : ''}`.trim();
         const { error } = await signUp(data.email, data.password, fullName);
         if (error) {
-          toast.error(error.message.includes("already registered") ? "E-postadressen är redan registrerad" : error.message);
+          toast.error(error.message.includes("already registered") ? t("auth.emailRegistered") : error.message);
         } else {
-          toast.success("Konto skapat! Du är nu inloggad.");
+          toast.success(t("auth.accountCreated"));
           setShouldRedirect(true);
         }
       }
     } catch {
-      toast.error("Ett oväntat fel uppstod");
+      toast.error(t("auth.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -140,13 +141,13 @@ const Auth = () => {
     try {
       const { data: authData, error: authError } = await signUp(email, password, fullName);
       if (authError) {
-        toast.error(authError.message.includes("already registered") ? "E-postadressen är redan registrerad" : authError.message);
+        toast.error(authError.message.includes("already registered") ? t("auth.emailRegistered") : authError.message);
         return;
       }
       
       const userId = authData?.user?.id;
       if (!userId) {
-        toast.error("Kunde inte skapa kontot. Försök igen.");
+        toast.error(t("auth.unexpectedError"));
         return;
       }
 
@@ -159,20 +160,19 @@ const Auth = () => {
 
       if (profileError) {
         console.error("Partner profile insert error:", profileError);
-        toast.error("Kunde inte skapa värdprofilen. Kontakta support.");
+        toast.error(t("auth.unexpectedError"));
         return;
       }
 
-      toast.success("Värdkonto skapat! Din ansökan granskas av oss innan du får tillgång till värdportalen.");
+      toast.success(t("auth.accountCreated"));
 
-      // Notify admin about new partner registration (fire and forget)
       supabase.functions.invoke("admin-notifications", {
         body: { type: "partner_registered", data: partnerData },
       }).catch((err) => console.error("Admin notification failed:", err));
 
       navigate("/partner");
     } catch {
-      toast.error("Ett oväntat fel uppstod");
+      toast.error(t("auth.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -219,7 +219,7 @@ const Auth = () => {
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.length < 8) {
-      toast.error("Lösenordet måste vara minst 8 tecken");
+      toast.error(t("auth.minChars"));
       return;
     }
     setIsLoading(true);
@@ -228,12 +228,12 @@ const Auth = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("Lösenord sparat! Du är nu inloggad.");
+        toast.success(t("auth.passwordSaved"));
         setIsSettingPassword(false);
         setShouldRedirect(true);
       }
     } catch {
-      toast.error("Ett oväntat fel uppstod");
+      toast.error(t("auth.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -246,11 +246,11 @@ const Auth = () => {
         redirect_uri: window.location.origin,
       });
       if (error) {
-        toast.error("Google-inloggning misslyckades");
+        toast.error(t("auth.googleFailed"));
         console.error("Google sign-in error:", error);
       }
     } catch {
-      toast.error("Google-inloggning misslyckades");
+      toast.error(t("auth.googleFailed"));
     } finally {
       setIsGoogleLoading(false);
     }
@@ -281,23 +281,16 @@ const Auth = () => {
               <img src={studentresorLogo} alt="Studentresor" className="h-10 opacity-80" />
             </Link>
             <h2 className="text-3xl font-serif font-semibold text-white/90 mb-4">
-              {showHostSignup ? "Bli värd hos Studentresor" : "Din resa. Samlad på ett ställe."}
+              {showHostSignup ? t("auth.heroHost") : t("auth.heroTraveler")}
             </h2>
             <p className="text-white/60 text-base">
-              {showHostSignup
-                ? "Registrera dig som värd för att erbjuda boenden och upplevelser till våra resenärer."
-                : "Skapa ett konto för att hantera din bokning, betalningar och viktiga uppdateringar inför resan."}
+              {showHostSignup ? t("auth.heroHostDesc") : t("auth.heroTravelerDesc")}
             </p>
           </div>
           <div>
             {showHostSignup ? (
               <ul className="grid grid-cols-2 gap-x-6 gap-y-2 mb-4">
-                {[
-                  "Hantera dina boenden",
-                  "Sätt priser och tillgänglighet",
-                  "Se bokningar och intäkter",
-                  "Direktkontakt med Studentresor",
-                ].map((item) => (
+                {(t("auth.hostBenefits", { returnObjects: true }) as string[]).map((item) => (
                   <li key={item} className="flex items-center gap-2 text-white/50 text-xs">
                     <Check className="w-3.5 h-3.5 text-white/35 shrink-0" />
                     <span>{item}</span>
@@ -306,12 +299,7 @@ const Auth = () => {
               </ul>
             ) : (
               <ul className="grid grid-cols-2 gap-x-6 gap-y-2 mb-4">
-                {[
-                  "Se och betala dina delbetalningar",
-                  "Ladda ner biljetter och dokument",
-                  "Fyll i uppgifter & allergier",
-                  "Få uppdateringar direkt från oss",
-                ].map((item) => (
+                {(t("auth.travelerBenefits", { returnObjects: true }) as string[]).map((item) => (
                   <li key={item} className="flex items-center gap-2 text-white/50 text-xs">
                     <Check className="w-3.5 h-3.5 text-white/35 shrink-0" />
                     <span>{item}</span>
@@ -320,7 +308,7 @@ const Auth = () => {
               </ul>
             )}
             <p className="text-white/25 text-[10px]">
-              Ställd resegaranti hos Kammarkollegiet • Säker betalning via Stripe • 24/7 support under resan
+              {t("auth.guarantee")}
             </p>
           </div>
         </div>
@@ -343,11 +331,11 @@ const Auth = () => {
 
           <div className="text-center mb-6">
             <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
-              {isSettingPassword ? "Välj ditt lösenord" : isLogin ? "Logga in" : "Skapa konto"}
+              {isSettingPassword ? t("auth.setPassword") : isLogin ? t("auth.login") : t("auth.createAccount")}
             </h1>
             {isSettingPassword && (
               <p className="text-muted-foreground">
-                Ange ett lösenord för att aktivera ditt konto
+                {t("auth.setPasswordDesc")}
               </p>
             )}
           </div>
@@ -364,7 +352,7 @@ const Auth = () => {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Resenär
+                {t("auth.traveler")}
               </button>
               <button
                 type="button"
@@ -375,7 +363,7 @@ const Auth = () => {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Värd
+                {t("auth.host")}
               </button>
             </div>
           )}
@@ -383,12 +371,12 @@ const Auth = () => {
           {isSettingPassword ? (
             <form onSubmit={handleSetPassword} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="newPassword">Nytt lösenord</Label>
+                <Label htmlFor="newPassword">{t("auth.newPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Minst 8 tecken"
+                    placeholder={t("auth.minChars")}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="h-12 pr-12"
@@ -407,7 +395,7 @@ const Auth = () => {
                 className="w-full h-12 bg-gradient-ocean hover:opacity-90 text-lg font-semibold"
                 disabled={isLoading}
               >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Spara lösenord"}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t("auth.savePassword")}
               </Button>
             </form>
           ) : showHostSignup ? (
@@ -424,10 +412,10 @@ const Auth = () => {
                 {showTravelerSignup && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName">Förnamn</Label>
+                      <Label htmlFor="firstName">{t("auth.firstName")}</Label>
                       <Input
                         id="firstName"
-                        placeholder="Förnamn"
+                        placeholder={t("auth.firstName")}
                         {...register("firstName" as any)}
                         className="h-12"
                       />
@@ -436,10 +424,10 @@ const Auth = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">Efternamn</Label>
+                      <Label htmlFor="lastName">{t("auth.lastName")}</Label>
                       <Input
                         id="lastName"
-                        placeholder="Efternamn"
+                        placeholder={t("auth.lastName")}
                         {...register("lastName" as any)}
                         className="h-12"
                       />
@@ -451,11 +439,11 @@ const Auth = () => {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-post</Label>
+                  <Label htmlFor="email">{t("auth.email")}</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="din@email.se"
+                    placeholder={t("auth.emailPlaceholder")}
                     {...register("email")}
                     className="h-12"
                   />
@@ -465,7 +453,7 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Lösenord</Label>
+                  <Label htmlFor="password">{t("auth.password")}</Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -495,9 +483,9 @@ const Auth = () => {
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : isLogin ? (
-                    "Logga in"
+                    t("auth.login")
                   ) : (
-                    "Skapa konto"
+                    t("auth.createAccount")
                   )}
                 </Button>
               </form>
@@ -507,7 +495,7 @@ const Auth = () => {
                   <div className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-background px-4 text-muted-foreground">eller</span>
+                  <span className="bg-background px-4 text-muted-foreground">{t("auth.or")}</span>
                 </div>
               </div>
 
@@ -528,15 +516,15 @@ const Auth = () => {
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
                 )}
-                Fortsätt med Google
+                {t("auth.continueGoogle")}
               </Button>
 
               {!isLogin && (
                 <p className="mt-6 text-center text-xs text-muted-foreground">
-                  Genom att skapa konto godkänner du våra{" "}
-                  <Link to="/kontovillkor" className="underline hover:text-foreground">användarvillkor</Link>{" "}
-                  och{" "}
-                  <Link to="/kontovillkor#integritetspolicy" className="underline hover:text-foreground">integritetspolicy</Link>.
+                  {t("auth.termsAgree")}{" "}
+                  <Link to="/kontovillkor" className="underline hover:text-foreground">{t("auth.termsLink")}</Link>{" "}
+                  {t("auth.and")}{" "}
+                  <Link to="/kontovillkor#integritetspolicy" className="underline hover:text-foreground">{t("auth.privacyLink")}</Link>.
                 </p>
               )}
             </>
@@ -548,8 +536,8 @@ const Auth = () => {
               className="text-primary hover:underline font-medium"
             >
               {isLogin
-                ? "Har du inget konto? Skapa ett"
-                : "Har du redan ett konto? Logga in"}
+                ? t("auth.noAccount")
+                : t("auth.hasAccount")}
             </button>
           </div>
         </motion.div>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
@@ -30,6 +31,7 @@ export const DashboardSummaryCards = ({
   tripBookings,
   onPayClick,
 }: DashboardSummaryCardsProps) => {
+  const { t } = useTranslation();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsTab, setDetailsTab] = useState("passenger");
 
@@ -124,16 +126,16 @@ export const DashboardSummaryCards = ({
   const badgeInfo = useMemo(() => {
     if (!paymentProgress || !activeBooking) return null;
     if (isOverdue && nextPayment?.dueDate) {
-      return { color: "bg-destructive/10 text-destructive", label: `Betalning förfallen` };
+      return { color: "bg-destructive/10 text-destructive", label: t("dashboard.overdueLabel") };
     }
     if (nextPayment?.dueDate) {
-      return { color: "bg-amber-100 text-amber-700", label: `Betalning förfaller ${format(new Date(nextPayment.dueDate), "d MMMM", { locale: sv })}` };
+      return { color: "bg-amber-100 text-amber-700", label: t("dashboard.dueDateLabel", { date: format(new Date(nextPayment.dueDate), "d MMMM", { locale: sv }) }) };
     }
     if (paymentProgress.completedSteps === paymentProgress.totalSteps) {
-      return { color: "bg-palm-light text-palm", label: "Allt betalt ✓" };
+      return { color: "bg-palm-light text-palm", label: t("dashboard.allPaidLabel") };
     }
-    return { color: "bg-ocean-light text-ocean", label: `${paymentProgress.completedSteps} av ${paymentProgress.totalSteps} betalningar genomförda` };
-  }, [paymentProgress, activeBooking, nextPayment, isOverdue]);
+    return { color: "bg-ocean-light text-ocean", label: t("dashboard.paymentsProgress", { completed: paymentProgress.completedSteps, total: paymentProgress.totalSteps }) };
+  }, [paymentProgress, activeBooking, nextPayment, isOverdue, t]);
 
   return (
     <motion.div
@@ -182,7 +184,7 @@ export const DashboardSummaryCards = ({
                   }}
                 >
                   <Info className="w-4 h-4 mr-1" />
-                  Detaljer
+                  {t("dashboard.details")}
                 </Button>
               </div>
             </div>
@@ -192,8 +194,8 @@ export const DashboardSummaryCards = ({
                 <Plane className="w-6 h-6 text-ocean" />
               </div>
               <div>
-                <p className="text-lg font-semibold text-foreground">Ingen resa</p>
-                <p className="text-muted-foreground">Boka din första resa!</p>
+                <p className="text-lg font-semibold text-foreground">{t("dashboard.noTrip")}</p>
+                <p className="text-muted-foreground">{t("dashboard.noTripDesc")}</p>
               </div>
             </div>
           )}
@@ -217,10 +219,10 @@ export const DashboardSummaryCards = ({
                     </p>
                     <p className={`text-sm ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                       {isOverdue
-                        ? "Förfallen"
+                        ? t("dashboard.overdue")
                         : nextPayment.dueDate
-                        ? `Förfaller ${format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv })}`
-                        : "Att betala"}
+                        ? t("dashboard.dueDate", { date: format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv }) })
+                        : t("dashboard.toPay")}
                     </p>
                   </div>
                 </div>
@@ -234,7 +236,7 @@ export const DashboardSummaryCards = ({
                         setDetailsOpen(true);
                       }}
                     >
-                      Betala nu
+                      {t("dashboard.payNow")}
                     </Button>
                   </div>
                 )}
@@ -244,9 +246,9 @@ export const DashboardSummaryCards = ({
                 <div className="p-3 rounded-xl bg-palm-light">
                   <CheckCircle className="w-6 h-6 text-palm" />
                 </div>
-                <div>
-                  <p className="text-lg font-semibold text-palm">Allt betalt</p>
-                  <p className="text-muted-foreground">Inga kommande betalningar</p>
+              <div>
+                  <p className="text-lg font-semibold text-palm">{t("dashboard.allPaid")}</p>
+                  <p className="text-muted-foreground">{t("dashboard.noPendingPayments")}</p>
                 </div>
               </div>
             )}
@@ -261,9 +263,9 @@ export const DashboardSummaryCards = ({
                 <Wallet className="w-6 h-6 text-palm" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">Betalningstatus</p>
+                <p className="text-sm font-medium text-foreground">{t("dashboard.paymentStatus")}</p>
                 <p className="text-xs text-muted-foreground">
-                  {totalPaid.toLocaleString("sv-SE")} kr av {totalPrice.toLocaleString("sv-SE")} kr betalt av totalpriset
+                  {t("dashboard.paidOf", { paid: totalPaid.toLocaleString("sv-SE"), total: totalPrice.toLocaleString("sv-SE") })}
                 </p>
               </div>
               <span className="text-lg font-bold text-foreground">{paidPercent}%</span>

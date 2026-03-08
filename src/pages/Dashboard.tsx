@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -20,6 +21,7 @@ import { Calendar, MapPin, CheckCircle, XCircle, Clock, ChevronRight, History } 
 import { toast } from "sonner";
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -156,21 +158,21 @@ const Dashboard = () => {
         return (
           <Badge className="bg-palm text-palm-foreground">
             <CheckCircle className="w-3 h-3 mr-1" />
-            Bekräftad
+            {t("dashboard.confirmed")}
           </Badge>
         );
       case "pending":
         return (
           <Badge variant="secondary">
             <Clock className="w-3 h-3 mr-1" />
-            Väntar
+            {t("dashboard.pending")}
           </Badge>
         );
       case "cancelled":
         return (
           <Badge variant="destructive">
             <XCircle className="w-3 h-3 mr-1" />
-            Avbokad
+            {t("dashboard.cancelled")}
           </Badge>
         );
       default:
@@ -219,7 +221,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-1 text-sm text-ocean opacity-0 group-hover:opacity-100 transition-opacity mt-1">
-            <span>Detaljer</span>
+            <span>{t("dashboard.details")}</span>
             <ChevronRight className="w-4 h-4" />
           </div>
         </div>
@@ -246,10 +248,10 @@ const Dashboard = () => {
           className="mb-12"
         >
           <h1 className="text-4xl font-serif font-bold text-foreground mb-2">
-            Välkommen, {profile?.full_name || user?.email?.split("@")[0]}!
+            {t("dashboard.welcome", { name: profile?.full_name || user?.email?.split("@")[0] })}
           </h1>
           <p className="text-muted-foreground text-lg">
-            Här kan du se och hantera dina bokningar
+            {t("dashboard.subtitle")}
           </p>
         </motion.div>
 
@@ -284,7 +286,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-3 mb-4">
               <History className="w-5 h-5 text-muted-foreground" />
               <h2 className="text-xl font-serif font-semibold text-foreground">
-                Genomförda resor
+                {t("dashboard.pastTrips")}
               </h2>
             </div>
             <div className="space-y-3">
@@ -303,7 +305,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-3 mb-4">
               <XCircle className="w-5 h-5 text-muted-foreground" />
               <h2 className="text-xl font-serif font-semibold text-foreground">
-                Avbokade resor
+                {t("dashboard.cancelledTrips")}
               </h2>
             </div>
             <div className="space-y-3">

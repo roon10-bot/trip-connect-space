@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { getSplitPricePerPerson, calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { useFlightSearch, type FlightOffer } from "@/hooks/useFlightSearch";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
@@ -41,6 +42,7 @@ const createEmptyTraveler = (departureLocation = ""): TravelerInfo => ({
 });
 
 const BookTrip = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -216,7 +218,7 @@ const BookTrip = () => {
 
   const applyDiscountCode = async () => {
     if (!discountCode.trim()) {
-      toast.error("Ange en rabattkod");
+      toast.error(t("bookTrip.enterDiscount"));
       return;
     }
 
@@ -228,22 +230,22 @@ const BookTrip = () => {
       .single();
 
     if (error || !data) {
-      toast.error("Ogiltig rabattkod");
+      toast.error(t("bookTrip.invalidDiscount"));
       return;
     }
 
     if (data.max_uses && data.current_uses >= data.max_uses) {
-      toast.error("Rabattkoden har redan använts maximalt antal gånger");
+      toast.error(t("bookTrip.discountMaxUsed"));
       return;
     }
 
     const now = new Date();
     if (data.valid_from && new Date(data.valid_from) > now) {
-      toast.error("Rabattkoden är inte aktiv än");
+      toast.error(t("bookTrip.discountNotActive"));
       return;
     }
     if (data.valid_until && new Date(data.valid_until) < now) {
-      toast.error("Rabattkoden har gått ut");
+      toast.error(t("bookTrip.discountExpired"));
       return;
     }
 
@@ -252,7 +254,7 @@ const BookTrip = () => {
       percent: data.discount_percent,
       amount: data.discount_amount,
     });
-    toast.success("Rabattkod tillämpad!");
+    toast.success(t("bookTrip.discountApplied"));
   };
 
   const removeDiscount = () => {
@@ -262,31 +264,31 @@ const BookTrip = () => {
 
   const validateStep2 = () => {
     for (let i = 0; i < travelersInfo.length; i++) {
-      const t = travelersInfo[i];
-      const label = travelersInfo.length > 1 ? ` (Resenär ${i + 1})` : "";
+      const ti = travelersInfo[i];
+      const label = travelersInfo.length > 1 ? ` (${t("bookTrip.travelerLabel", { num: i + 1 })})` : "";
       
-      if (!t.firstName.trim()) {
-        toast.error(`Förnamn krävs${label}`);
+      if (!ti.firstName.trim()) {
+        toast.error(`${t("bookTrip.firstNameRequired")}${label}`);
         return false;
       }
-      if (!t.lastName.trim()) {
-        toast.error(`Efternamn krävs${label}`);
+      if (!ti.lastName.trim()) {
+        toast.error(`${t("bookTrip.lastNameRequired")}${label}`);
         return false;
       }
-      if (!t.email.trim() || !t.email.includes("@")) {
-        toast.error(`Giltig e-postadress krävs${label}`);
+      if (!ti.email.trim() || !ti.email.includes("@")) {
+        toast.error(`${t("bookTrip.emailRequired")}${label}`);
         return false;
       }
-      if (!t.birthDate) {
-        toast.error(`Födelsedatum krävs${label}`);
+      if (!ti.birthDate) {
+        toast.error(`${t("bookTrip.birthDateRequired")}${label}`);
         return false;
       }
-      if (!t.phone.trim()) {
-        toast.error(`Telefonnummer krävs${label}`);
+      if (!ti.phone.trim()) {
+        toast.error(`${t("bookTrip.phoneRequired")}${label}`);
         return false;
       }
-      if (!t.departureLocation.trim()) {
-        toast.error(`Avgångsort krävs${label}`);
+      if (!ti.departureLocation.trim()) {
+        toast.error(`${t("bookTrip.departureRequired")}${label}`);
         return false;
       }
     }
@@ -301,7 +303,7 @@ const BookTrip = () => {
       
       if (error) {
         if (error.message.includes("already registered")) {
-          toast.error("E-postadressen är redan registrerad. Logga in istället.");
+          toast.error(t("bookTrip.emailAlreadyRegistered"));
         } else {
           toast.error(error.message);
         }
@@ -320,10 +322,10 @@ const BookTrip = () => {
         return updated;
       });
       
-      toast.success("Konto skapat! Fortsätt med bokningen.");
+      toast.success(t("bookTrip.accountCreated"));
       setCurrentStep(2);
     } catch (error) {
-      toast.error("Något gick fel. Försök igen.");
+      toast.error(t("bookTrip.somethingWentWrong"));
     } finally {
       setIsCreatingAccount(false);
     }
@@ -425,7 +427,7 @@ const BookTrip = () => {
       setBookingComplete(true);
     } catch (error) {
       console.error("Booking error:", error);
-      toast.error("Något gick fel. Försök igen.");
+      toast.error(t("bookTrip.somethingWentWrong"));
     } finally {
       setIsSubmitting(false);
     }
@@ -453,9 +455,9 @@ const BookTrip = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-4 pt-32 pb-16 text-center">
-          <h1 className="text-3xl font-serif font-bold mb-4">Resan hittades inte</h1>
+          <h1 className="text-3xl font-serif font-bold mb-4">{t("bookTrip.tripNotFound")}</h1>
           <Link to="/search">
-            <Button>Tillbaka till sök</Button>
+            <Button>{t("bookTrip.backToSearchBtn")}</Button>
           </Link>
         </div>
       </div>
@@ -467,12 +469,12 @@ const BookTrip = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-4 pt-32 pb-16 text-center">
-          <h1 className="text-3xl font-serif font-bold mb-4">Fullbokat</h1>
+          <h1 className="text-3xl font-serif font-bold mb-4">{t("bookTrip.fullbooked")}</h1>
           <p className="text-muted-foreground mb-6">
-            Tyvärr är {trip.name} fullbokad. Kolla gärna efter andra tillgängliga resor.
+            {t("bookTrip.fullbookedDesc", { name: trip.name })}
           </p>
           <Link to="/search">
-            <Button>Sök efter andra resor</Button>
+            <Button>{t("bookTrip.searchOther")}</Button>
           </Link>
         </div>
         <Footer />
@@ -503,20 +505,20 @@ const BookTrip = () => {
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Tillbaka till sökresultat
+            {t("bookTrip.backToSearch")}
           </Link>
           <Button
             variant="outline"
             onClick={() => navigate("/search")}
             className="text-destructive border-destructive/30 hover:bg-destructive/10"
           >
-            Avbryt bokning
+            {t("bookTrip.cancelBooking")}
           </Button>
         </div>
 
         <div className="mb-8">
           <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
-            Boka {trip.name}
+            {t("bookTrip.book", { name: trip.name })}
           </h1>
           <p className="text-muted-foreground">
             {formatTripType(trip.trip_type)} • {format(new Date(trip.departure_date), "d MMMM", { locale: sv })} - {format(new Date(trip.return_date), "d MMMM yyyy", { locale: sv })}
