@@ -68,8 +68,8 @@ export const Header = () => {
             : "bg-transparent"
         }`}
       >
-        <div className="w-full px-6">
-          <div className="flex items-center justify-between h-16">
+        <div className="w-full px-4 lg:px-6">
+          <div className="flex items-center justify-between h-16 gap-2">
             {/* Logo - Far Left */}
             <Link to="/" className="flex items-center group shrink-0">
               <img 
@@ -77,14 +77,14 @@ export const Header = () => {
                 alt="Studentresor" 
                 width="140"
                 height="48"
-                className={`h-12 w-auto transition-all duration-300 ${useDarkText ? "brightness-0" : ""}`}
+                className={`h-10 lg:h-12 w-auto transition-all duration-300 ${useDarkText ? "brightness-0" : ""}`}
               />
             </Link>
 
             {/* Center - Main Navigation */}
-            <nav className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
+            <nav className="hidden lg:flex items-center gap-2 xl:gap-4 2xl:gap-6 min-w-0 flex-1 justify-center">
               <DropdownMenu modal={false}>
-                <DropdownMenuTrigger className={`flex items-center gap-1 font-medium transition-colors outline-none whitespace-nowrap ${
+                <DropdownMenuTrigger className={`flex items-center gap-1 text-sm xl:text-base font-medium transition-colors outline-none whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}>
                   Våra resor
@@ -115,7 +115,7 @@ export const Header = () => {
 
               <Link
                 to="/om-oss"
-                className={`font-medium transition-colors whitespace-nowrap ${
+                className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
@@ -123,7 +123,7 @@ export const Header = () => {
               </Link>
               <Link
                 to="/kontakt"
-                className={`font-medium transition-colors whitespace-nowrap ${
+                className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
@@ -131,19 +131,20 @@ export const Header = () => {
               </Link>
               <Link
                 to="/faq"
-                className={`font-medium transition-colors whitespace-nowrap ${
+                className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
-                Frågor och Svar
+                FAQ
               </Link>
               <Link
                 to="/for-skolor"
-                className={`font-medium transition-colors whitespace-nowrap ${
+                className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap ${
                   useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                 }`}
               >
-                För elevkårer & studentkommittéer
+                <span className="hidden 2xl:inline">För elevkårer & studentkommittéer</span>
+                <span className="2xl:hidden">Elevkårer</span>
               </Link>
             </nav>
 
