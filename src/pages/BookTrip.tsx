@@ -322,10 +322,10 @@ const BookTrip = () => {
         return updated;
       });
       
-      toast.success("Konto skapat! Fortsätt med bokningen.");
+      toast.success(t("bookTrip.accountCreated"));
       setCurrentStep(2);
     } catch (error) {
-      toast.error("Något gick fel. Försök igen.");
+      toast.error(t("bookTrip.somethingWentWrong"));
     } finally {
       setIsCreatingAccount(false);
     }
