@@ -12,6 +12,7 @@ import { PartnerBookings } from "@/components/partner/PartnerBookings";
 import { PartnerPayouts } from "@/components/partner/PartnerPayouts";
 import { CreateListingWizard } from "@/components/partner/CreateListingWizard";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 type PartnerView = "listings" | "availability" | "bookings" | "payouts";
 
@@ -119,6 +120,7 @@ const Partner = () => {
           <span className="text-xs font-semibold tracking-wider uppercase text-white/50 ml-2">{t("partner.portal")}</span>
         </div>
         <div className="flex items-center gap-4">
+          <LanguageSwitcher useDarkText={false} />
           <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10" onClick={() => window.open("/", "_blank")}>
             <ExternalLink className="w-4 h-4 mr-2" /> {t("partner.viewSite")}
           </Button>
