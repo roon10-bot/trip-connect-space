@@ -236,7 +236,7 @@ export const DashboardSummaryCards = ({
                         setDetailsOpen(true);
                       }}
                     >
-                      Betala nu
+                      {t("dashboard.payNow")}
                     </Button>
                   </div>
                 )}
