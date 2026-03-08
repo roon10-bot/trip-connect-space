@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Save, Eye, Mail, ArrowLeft, Info } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import DOMPurify from "dompurify";
 import {
   Tooltip,
@@ -28,6 +29,7 @@ interface EmailTemplate {
   footer_text: string;
   primary_color: string;
   logo_url: string | null;
+  is_active: boolean;
   updated_at: string;
 }
 
@@ -127,6 +129,22 @@ export const AdminEmailTemplates = () => {
     },
   });
 
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase
+        .from("email_templates")
+        .update({ is_active } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["email-templates"] });
+    },
+    onError: () => {
+      toast.error("Kunde inte uppdatera status");
+    },
+  });
+
   const handleSelect = (template: EmailTemplate) => {
     setSelectedTemplate(template);
     setEditForm({ ...template });
@@ -198,14 +216,23 @@ export const AdminEmailTemplates = () => {
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                   {template.subject}
                 </p>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-4 h-4 rounded-full border"
-                    style={{ backgroundColor: template.primary_color }}
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    Uppdaterad {new Date(template.updated_at).toLocaleDateString("sv-SE")}
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-4 h-4 rounded-full border"
+                      style={{ backgroundColor: template.primary_color }}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      Uppdaterad {new Date(template.updated_at).toLocaleDateString("sv-SE")}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <span className="text-xs text-muted-foreground">{(template as any).is_active ? "Aktiv" : "Av"}</span>
+                    <Switch
+                      checked={(template as any).is_active ?? true}
+                      onCheckedChange={(checked) => toggleActiveMutation.mutate({ id: template.id, is_active: checked })}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
