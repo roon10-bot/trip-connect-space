@@ -130,7 +130,7 @@ const BookTrip = () => {
     destination: "SPU",
     departure_date: trip.departure_date,
     return_date: trip.return_date,
-    passengers: 1,
+    passengers: travelers,
   } : null;
 
   const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
