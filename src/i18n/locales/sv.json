@@ -256,13 +256,16 @@
       "24/7 service på plats"
     ],
     "includedTitle": "Det här ingår",
+    "includedNote": "All logistik är inkluderad – du fokuserar på upplevelsen.",
+    "itineraryNote": "Observera: Rutten kan anpassas efter väder och förutsättningar.",
     "safetyTitle": "Trygghet & organisation",
     "safetyP1": "Studentresor är en svensk researrangör med ställd resegaranti. Under hela veckan finns vårt team på plats.",
     "safetyP2": "Vi arbetar med tydliga säkerhetsrutiner och strukturerade event.",
     "safetyQuote": "Trygghet är en självklarhet. Upplevelsen är vårt signum.",
     "ctaTitle": "Redo att segla?",
     "ctaP1": "Platserna är begränsade.",
-    "ctaP2": "Boka din plats och upplev studenten som den ska upplevas – från havet."
+    "ctaP2": "Boka din plats och upplev studenten som den ska upplevas – från havet.",
+    "ctaButton": "Boka Segelveckan"
   },
   "splitveckan": {
     "label": "Splitveckan",
