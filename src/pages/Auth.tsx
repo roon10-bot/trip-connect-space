@@ -32,8 +32,8 @@ const loginSchema = (t: (key: string) => string) => z.object({
   password: z.string().min(8, t("auth.minChars")),
 });
 
-type SignupFormData = z.infer<typeof signupSchema>;
-type LoginFormData = z.infer<typeof loginSchema>;
+type SignupFormData = z.infer<ReturnType<typeof signupSchema>>;
+type LoginFormData = z.infer<ReturnType<typeof loginSchema>>;
 type AuthFormData = SignupFormData | LoginFormData;
 
 type AccountType = "traveler" | "host";
