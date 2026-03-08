@@ -505,14 +505,14 @@ const BookTrip = () => {
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Tillbaka till sökresultat
+            {t("bookTrip.backToSearch")}
           </Link>
           <Button
             variant="outline"
             onClick={() => navigate("/search")}
             className="text-destructive border-destructive/30 hover:bg-destructive/10"
           >
-            Avbryt bokning
+            {t("bookTrip.cancelBooking")}
           </Button>
         </div>
 
