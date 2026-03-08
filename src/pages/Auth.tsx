@@ -352,7 +352,7 @@ const Auth = () => {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Resenär
+                {t("auth.traveler")}
               </button>
               <button
                 type="button"
@@ -363,7 +363,7 @@ const Auth = () => {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Värd
+                {t("auth.host")}
               </button>
             </div>
           )}
