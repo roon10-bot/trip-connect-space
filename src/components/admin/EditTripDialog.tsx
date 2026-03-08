@@ -392,9 +392,18 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                         <FormItem>
                           <FormLabel>Max pers/boende</FormLabel>
                           <FormControl>
-                            <Input type="number" min={1} {...field} />
+                            <Input
+                              type="number"
+                              min={1}
+                              {...field}
+                              readOnly={!!partnerListingId}
+                              disabled={!!partnerListingId}
+                              className={partnerListingId ? "bg-muted" : ""}
+                            />
                           </FormControl>
-                          <FormDescription>Högsta antal</FormDescription>
+                          <FormDescription>
+                            {partnerListingId ? "Från boendets kapacitet" : "Högsta antal"}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
