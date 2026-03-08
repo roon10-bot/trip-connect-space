@@ -355,12 +355,20 @@
       "Organizirani eventi",
       "24/7 servis na terenu"
     ],
+    "includedNote": "Sve je planirano. Vi se samo trebate pojaviti.",
+    "beginnerTitle": "Novi u jedrenju? Savršeno.",
+    "beginnerP1": "Ne trebate prethodno iskustvo.",
+    "beginnerP2": "Studentski tjedan je stvoren za studente – bilo da nikad niste bili na brodu ili volite more.",
+    "bookAlone": "Rezervirajte kabinu sami",
+    "bookWithFriends": "Ili rezervirajte sa svojom ekipom",
+    "beginnerQuote": "Za ostatak se mi brinemo.",
     "safetyTitle": "Sigurnost i organizacija",
     "safetyP1": "Studentresor ima jamstvo putovanja. Naš tim je dostupan 24/7.",
     "safetyP2": "Radimo s jasnim sigurnosnim rutinama.",
     "safetyQuote": "Sigurnost je samorazumljiva. Iskustvo je naš potpis.",
     "ctaTitle": "Spremni za Studentski tjedan?",
     "ctaP1": "Mjesta su ograničena.",
-    "ctaP2": "Osigurajte svoju kabinu i doživite maturalac zajedno sa studentima iz cijele Švedske."
+    "ctaP2": "Osigurajte svoju kabinu i doživite maturalac zajedno sa studentima iz cijele Švedske.",
+    "ctaButton": "Rezerviraj Studentski tjedan"
   }
 }

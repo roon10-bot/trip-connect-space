@@ -355,12 +355,20 @@
       "Organized events",
       "24/7 on-site service"
     ],
+    "includedNote": "Everything is planned. You just need to show up.",
+    "beginnerTitle": "New to sailing? Perfect.",
+    "beginnerP1": "You don't need any prior experience.",
+    "beginnerP2": "Student Week is made for students – whether you've never been on a boat or you love the sea.",
+    "bookAlone": "Book a cabin on your own",
+    "bookWithFriends": "Or book with your crew",
+    "beginnerQuote": "We'll take care of the rest.",
     "safetyTitle": "Safety & organization",
     "safetyP1": "Studentresor has travel guarantee. Our team is available 24/7 throughout the week.",
     "safetyP2": "We work with clear safety routines.",
     "safetyQuote": "Safety is a given. The experience is our signature.",
     "ctaTitle": "Are you ready for Student Week?",
     "ctaP1": "Spots are limited.",
-    "ctaP2": "Secure your cabin and experience graduation together with students from all over Sweden."
+    "ctaP2": "Secure your cabin and experience graduation together with students from all over Sweden.",
+    "ctaButton": "Book Student Week"
   }
 }

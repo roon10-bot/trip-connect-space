@@ -358,12 +358,20 @@
       "Organiserade event",
       "24/7 service på plats"
     ],
+    "includedNote": "Allt är planerat. Du behöver bara dyka upp.",
+    "beginnerTitle": "Ny på segling? Perfekt.",
+    "beginnerP1": "Du behöver inga förkunskaper.",
+    "beginnerP2": "Studentveckan är skapad för studenter – oavsett om du aldrig varit på en båt tidigare eller om du älskar havet.",
+    "bookAlone": "Boka en hytt själv",
+    "bookWithFriends": "Eller boka med ditt gäng",
+    "beginnerQuote": "Resten tar vi hand om.",
     "safetyTitle": "Trygghet & organisation",
     "safetyP1": "Studentresor har ställd resegaranti. Under hela veckan finns vårt team tillgängligt dygnet runt.",
     "safetyP2": "Vi arbetar med tydliga säkerhetsrutiner.",
     "safetyQuote": "Trygghet är en självklarhet. Upplevelsen är vårt signum.",
     "ctaTitle": "Är du redo för Studentveckan?",
     "ctaP1": "Platserna är begränsade.",
-    "ctaP2": "Säkra din hytt och upplev studenten tillsammans med studenter från hela Sverige."
+    "ctaP2": "Säkra din hytt och upplev studenten tillsammans med studenter från hela Sverige.",
+    "ctaButton": "Boka Studentveckan"
   }
 }
