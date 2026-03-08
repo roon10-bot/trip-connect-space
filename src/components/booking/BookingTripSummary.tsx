@@ -163,7 +163,11 @@ export const BookingTripSummary = ({
           {/* Price per person */}
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Pris per person</span>
-            <span className="font-medium">{pricePerPerson.toLocaleString("sv-SE")} kr</span>
+            {pricesLoading ? (
+              <Skeleton className="h-4 w-16" />
+            ) : (
+              <span className="font-medium">{pricePerPerson.toLocaleString("sv-SE")} kr</span>
+            )}
           </div>
 
           {/* Travelers */}
@@ -178,7 +182,11 @@ export const BookingTripSummary = ({
           {/* Subtotal */}
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Delsumma</span>
-            <span className="font-medium">{baseTotal.toLocaleString("sv-SE")} kr</span>
+            {pricesLoading ? (
+              <Skeleton className="h-4 w-20" />
+            ) : (
+              <span className="font-medium">{baseTotal.toLocaleString("sv-SE")} kr</span>
+            )}
           </div>
 
           {/* Discount */}
@@ -196,9 +204,13 @@ export const BookingTripSummary = ({
           <div className="border-t border-border pt-3">
             <div className="flex justify-between items-center">
               <span className="font-semibold">Totalpris</span>
-              <span className="text-2xl font-bold text-primary">
-                {totalPrice.toLocaleString("sv-SE")} kr
-              </span>
+              {pricesLoading ? (
+                <Skeleton className="h-8 w-28" />
+              ) : (
+                <span className="text-2xl font-bold text-primary">
+                  {totalPrice.toLocaleString("sv-SE")} kr
+                </span>
+              )}
             </div>
           </div>
         </div>
