@@ -65,7 +65,7 @@ const BookTrip = () => {
   const totalSteps = needsAccountStep ? 4 : 3;
   
   const [currentStep, setCurrentStep] = useState(1);
-  const [travelers, setTravelers] = useState(1);
+  const [travelers, setTravelers] = useState(routerState?.guests || 1);
   const [discountCode, setDiscountCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<{
     code: string;
