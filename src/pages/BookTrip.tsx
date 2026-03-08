@@ -72,7 +72,9 @@ const BookTrip = () => {
     percent: number | null;
     amount: number | null;
   } | null>(null);
-  const [travelersInfo, setTravelersInfo] = useState<TravelerInfo[]>([createEmptyTraveler()]);
+  const [travelersInfo, setTravelersInfo] = useState<TravelerInfo[]>(
+    Array.from({ length: routerState?.guests || 1 }, () => createEmptyTraveler())
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
