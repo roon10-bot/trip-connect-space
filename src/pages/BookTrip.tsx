@@ -218,7 +218,7 @@ const BookTrip = () => {
 
   const applyDiscountCode = async () => {
     if (!discountCode.trim()) {
-      toast.error("Ange en rabattkod");
+      toast.error(t("bookTrip.enterDiscount"));
       return;
     }
 
