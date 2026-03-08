@@ -536,8 +536,8 @@ const Auth = () => {
               className="text-primary hover:underline font-medium"
             >
               {isLogin
-                ? "Har du inget konto? Skapa ett"
-                : "Har du redan ett konto? Logga in"}
+                ? t("auth.noAccount")
+                : t("auth.hasAccount")}
             </button>
           </div>
         </motion.div>
