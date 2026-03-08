@@ -364,11 +364,6 @@ export const EditListingDialog = ({ listing, open, onOpenChange }: Props) => {
             )}
           </div>
 
-          {listing.status === "approved" && (
-            <p className="text-sm text-amber-600 bg-amber-50 rounded-lg p-3">
-              ⚠️ Ändringar i ett godkänt boende kräver nytt godkännande från administratören.
-            </p>
-          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-2">
