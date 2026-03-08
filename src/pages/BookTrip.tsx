@@ -135,6 +135,9 @@ const BookTrip = () => {
 
   const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
   const cheapestFlight = flightData?.offers?.[0] || null;
+  const dynamicFlightPricePerPerson = cheapestFlight
+    ? parseFloat(cheapestFlight.price_per_passenger_sek)
+    : null;
 
   // Sync travelersInfo array length with travelers count and set departure location from trip
   useEffect(() => {
