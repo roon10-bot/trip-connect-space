@@ -149,11 +149,11 @@ export const Header = () => {
             </nav>
 
             {/* Right side - User links + Auth */}
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
               {user && (
                 <Link
                   to="/dashboard"
-                  className={`font-medium transition-colors whitespace-nowrap ${
+                  className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap ${
                     useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                   }`}
                 >
@@ -163,7 +163,7 @@ export const Header = () => {
               {isAdmin && (
                 <Link
                   to="/admin"
-                  className={`font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
+                  className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
                     useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                   }`}
                 >
@@ -174,7 +174,7 @@ export const Header = () => {
               {partnerProfile && (
                 <Link
                   to="/partner"
-                  className={`font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
+                  className={`text-sm xl:text-base font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${
                     useDarkText ? "text-foreground/80 hover:text-primary" : "text-white/90 hover:text-white"
                   }`}
                 >
@@ -185,20 +185,20 @@ export const Header = () => {
 
               {/* Auth Buttons */}
               {user ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <Link to="/settings">
-                    <Button variant="ghost" size="sm" className={`gap-2 ${useDarkText ? "" : "text-white hover:text-white/80 hover:bg-white/10"}`}>
+                    <Button variant="ghost" size="sm" className={`gap-1.5 ${useDarkText ? "" : "text-white hover:text-white/80 hover:bg-white/10"}`}>
                       <UserIcon className="w-4 h-4" />
-                      Mitt konto
+                      <span className="hidden xl:inline">Mitt konto</span>
                     </Button>
                   </Link>
-                  <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-2">
+                  <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-1.5">
                     <LogOut className="w-4 h-4" />
-                    Logga ut
+                    <span className="hidden xl:inline">Logga ut</span>
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <Link to="/auth">
                     <Button variant="ghost" size="sm" className={useDarkText ? "" : "text-white hover:text-white/80 hover:bg-white/10"}>
                       Logga in
@@ -215,7 +215,7 @@ export const Header = () => {
 
             {/* Mobile Menu Button */}
             <button
-              className={`md:hidden p-1.5 relative z-[110] ${isMenuOpen ? "text-white" : useDarkText ? "text-foreground" : "text-white"}`}
+              className={`lg:hidden p-1.5 relative z-[110] ${isMenuOpen ? "text-white" : useDarkText ? "text-foreground" : "text-white"}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? "Stäng meny" : "Öppna meny"}
               aria-expanded={isMenuOpen}
