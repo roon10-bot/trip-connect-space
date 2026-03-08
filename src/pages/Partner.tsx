@@ -9,6 +9,7 @@ import { PartnerListings } from "@/components/partner/PartnerListings";
 import { PartnerAvailability } from "@/components/partner/PartnerAvailability";
 import { PartnerBookings } from "@/components/partner/PartnerBookings";
 import { PartnerPayouts } from "@/components/partner/PartnerPayouts";
+import { CreateListingWizard } from "@/components/partner/CreateListingWizard";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
 
 type PartnerView = "listings" | "availability" | "bookings" | "payouts";
