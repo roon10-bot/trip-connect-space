@@ -575,6 +575,12 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                                 onSelect={(date) => {
                                   field.onChange(date);
                                   setReturnDateOpen(false);
+                                  if (date && partnerListingId) {
+                                    const depDate = form.getValues("departure_date");
+                                    if (depDate) {
+                                      recalcAccommodationPrice(depDate, date);
+                                    }
+                                  }
                                 }}
                                 disabled={(date) => {
                                   const dep = form.getValues("departure_date");
