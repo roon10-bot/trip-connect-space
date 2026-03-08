@@ -264,31 +264,31 @@ const BookTrip = () => {
 
   const validateStep2 = () => {
     for (let i = 0; i < travelersInfo.length; i++) {
-      const t = travelersInfo[i];
-      const label = travelersInfo.length > 1 ? ` (Resenär ${i + 1})` : "";
+      const ti = travelersInfo[i];
+      const label = travelersInfo.length > 1 ? ` (${t("bookTrip.travelerLabel", { num: i + 1 })})` : "";
       
-      if (!t.firstName.trim()) {
-        toast.error(`Förnamn krävs${label}`);
+      if (!ti.firstName.trim()) {
+        toast.error(`${t("bookTrip.firstNameRequired")}${label}`);
         return false;
       }
-      if (!t.lastName.trim()) {
-        toast.error(`Efternamn krävs${label}`);
+      if (!ti.lastName.trim()) {
+        toast.error(`${t("bookTrip.lastNameRequired")}${label}`);
         return false;
       }
-      if (!t.email.trim() || !t.email.includes("@")) {
-        toast.error(`Giltig e-postadress krävs${label}`);
+      if (!ti.email.trim() || !ti.email.includes("@")) {
+        toast.error(`${t("bookTrip.emailRequired")}${label}`);
         return false;
       }
-      if (!t.birthDate) {
-        toast.error(`Födelsedatum krävs${label}`);
+      if (!ti.birthDate) {
+        toast.error(`${t("bookTrip.birthDateRequired")}${label}`);
         return false;
       }
-      if (!t.phone.trim()) {
-        toast.error(`Telefonnummer krävs${label}`);
+      if (!ti.phone.trim()) {
+        toast.error(`${t("bookTrip.phoneRequired")}${label}`);
         return false;
       }
-      if (!t.departureLocation.trim()) {
-        toast.error(`Avgångsort krävs${label}`);
+      if (!ti.departureLocation.trim()) {
+        toast.error(`${t("bookTrip.departureRequired")}${label}`);
         return false;
       }
     }
