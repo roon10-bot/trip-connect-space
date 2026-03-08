@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Save, Eye, Mail, ArrowLeft, Info } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import DOMPurify from "dompurify";
 import {
   Tooltip,
