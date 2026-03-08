@@ -1,22 +1,16 @@
-import { useState, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Home, Loader2, Upload, X, Star, ImageIcon } from "lucide-react";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { Plus, Home, Loader2 } from "lucide-react";
 
 interface Props {
   partnerId: string;
+  onCreateNew: () => void;
 }
 
-export const PartnerListings = ({ partnerId }: Props) => {
+export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
