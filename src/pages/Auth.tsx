@@ -20,16 +20,16 @@ import studentresorLogo from "@/assets/studentresor-logo.svg";
 import loginHero from "@/assets/login-hero.png";
 import { HostRegistrationForm, type IndividualFormData, type CompanyFormData } from "@/components/auth/HostRegistrationForm";
 
-const signupSchema = z.object({
-  firstName: z.string().trim().min(1, "Förnamn krävs"),
-  lastName: z.string().trim().min(1, "Efternamn krävs"),
-  email: z.string().email("Ange en giltig e-postadress"),
-  password: z.string().min(8, "Lösenordet måste vara minst 8 tecken"),
+const signupSchema = (t: (key: string) => string) => z.object({
+  firstName: z.string().trim().min(1, t("auth.firstNameRequired") || "Förnamn krävs"),
+  lastName: z.string().trim().min(1, t("auth.lastNameRequired") || "Efternamn krävs"),
+  email: z.string().email(t("auth.invalidEmail") || "Ange en giltig e-postadress"),
+  password: z.string().min(8, t("auth.minChars")),
 });
 
-const loginSchema = z.object({
-  email: z.string().email("Ange en giltig e-postadress"),
-  password: z.string().min(8, "Lösenordet måste vara minst 8 tecken"),
+const loginSchema = (t: (key: string) => string) => z.object({
+  email: z.string().email(t("auth.invalidEmail") || "Ange en giltig e-postadress"),
+  password: z.string().min(8, t("auth.minChars")),
 });
 
 type SignupFormData = z.infer<typeof signupSchema>;
