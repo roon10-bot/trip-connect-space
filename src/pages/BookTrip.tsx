@@ -230,7 +230,7 @@ const BookTrip = () => {
       .single();
 
     if (error || !data) {
-      toast.error("Ogiltig rabattkod");
+      toast.error(t("bookTrip.invalidDiscount"));
       return;
     }
 
