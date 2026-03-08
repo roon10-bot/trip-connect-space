@@ -2,45 +2,22 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarIcon, Minus, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { MonthPicker } from "@/components/MonthPicker";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-const departures = [
-  { value: "all", label: "Alla avgångsorter" },
-  { value: "kastrup", label: "Kastrup (CPH)" },
-  { value: "landvetter", label: "Landvetter (GOT)" },
-  { value: "arlanda", label: "Arlanda (ARN)" },
-];
-
-const tripTypes = [
-  { value: "all", label: "Alla resor" },
-  { value: "seglingsvecka", label: "Seglingsvecka" },
-  { value: "splitveckan", label: "Splitveckan" },
-  { value: "studentveckan", label: "Studentveckan" },
-];
+import { useTranslation } from "react-i18next";
 
 export const BookingWidget = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [departure, setDeparture] = useState<string>("all");
   const [tripType, setTripType] = useState<string>("all");
   const [guests, setGuests] = useState(2);
   const [selectedMonth, setSelectedMonth] = useState<{ year: number; month: number } | undefined>();
 
-  // Defer Supabase fetch until after first paint / idle
   const [ready, setReady] = useState(false);
   useEffect(() => {
     if ("requestIdleCallback" in window) {
@@ -54,18 +31,15 @@ export const BookingWidget = () => {
 
   const { data: availableMonths } = useQuery({
     queryKey: ["available-months"],
-    enabled: ready, // Don't fetch until idle
+    enabled: ready,
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 24,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("trips")
-        .select("departure_date")
-        .eq("is_active", true);
+      const { data, error } = await supabase.from("trips").select("departure_date").eq("is_active", true);
       if (error) throw error;
       const months = new Set<string>();
-      data?.forEach((t) => {
-        const d = new Date(t.departure_date);
+      data?.forEach((trip) => {
+        const d = new Date(trip.departure_date);
         months.add(`${d.getFullYear()}-${d.getMonth()}`);
       });
       return Array.from(months).map((m) => {
@@ -85,118 +59,79 @@ export const BookingWidget = () => {
     navigate(`/search?${params.toString()}`);
   };
 
-  const incrementGuests = () => setGuests((prev) => Math.min(prev + 1, 10));
-  const decrementGuests = () => setGuests((prev) => Math.max(prev - 1, 1));
+  const departures = [
+    { value: "all", label: t("booking.allDepartures") },
+    { value: "kastrup", label: "Kastrup (CPH)" },
+    { value: "landvetter", label: "Landvetter (GOT)" },
+    { value: "arlanda", label: "Arlanda (ARN)" },
+  ];
+
+  const tripTypes = [
+    { value: "all", label: t("booking.allTrips") },
+    { value: "seglingsvecka", label: t("booking.sailingWeek") },
+    { value: "splitveckan", label: t("trips.splitveckan") },
+    { value: "studentveckan", label: t("trips.studentveckan") },
+  ];
 
   return (
     <div className="bg-background/10 backdrop-blur-sm rounded-2xl shadow-elegant border border-white/20 p-6 grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
-      {/* Avreseort */}
       <div className="space-y-2">
-        <label htmlFor="departure-select" className="text-sm font-medium text-foreground/80">
-          Avreseort
-        </label>
+        <label htmlFor="departure-select" className="text-sm font-medium text-foreground/80">{t("booking.departure")}</label>
         <Select value={departure} onValueChange={setDeparture}>
-          <SelectTrigger id="departure-select" className="w-full h-12 bg-background" aria-label="Välj avreseort">
-            <SelectValue placeholder="Välj flygplats" />
+          <SelectTrigger id="departure-select" className="w-full h-12 bg-background" aria-label={t("booking.selectAirport")}>
+            <SelectValue placeholder={t("booking.selectAirport")} />
           </SelectTrigger>
           <SelectContent className="bg-background z-50">
-            {departures.map((dep) => (
-              <SelectItem key={dep.value} value={dep.value}>
-                {dep.label}
-              </SelectItem>
-            ))}
+            {departures.map((dep) => (<SelectItem key={dep.value} value={dep.value}>{dep.label}</SelectItem>))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Våra resor */}
       <div className="space-y-2">
-        <label htmlFor="trip-type-select" className="text-sm font-medium text-foreground/80">
-          Våra resor
-        </label>
+        <label htmlFor="trip-type-select" className="text-sm font-medium text-foreground/80">{t("booking.ourTrips")}</label>
         <Select value={tripType} onValueChange={setTripType}>
-          <SelectTrigger id="trip-type-select" className="w-full h-12 bg-background" aria-label="Välj resa">
-            <SelectValue placeholder="Alla resor" />
+          <SelectTrigger id="trip-type-select" className="w-full h-12 bg-background" aria-label={t("booking.ourTrips")}>
+            <SelectValue placeholder={t("booking.allTrips")} />
           </SelectTrigger>
           <SelectContent className="bg-background z-50">
-            {tripTypes.map((type) => (
-              <SelectItem key={type.value} value={type.value}>
-                {type.label}
-              </SelectItem>
-            ))}
+            {tripTypes.map((type) => (<SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Månad */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground/80">
-          Avresemånad
-        </label>
+        <label className="text-sm font-medium text-foreground/80">{t("booking.departureMonth")}</label>
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full h-12 justify-start text-left font-normal bg-background",
-                !selectedMonth && "text-muted-foreground"
-              )}
-            >
+            <Button variant="outline" className={cn("w-full h-12 justify-start text-left font-normal bg-background", !selectedMonth && "text-muted-foreground")}>
               <CalendarIcon className="mr-2 h-4 w-4" />
               {selectedMonth
                 ? `${["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"][selectedMonth.month]} ${selectedMonth.year}`
-                : "Välj månad"}
+                : t("booking.selectMonth")}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
-            <MonthPicker
-              selected={selectedMonth}
-              onSelect={setSelectedMonth}
-              availableMonths={availableMonths}
-            />
+            <MonthPicker selected={selectedMonth} onSelect={setSelectedMonth} availableMonths={availableMonths} />
           </PopoverContent>
         </Popover>
       </div>
 
-      {/* Antal */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground/80">
-          Antal resenärer
-        </label>
+        <label className="text-sm font-medium text-foreground/80">{t("booking.travelers")}</label>
         <div className="flex items-center h-12 border rounded-md bg-background">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-full rounded-r-none"
-            onClick={decrementGuests}
-            disabled={guests <= 1}
-            aria-label="Minska antal resenärer"
-          >
+          <Button type="button" variant="ghost" size="icon" className="h-full rounded-r-none" onClick={() => setGuests((p) => Math.max(p - 1, 1))} disabled={guests <= 1} aria-label={t("booking.decreaseTravelers")}>
             <Minus className="h-4 w-4" />
           </Button>
-          <span className="flex-1 text-center font-medium" aria-live="polite" aria-label={`${guests} resenärer`}>{guests}</span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-full rounded-l-none"
-            onClick={incrementGuests}
-            disabled={guests >= 10}
-            aria-label="Öka antal resenärer"
-          >
+          <span className="flex-1 text-center font-medium" aria-live="polite">{guests}</span>
+          <Button type="button" variant="ghost" size="icon" className="h-full rounded-l-none" onClick={() => setGuests((p) => Math.min(p + 1, 10))} disabled={guests >= 10} aria-label={t("booking.increaseTravelers")}>
             <Plus className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Sök-knapp */}
-      <Button
-        onClick={handleSearch}
-        className="h-12 bg-ocean hover:bg-ocean/90 text-white font-semibold col-span-2 md:col-span-1"
-      >
+      <Button onClick={handleSearch} className="h-12 bg-ocean hover:bg-ocean/90 text-white font-semibold col-span-2 md:col-span-1">
         <Search className="mr-2 h-4 w-4" />
-        Sök resor
+        {t("booking.searchTrips")}
       </Button>
     </div>
   );
