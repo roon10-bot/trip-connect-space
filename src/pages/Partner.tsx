@@ -12,6 +12,7 @@ import { PartnerBookings } from "@/components/partner/PartnerBookings";
 import { PartnerPayouts } from "@/components/partner/PartnerPayouts";
 import { CreateListingWizard } from "@/components/partner/CreateListingWizard";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 type PartnerView = "listings" | "availability" | "bookings" | "payouts";
 
