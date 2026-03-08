@@ -410,7 +410,7 @@
     "heroHostDesc": "Registrera dig som värd för att erbjuda boenden och upplevelser till våra resenärer.",
     "travelerBenefits": ["Se och betala dina delbetalningar", "Ladda ner biljetter och dokument", "Fyll i uppgifter & allergier", "Få uppdateringar direkt från oss"],
     "hostBenefits": ["Hantera dina boenden", "Sätt priser och tillgänglighet", "Se bokningar och intäkter", "Direktkontakt med Studentresor"],
-    "guarantee": "Ställd resegaranti hos Kammarkollegiet • Säker betalning via Stripe • 24/7 support under resan"
+    "guarantee": "Ställd resegaranti hos Kammarkollegiet • Säker betalning via Swish, Klarna & kort • 24/7 support under resan"
   },
   "search": {
     "title": "Din sökning",
