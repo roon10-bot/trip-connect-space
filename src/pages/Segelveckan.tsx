@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Check, Shield, Users, Plane, Home, Calendar, Phone, Anchor, Sun, Utensils, Wifi, Fuel, MapPin, Compass, Ship } from "lucide-react";
 import { Header } from "@/components/Header";
@@ -9,30 +10,10 @@ import { Link } from "react-router-dom";
 import { useSEO } from "@/hooks/useSEO";
 import segelveckanHero from "@/assets/segelveckan-hero.mp4";
 
-const includedItems = [
-  { icon: Plane, text: "Flyg tur & retur" },
-  { icon: Check, text: "Incheckat bagage" },
-  { icon: Check, text: "Transfer till och från flygplats" },
-  { icon: Ship, text: "Modern katamaran (1 vecka)" },
-  { icon: Anchor, text: "Erfaren skeppare" },
-  { icon: Utensils, text: "Frukost & lunch ombord" },
-  { icon: Fuel, text: "Hamnavgifter & diesel" },
-  { icon: Wifi, text: "Obegränsat Wi-Fi ombord" },
-  { icon: Calendar, text: "Planerade event" },
-  { icon: Phone, text: "24/7 service på plats" },
-];
-
-const itinerary = [
-  { day: "Dag 1", title: "Ankomst & avsegling", desc: "Transfer från Split Airport till Trogir. Ombordstigning och segling mot första destinationen. Gemensam välkomstmiddag i hamn." },
-  { day: "Dag 2", title: "Split & nattliv", desc: "Segling mot Split och gemensam kväll på Vanilla Club." },
-  { day: "Dag 3", title: "Hvar & Carpe Diem", desc: "Day party på Hvar, middag i hamnen och fest på Carpe Diem." },
-  { day: "Dag 4", title: "Circle Party", desc: "Båtarna samlas i formation i en skyddad vik för bad, musik och gemenskap." },
-  { day: "Dag 5", title: "Stari Grad", desc: "Sol, bad och kväll i charmig kustmiljö." },
-  { day: "Dag 6", title: "Avslutningskväll", desc: "Sista gemensamma festen i Split." },
-  { day: "Dag 7", title: "Hemresa", desc: "Segling tillbaka mot Trogir och transfer till flygplatsen." },
-];
+const includedIcons = [Plane, Check, Check, Ship, Anchor, Utensils, Fuel, Wifi, Calendar, Phone];
 
 const Segelveckan = () => {
+  const { t } = useTranslation();
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -90,6 +71,10 @@ const Segelveckan = () => {
     }
   };
 
+  const included = t("segelveckan.included", { returnObjects: true }) as string[];
+  const itinerary = t("segelveckan.itinerary", { returnObjects: true }) as { day: string; title: string; desc: string }[];
+  const events = t("segelveckan.events", { returnObjects: true }) as string[];
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -118,7 +103,7 @@ const Segelveckan = () => {
               transition={{ duration: 0.3 }}
               onClick={handleTogglePlay}
               className="mb-6 cursor-pointer group"
-              aria-label={isPlaying ? "Pausa video" : "Spela video"}
+              aria-label={isPlaying ? t("hero.pauseVideo") : t("hero.playVideo")}
             >
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className="relative inline-flex">
                 <div className="w-16 h-16 md:w-24 md:h-24 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -143,7 +128,7 @@ const Segelveckan = () => {
               transition={{ duration: 0.6 }}
               className="text-primary font-semibold text-sm md:text-base uppercase tracking-widest mb-3"
             >
-              Segelveckan
+              {t("segelveckan.label")}
             </motion.p>
 
             <motion.h1
@@ -152,7 +137,9 @@ const Segelveckan = () => {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-2xl sm:text-3xl md:text-5xl font-serif font-bold text-primary-foreground mb-3 md:mb-4 leading-tight"
             >
-              Segelveckan – vår mest <span className="text-primary">exklusiva</span> studentresa
+              <Trans i18nKey="segelveckan.heroTitle">
+                Segelveckan – vår mest <span className="text-primary">exklusiva</span> studentresa
+              </Trans>
             </motion.h1>
 
             <motion.p
@@ -161,7 +148,7 @@ const Segelveckan = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-sm sm:text-base md:text-lg text-primary-foreground/90 mb-6 md:mb-8 max-w-2xl mx-auto leading-relaxed px-2 md:px-0"
             >
-              Sju dagar på egen katamaran genom Kroatiens magiska skärgård. Sol, kristallklart vatten och oförglömliga kvällar – upplev studenten från havet.
+              {t("segelveckan.heroSubtitle")}
             </motion.p>
 
             <motion.div
@@ -171,7 +158,7 @@ const Segelveckan = () => {
             >
               <Link to="/search?tripType=seglingsvecka">
                 <Button size="lg" className="bg-gradient-ocean hover:opacity-90 text-primary-foreground text-lg px-10 py-6">
-                  Boka din plats
+                  {t("booking.bookYourSpot")}
                 </Button>
               </Link>
             </motion.div>
@@ -190,10 +177,10 @@ const Segelveckan = () => {
             className="max-w-3xl mx-auto text-center"
           >
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-6">
-              En premiumupplevelse till havs
+              {t("segelveckan.introTitle")}
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-              Segelveckan är mer än en resa – det är en unik upplevelse genom Adriatiska havet. Under sju dagar bor du på en modern katamaran och seglar mellan Kroatiens mest ikoniska öar, badvikar och kuststäder.
+              {t("segelveckan.introP")}
             </p>
           </motion.div>
 
@@ -205,9 +192,9 @@ const Segelveckan = () => {
             className="max-w-2xl mx-auto grid md:grid-cols-3 gap-8 mt-12"
           >
             {[
-              { title: "Vakna upp", desc: "i en ny hamn varje morgon." },
-              { title: "Morgondopp", desc: "direkt från båten." },
-              { title: "Solnedgångar", desc: "från däck varje kväll." },
+              { title: t("segelveckan.wakeUp"), desc: t("segelveckan.wakeUpDesc") },
+              { title: t("segelveckan.morningDip"), desc: t("segelveckan.morningDipDesc") },
+              { title: t("segelveckan.sunsets"), desc: t("segelveckan.sunsetsDesc") },
             ].map((item, i) => (
               <div key={i} className="text-center p-6 bg-card rounded-2xl shadow-elegant">
                 <h3 className="font-serif font-bold text-foreground text-lg mb-2">{item.title}</h3>
@@ -223,7 +210,7 @@ const Segelveckan = () => {
             viewport={{ once: true }}
             className="text-center text-foreground font-serif font-semibold text-xl mt-12"
           >
-            Det här är vår mest exklusiva studentresa.
+            {t("segelveckan.mostExclusive")}
           </motion.p>
         </div>
       </section>
@@ -239,22 +226,22 @@ const Segelveckan = () => {
             className="max-w-3xl mx-auto text-center"
           >
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-6">
-              Upplev Kroatien från havet
+              {t("segelveckan.croatiaTitle")}
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-              Kroatien är känt som landet med över tusen öar och en av Europas vackraste kustlinjer. Den skyddade skärgården, det lugna havet och de många soltimmarna gör området till ett av världens bästa seglingsdestinationer.
+              {t("segelveckan.croatiaP1")}
             </p>
             <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-              Under veckan seglar vi mellan öar som Hvar, Vis och Stari Grad – genom turkosa vikar, levande hamnar och historiska kuststäder.
+              {t("segelveckan.croatiaP2")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <div className="flex items-center gap-3 bg-card rounded-xl px-5 py-3 shadow-sm">
                 <Compass className="w-5 h-5 text-primary shrink-0" />
-                <span className="text-foreground font-medium">Rutten anpassas efter väder och vind.</span>
+                <span className="text-foreground font-medium">{t("segelveckan.routeAdapted")}</span>
               </div>
               <div className="flex items-center gap-3 bg-card rounded-xl px-5 py-3 shadow-sm">
                 <Sun className="w-5 h-5 text-primary shrink-0" />
-                <span className="text-foreground font-medium">Varje resa är unik.</span>
+                <span className="text-foreground font-medium">{t("segelveckan.everyTripUnique")}</span>
               </div>
             </div>
           </motion.div>
@@ -273,18 +260,18 @@ const Segelveckan = () => {
           >
             <div className="text-center mb-10">
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
-                Bo på havet – tillsammans
+                {t("segelveckan.accommodationTitle")}
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Ni bor på rymliga och moderna katamaraner med flera hytter, badrum och generösa ytor för umgänge.
+                {t("segelveckan.accommodationP")}
               </p>
             </div>
 
             <div className="grid sm:grid-cols-3 gap-6">
               {[
-                { icon: Users, text: "Samlas på däck inför kvällen" },
-                { icon: Sun, text: "Koppla av i nätet mellan skroven" },
-                { icon: Anchor, text: "Njut av friheten att bo mitt på havet" },
+                { icon: Users, text: t("segelveckan.gatherOnDeck") },
+                { icon: Sun, text: t("segelveckan.relaxInNet") },
+                { icon: Anchor, text: t("segelveckan.freedomAtSea") },
               ].map((item, i) => (
                 <motion.div
                   key={i}
@@ -304,7 +291,7 @@ const Segelveckan = () => {
 
             <div className="text-center mt-10">
               <p className="text-foreground font-serif font-semibold text-xl">
-                Det här är inte hotell. Det är frihet.
+                {t("segelveckan.notHotel")}
               </p>
             </div>
           </motion.div>
@@ -323,22 +310,22 @@ const Segelveckan = () => {
           >
             <Anchor className="w-12 h-12 mx-auto mb-6 text-primary" />
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-6">
-              Med erfarna skeppare ombord
+              {t("segelveckan.skipperTitle")}
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed mb-4">
-              Du behöver inga förkunskaper för att följa med.
+              {t("segelveckan.skipperP1")}
             </p>
             <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-              Våra välutbildade skeppare ansvarar för navigation, säkerhet och planering. De känner till de bästa badvikarna, restaurangerna och dolda pärlorna längs kusten.
+              {t("segelveckan.skipperP2")}
             </p>
             <div className="grid sm:grid-cols-2 gap-4 max-w-lg mx-auto text-left">
               <div className="flex items-center gap-3 bg-card rounded-xl p-4 shadow-sm">
                 <Check className="w-5 h-5 text-primary shrink-0" />
-                <span className="text-foreground font-medium">Vill du hjälpa till att segla? Du är välkommen.</span>
+                <span className="text-foreground font-medium">{t("segelveckan.helpSail")}</span>
               </div>
               <div className="flex items-center gap-3 bg-card rounded-xl p-4 shadow-sm">
                 <Check className="w-5 h-5 text-primary shrink-0" />
-                <span className="text-foreground font-medium">Vill du luta dig tillbaka? Njut av en bekymmersfri vecka.</span>
+                <span className="text-foreground font-medium">{t("segelveckan.leanBack")}</span>
               </div>
             </div>
           </motion.div>
@@ -356,17 +343,11 @@ const Segelveckan = () => {
             className="max-w-3xl mx-auto text-center"
           >
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-10">
-              En vecka fylld av upplevelser
+              {t("segelveckan.eventsTitle")}
             </h2>
 
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
-              {[
-                "Day party på Hvar",
-                "Circle Party till havs",
-                "Besök på ikoniska strandklubbar",
-                "Middagar i historiska kuststäder",
-                "Avslutningsfest i Split",
-              ].map((event, i) => (
+              {events.map((event, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -381,7 +362,7 @@ const Segelveckan = () => {
             </div>
 
             <p className="text-muted-foreground mt-8 text-lg">
-              Varje dag bjuder på nya miljöer, nya intryck och nya minnen.
+              {t("segelveckan.everyDay")}
             </p>
           </motion.div>
         </div>
@@ -398,7 +379,7 @@ const Segelveckan = () => {
             className="max-w-3xl mx-auto"
           >
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-10 text-center">
-              Exempel på veckoupplägg
+              {t("segelveckan.itineraryTitle")}
             </h2>
 
             <div className="space-y-4">
@@ -423,7 +404,7 @@ const Segelveckan = () => {
             </div>
 
             <p className="text-center text-muted-foreground mt-6 text-sm italic">
-              Observera: Rutten kan anpassas efter väder och förutsättningar.
+              {t("segelveckan.itineraryNote")}
             </p>
           </motion.div>
         </div>
@@ -440,29 +421,32 @@ const Segelveckan = () => {
             className="max-w-3xl mx-auto text-center"
           >
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-10">
-              Detta ingår i Segelveckan
+              {t("segelveckan.includedTitle")}
             </h2>
 
             <div className="grid sm:grid-cols-2 gap-4 text-left max-w-xl mx-auto">
-              {includedItems.map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.08 }}
-                  viewport={{ once: true }}
-                  className="flex items-center gap-3 p-3"
-                >
-                  <div className="shrink-0 w-8 h-8 rounded-xl bg-ocean-light flex items-center justify-center">
-                    <item.icon className="w-4 h-4 text-ocean" />
-                  </div>
-                  <span className="text-foreground font-medium">{item.text}</span>
-                </motion.div>
-              ))}
+              {included.map((text, i) => {
+                const Icon = includedIcons[i] || Check;
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.08 }}
+                    viewport={{ once: true }}
+                    className="flex items-center gap-3 p-3"
+                  >
+                    <div className="shrink-0 w-8 h-8 rounded-xl bg-ocean-light flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-ocean" />
+                    </div>
+                    <span className="text-foreground font-medium">{text}</span>
+                  </motion.div>
+                );
+              })}
             </div>
 
             <p className="text-muted-foreground mt-8 text-lg">
-              All logistik är inkluderad – du fokuserar på upplevelsen.
+              {t("segelveckan.includedNote")}
             </p>
           </motion.div>
         </div>
@@ -483,13 +467,13 @@ const Segelveckan = () => {
           >
             <Shield className="w-12 h-12 mx-auto mb-6 text-primary" />
             <h2 className="text-3xl md:text-4xl font-serif font-bold mb-6">
-              Trygghet & organisation
+              {t("segelveckan.safetyTitle")}
             </h2>
             <p className="text-accent-foreground/80 text-lg leading-relaxed mb-6">
-              Studentresor är en svensk researrangör med ställd resegaranti enligt Kammarkollegiets krav.
+              {t("segelveckan.safetyP1")}
             </p>
             <p className="text-accent-foreground/80 text-lg leading-relaxed">
-              Under hela veckan finns vårt team tillgängligt. Säkerhet, struktur och tydliga rutiner är en självklar del av vår organisation – både till havs och i hamn.
+              {t("segelveckan.safetyP2")}
             </p>
           </motion.div>
         </div>
@@ -506,17 +490,17 @@ const Segelveckan = () => {
             className="max-w-2xl mx-auto text-center"
           >
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
-              Är du redo för Segelveckan?
+              {t("segelveckan.ctaTitle")}
             </h2>
             <p className="text-muted-foreground text-lg mb-4">
-              Platserna är begränsade varje år.
+              {t("segelveckan.ctaP1")}
             </p>
             <p className="text-foreground text-lg font-medium mb-8">
-              Säkra din plats och upplev studenten från havet.
+              {t("segelveckan.ctaP2")}
             </p>
             <Link to="/search?tripType=seglingsvecka">
               <Button size="lg" className="bg-gradient-ocean hover:opacity-90 text-primary-foreground text-lg px-12 py-6">
-                Boka Segelveckan
+                {t("segelveckan.ctaButton")}
               </Button>
             </Link>
           </motion.div>
