@@ -518,7 +518,7 @@ const BookTrip = () => {
 
         <div className="mb-8">
           <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
-            Boka {trip.name}
+            {t("bookTrip.book", { name: trip.name })}
           </h1>
           <p className="text-muted-foreground">
             {formatTripType(trip.trip_type)} • {format(new Date(trip.departure_date), "d MMMM", { locale: sv })} - {format(new Date(trip.return_date), "d MMMM yyyy", { locale: sv })}
