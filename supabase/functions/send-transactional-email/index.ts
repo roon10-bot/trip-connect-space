@@ -99,7 +99,7 @@ serve(async (req: Request) => {
 
     const { data: tplData, error: tplError } = await supabaseAdmin
       .from("email_templates")
-      .select("subject, heading, body_text, button_text, footer_text, primary_color, logo_url")
+      .select("subject, heading, body_text, button_text, footer_text, primary_color, logo_url, is_active")
       .eq("template_key", template_key)
       .maybeSingle();
 
@@ -107,6 +107,14 @@ serve(async (req: Request) => {
       console.error("[SEND-EMAIL] Template not found:", template_key, tplError);
       return new Response(JSON.stringify({ error: `Template '${template_key}' not found` }), {
         status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!tplData.is_active) {
+      console.log(`[SEND-EMAIL] Template '${template_key}' is disabled, skipping`);
+      return new Response(JSON.stringify({ skipped: true, reason: "template_disabled" }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
