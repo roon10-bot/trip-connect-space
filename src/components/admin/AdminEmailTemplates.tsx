@@ -216,14 +216,23 @@ export const AdminEmailTemplates = () => {
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                   {template.subject}
                 </p>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-4 h-4 rounded-full border"
-                    style={{ backgroundColor: template.primary_color }}
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    Uppdaterad {new Date(template.updated_at).toLocaleDateString("sv-SE")}
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-4 h-4 rounded-full border"
+                      style={{ backgroundColor: template.primary_color }}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      Uppdaterad {new Date(template.updated_at).toLocaleDateString("sv-SE")}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <span className="text-xs text-muted-foreground">{(template as any).is_active ? "Aktiv" : "Av"}</span>
+                    <Switch
+                      checked={(template as any).is_active ?? true}
+                      onCheckedChange={(checked) => toggleActiveMutation.mutate({ id: template.id, is_active: checked })}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
