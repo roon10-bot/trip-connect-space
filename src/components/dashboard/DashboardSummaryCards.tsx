@@ -219,10 +219,10 @@ export const DashboardSummaryCards = ({
                     </p>
                     <p className={`text-sm ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                       {isOverdue
-                        ? "Förfallen"
+                        ? t("dashboard.overdue")
                         : nextPayment.dueDate
-                        ? `Förfaller ${format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv })}`
-                        : "Att betala"}
+                        ? t("dashboard.dueDate", { date: format(new Date(nextPayment.dueDate), "d MMMM yyyy", { locale: sv }) })
+                        : t("dashboard.toPay")}
                     </p>
                   </div>
                 </div>
