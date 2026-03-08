@@ -17,6 +17,9 @@ interface Trip {
   departure_location: string;
   price: number;
   base_price?: number | null;
+  base_price_accommodation?: number | null;
+  base_price_extras?: number | null;
+  base_price_flight?: number | null;
   min_persons?: number | null;
   max_persons?: number | null;
   accommodation_rooms?: number | null;
