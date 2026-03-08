@@ -122,7 +122,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
       if (!partnerListingId) return null;
       const { data, error } = await supabase
         .from("partner_listings")
-        .select("daily_price")
+        .select("daily_price, capacity")
         .eq("id", partnerListingId)
         .single();
       if (error) throw error;
@@ -161,6 +161,13 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
       final_payment_type: "amount",
     },
   });
+
+  // When partner listing loads, sync max_persons to listing capacity
+  useEffect(() => {
+    if (partnerListing?.capacity && trip?.partner_listing_id) {
+      form.setValue("max_persons", partnerListing.capacity);
+    }
+  }, [partnerListing?.capacity, trip?.partner_listing_id]);
 
   useEffect(() => {
     if (trip) {
@@ -385,9 +392,18 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                         <FormItem>
                           <FormLabel>Max pers/boende</FormLabel>
                           <FormControl>
-                            <Input type="number" min={1} {...field} />
+                            <Input
+                              type="number"
+                              min={1}
+                              {...field}
+                              readOnly={!!partnerListingId}
+                              disabled={!!partnerListingId}
+                              className={partnerListingId ? "bg-muted" : ""}
+                            />
                           </FormControl>
-                          <FormDescription>Högsta antal</FormDescription>
+                          <FormDescription>
+                            {partnerListingId ? "Från boendets kapacitet" : "Högsta antal"}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
