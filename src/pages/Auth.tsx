@@ -412,10 +412,10 @@ const Auth = () => {
                 {showTravelerSignup && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName">Förnamn</Label>
+                      <Label htmlFor="firstName">{t("auth.firstName")}</Label>
                       <Input
                         id="firstName"
-                        placeholder="Förnamn"
+                        placeholder={t("auth.firstName")}
                         {...register("firstName" as any)}
                         className="h-12"
                       />
@@ -424,10 +424,10 @@ const Auth = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">Efternamn</Label>
+                      <Label htmlFor="lastName">{t("auth.lastName")}</Label>
                       <Input
                         id="lastName"
-                        placeholder="Efternamn"
+                        placeholder={t("auth.lastName")}
                         {...register("lastName" as any)}
                         className="h-12"
                       />
