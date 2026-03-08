@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
+import { getSplitPricePerPerson, calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { useFlightSearch, type FlightOffer } from "@/hooks/useFlightSearch";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
