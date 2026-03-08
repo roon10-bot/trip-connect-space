@@ -1,0 +1,46 @@
+{
+  "nav": {
+    "ourTrips": "Our Trips",
+    "aboutUs": "About Us",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "forSchools": "For student councils & committees",
+    "forSchoolsShort": "Student councils",
+    "myBookings": "My Bookings",
+    "admin": "Admin",
+    "hostPortal": "Host Portal",
+    "myAccount": "My Account",
+    "logOut": "Log Out",
+    "logIn": "Log In",
+    "createAccount": "Create Account",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "questionsAndAnswers": "Questions & Answers"
+  },
+  "hero": {
+    "title": "Dreaming of an <1>unforgettable</1> graduation trip?",
+    "subtitle": "The adventure of a lifetime awaits, book your trip today.",
+    "pauseVideo": "Pause video",
+    "playVideo": "Play video"
+  },
+  "footer": {
+    "ourTrips": "Our Trips",
+    "information": "Information",
+    "travelTerms": "General travel terms",
+    "questionsAndAnswers": "Questions & Answers",
+    "contact": "Contact",
+    "contactTitle": "Contact",
+    "allRightsReserved": "All rights reserved.",
+    "travelGuarantee": "Studentlife Sweden AB has arranged travel guarantee with Kammarkollegiet."
+  },
+  "trips": {
+    "segelveckan": "Sailing Week",
+    "splitveckan": "Split Week",
+    "studentveckan": "Student Week"
+  },
+  "language": {
+    "sv": "Svenska",
+    "en": "English",
+    "hr": "Hrvatski"
+  }
+}
