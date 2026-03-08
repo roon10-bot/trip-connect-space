@@ -234,7 +234,7 @@ export const Header = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[100] md:hidden bg-accent"
+            className="fixed inset-0 z-[100] lg:hidden bg-accent"
           >
             <div className="flex flex-col h-full pt-20 pb-8 px-6 overflow-y-auto">
               <nav className="flex flex-col gap-1">
