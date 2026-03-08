@@ -45,7 +45,7 @@ export const departureToIATA: Record<string, string> = {
 
 export function useFlightSearch(params: SearchFlightsParams | null) {
   return useQuery<FlightSearchResult>({
-    queryKey: ["flight-search", params?.origin, params?.destination, params?.departure_date, params?.passengers],
+    queryKey: ["flight-search", params?.origin, params?.destination, params?.departure_date, params?.return_date, params?.passengers],
     enabled: !!params && !!params.origin && !!params.destination && !!params.departure_date,
     staleTime: 1000 * 60 * 5, // 5 min cache
     retry: 1,
