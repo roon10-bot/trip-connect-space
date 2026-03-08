@@ -340,8 +340,20 @@ const BookTrip = () => {
       
       let pricePerPerson = trip.price;
       if (trip.trip_type === "splitveckan" && travelers > 0) {
-        const splitPrice = getSplitPricePerPerson(trip, travelers);
-        if (splitPrice > 0) pricePerPerson = splitPrice;
+        if (dynamicFlightPricePerPerson !== null) {
+          const accommodation = Number(trip.base_price_accommodation) || 0;
+          const extras = Number(trip.base_price_extras) || 0;
+          const dp = calculateSplitPricePerPerson(accommodation, dynamicFlightPricePerPerson, extras, travelers);
+          if (dp > 0) pricePerPerson = dp;
+        } else {
+          const splitPrice = getSplitPricePerPerson(trip, travelers);
+          if (splitPrice > 0) pricePerPerson = splitPrice;
+        }
+      } else if (dynamicFlightPricePerPerson !== null) {
+        const accommodation = Number(trip.base_price_accommodation) || 0;
+        const extras = Number(trip.base_price_extras) || 0;
+        const dp = Math.ceil((accommodation + dynamicFlightPricePerPerson + extras) * 1.20);
+        if (dp > 0) pricePerPerson = dp;
       }
       const baseTotal = pricePerPerson * travelers;
       const discountAmount = baseTotal - totalPrice;
