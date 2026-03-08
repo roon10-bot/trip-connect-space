@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Home, Loader2, Pause, Play, Trash2 } from "lucide-react";
+import { Plus, Home, Loader2, Pause, Play, Trash2, Pencil } from "lucide-react";
+import { EditListingDialog } from "./EditListingDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [editListing, setEditListing] = useState<any | null>(null);
 
   const { data: listings, isLoading } = useQuery({
     queryKey: ["partnerListings", partnerId],
@@ -169,6 +171,14 @@ export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-4 pt-3 border-t border-border">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditListing(listing)}
+                  >
+                    <Pencil className="w-4 h-4 mr-1" />
+                    Redigera
+                  </Button>
                   {canDeactivate(listing.status) && (
                     <Button
                       variant="outline"
@@ -234,6 +244,14 @@ export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {editListing && (
+        <EditListingDialog
+          listing={editListing}
+          open={!!editListing}
+          onOpenChange={(open) => !open && setEditListing(null)}
+        />
+      )}
     </div>
   );
 };
