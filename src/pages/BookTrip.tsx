@@ -571,6 +571,7 @@ const BookTrip = () => {
               formatTripType={formatTripType}
               flightOffer={cheapestFlight}
               flightLoading={flightLoading}
+              dynamicFlightPricePerPerson={dynamicFlightPricePerPerson}
             />
           </div>
         </div>
