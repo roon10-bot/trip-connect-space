@@ -171,6 +171,14 @@ export const PartnerListings = ({ partnerId, onCreateNew }: Props) => {
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-4 pt-3 border-t border-border">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditListing(listing)}
+                  >
+                    <Pencil className="w-4 h-4 mr-1" />
+                    Redigera
+                  </Button>
                   {canDeactivate(listing.status) && (
                     <Button
                       variant="outline"
