@@ -253,13 +253,16 @@
       "24/7 servis na terenu"
     ],
     "includedTitle": "Što je uključeno",
+    "includedNote": "Sva logistika uključena – vi se fokusirajte na iskustvo.",
+    "itineraryNote": "Napomena: Ruta se može prilagoditi prema vremenu i uvjetima.",
     "safetyTitle": "Sigurnost i organizacija",
     "safetyP1": "Studentresor je švedski organizator putovanja s jamstvom. Naš tim je na terenu cijeli tjedan.",
     "safetyP2": "Radimo s jasnim sigurnosnim rutinama i strukturiranim događanjima.",
     "safetyQuote": "Sigurnost je samorazumljiva. Iskustvo je naš potpis.",
     "ctaTitle": "Spremni za jedrenje?",
     "ctaP1": "Mjesta su ograničena.",
-    "ctaP2": "Rezervirajte svoje mjesto i doživite maturalno putovanje s mora."
+    "ctaP2": "Rezervirajte svoje mjesto i doživite maturalno putovanje s mora.",
+    "ctaButton": "Rezerviraj Tjedan jedrenja"
   },
   "splitveckan": {
     "label": "Tjedan u Splitu",
