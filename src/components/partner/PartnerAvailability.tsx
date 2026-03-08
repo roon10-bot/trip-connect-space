@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Plus, Trash2 } from "lucide-react";
@@ -27,7 +27,7 @@ export const PartnerAvailability = ({ partnerId }: Props) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("partner_listings")
-        .select("id, name, status")
+        .select("id, name, status, daily_price")
         .eq("partner_id", partnerId);
       if (error) throw error;
       return data;
@@ -35,6 +35,7 @@ export const PartnerAvailability = ({ partnerId }: Props) => {
   });
 
   const listingId = selectedListing || listings?.[0]?.id || "";
+  const currentListing = listings?.find((l) => l.id === listingId);
 
   const { data: availability, isLoading } = useQuery({
     queryKey: ["listingAvailability", listingId],
@@ -52,19 +53,28 @@ export const PartnerAvailability = ({ partnerId }: Props) => {
   });
 
   const addMutation = useMutation({
-    mutationFn: async (form: { week_start: string; week_end: string; price_per_week: number; is_blocked: boolean }) => {
+    mutationFn: async (form: { week_start: string; week_end: string }) => {
+      const dailyPrice = currentListing?.daily_price || 0;
+      const weekStart = new Date(form.week_start);
+      const weekEnd = new Date(form.week_end);
+      const days = Math.max(1, Math.round((weekEnd.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24)));
+      const priceForPeriod = Number(dailyPrice) * days;
+
       const { error } = await supabase.from("listing_availability").insert({
         listing_id: listingId,
-        ...form,
+        week_start: form.week_start,
+        week_end: form.week_end,
+        price_per_week: priceForPeriod,
+        is_blocked: false,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listingAvailability", listingId] });
       setOpen(false);
-      toast.success("Vecka tillagd");
+      toast.success("Period tillagd");
     },
-    onError: (e: any) => toast.error(e.message || "Kunde inte lägga till vecka"),
+    onError: (e: any) => toast.error(e.message || "Kunde inte lägga till period"),
   });
 
   const deleteMutation = useMutation({
@@ -74,7 +84,7 @@ export const PartnerAvailability = ({ partnerId }: Props) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listingAvailability", listingId] });
-      toast.success("Vecka borttagen");
+      toast.success("Period borttagen");
     },
   });
 
@@ -92,52 +102,53 @@ export const PartnerAvailability = ({ partnerId }: Props) => {
     addMutation.mutate({
       week_start: fd.get("week_start") as string,
       week_end: fd.get("week_end") as string,
-      price_per_week: Number(fd.get("price_per_week")),
-      is_blocked: false,
     });
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-serif font-bold text-foreground">Tillgänglighet & Priser</h2>
-        <p className="text-muted-foreground">Ange veckopris och blockera datum</p>
+        <h2 className="text-2xl font-serif font-bold text-foreground">Tillgänglighet</h2>
+        <p className="text-muted-foreground">Ange tillgängliga datum och blockera perioder</p>
       </div>
 
       {listings && listings.length > 0 && (
-        <Select value={listingId} onValueChange={setSelectedListing}>
-          <SelectTrigger className="w-64">
-            <SelectValue placeholder="Välj boende" />
-          </SelectTrigger>
-          <SelectContent>
-            {listings.map((l) => (
-              <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="space-y-2">
+          <Select value={listingId} onValueChange={setSelectedListing}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="Välj boende" />
+            </SelectTrigger>
+            <SelectContent>
+              {listings.map((l) => (
+                <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {currentListing && (
+            <p className="text-sm text-muted-foreground">
+              Dygnspris: <span className="font-semibold text-foreground">{Number(currentListing.daily_price || 0).toLocaleString("sv-SE")} SEK / natt</span>
+            </p>
+          )}
+        </div>
       )}
 
       {listingId && (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm"><Plus className="w-4 h-4 mr-2" /> Lägg till vecka</Button>
+            <Button size="sm"><Plus className="w-4 h-4 mr-2" /> Lägg till period</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Ny vecka</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Ny tillgänglig period</DialogTitle></DialogHeader>
             <form onSubmit={handleAdd} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Veckostart</Label>
+                  <Label>Startdatum</Label>
                   <Input name="week_start" type="date" required />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Veckoslut</Label>
+                  <Label>Slutdatum</Label>
                   <Input name="week_end" type="date" required />
                 </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Veckopris (SEK)</Label>
-                <Input name="price_per_week" type="number" min={0} required />
               </div>
               <Button type="submit" className="w-full" disabled={addMutation.isPending}>
                 {addMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lägg till"}
@@ -158,7 +169,6 @@ export const PartnerAvailability = ({ partnerId }: Props) => {
                   <span className="text-sm font-medium">
                     {format(new Date(a.week_start), "d MMM")} – {format(new Date(a.week_end), "d MMM yyyy")}
                   </span>
-                  <span className="text-sm text-muted-foreground">{Number(a.price_per_week).toLocaleString("sv-SE")} SEK / vecka</span>
                   {a.is_blocked && <Badge variant="secondary">Blockerad</Badge>}
                 </div>
                 <div className="flex items-center gap-3">
@@ -177,7 +187,7 @@ export const PartnerAvailability = ({ partnerId }: Props) => {
             </Card>
           ))}
           {availability?.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">Inga veckor tillagda ännu</p>
+            <p className="text-sm text-muted-foreground text-center py-8">Inga perioder tillagda ännu</p>
           )}
         </div>
       )}
