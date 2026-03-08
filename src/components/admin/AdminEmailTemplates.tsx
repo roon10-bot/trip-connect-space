@@ -129,7 +129,22 @@ export const AdminEmailTemplates = () => {
     },
   });
 
-  const handleSelect = (template: EmailTemplate) => {
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase
+        .from("email_templates")
+        .update({ is_active } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["email-templates"] });
+    },
+    onError: () => {
+      toast.error("Kunde inte uppdatera status");
+    },
+  });
+
     setSelectedTemplate(template);
     setEditForm({ ...template });
     setShowPreview(false);
