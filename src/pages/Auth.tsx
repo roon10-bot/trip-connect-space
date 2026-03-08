@@ -439,11 +439,11 @@ const Auth = () => {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-post</Label>
+                  <Label htmlFor="email">{t("auth.email")}</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="din@email.se"
+                    placeholder={t("auth.emailPlaceholder")}
                     {...register("email")}
                     className="h-12"
                   />
