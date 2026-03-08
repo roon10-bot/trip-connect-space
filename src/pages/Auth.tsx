@@ -141,13 +141,13 @@ const Auth = () => {
     try {
       const { data: authData, error: authError } = await signUp(email, password, fullName);
       if (authError) {
-        toast.error(authError.message.includes("already registered") ? "E-postadressen är redan registrerad" : authError.message);
+        toast.error(authError.message.includes("already registered") ? t("auth.emailRegistered") : authError.message);
         return;
       }
       
       const userId = authData?.user?.id;
       if (!userId) {
-        toast.error("Kunde inte skapa kontot. Försök igen.");
+        toast.error(t("auth.unexpectedError"));
         return;
       }
 
