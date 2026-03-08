@@ -145,6 +145,7 @@ export const AdminEmailTemplates = () => {
     },
   });
 
+  const handleSelect = (template: EmailTemplate) => {
     setSelectedTemplate(template);
     setEditForm({ ...template });
     setShowPreview(false);
