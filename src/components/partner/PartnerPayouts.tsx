@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export const PartnerPayouts = ({ partnerId }: Props) => {
+  const { t } = useTranslation();
   const { data: payouts, isLoading } = useQuery({
     queryKey: ["partnerPayouts", partnerId],
     queryFn: async () => {
@@ -30,15 +32,15 @@ export const PartnerPayouts = ({ partnerId }: Props) => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-serif font-bold text-foreground">Utbetalningar</h2>
-        <p className="text-muted-foreground">Historik över utbetalningar till dig</p>
+        <h2 className="text-2xl font-serif font-bold text-foreground">{t("partner.payouts.title")}</h2>
+        <p className="text-muted-foreground">{t("partner.payouts.subtitle")}</p>
       </div>
 
       {(!payouts || payouts.length === 0) ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Wallet className="w-12 h-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">Inga utbetalningar ännu</p>
+            <p className="text-muted-foreground">{t("partner.payouts.noPayouts")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -46,10 +48,10 @@ export const PartnerPayouts = ({ partnerId }: Props) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Datum</TableHead>
-                <TableHead>Boende</TableHead>
-                <TableHead>Belopp</TableHead>
-                <TableHead>Referens</TableHead>
+                <TableHead>{t("partner.payouts.date")}</TableHead>
+                <TableHead>{t("partner.payouts.listing")}</TableHead>
+                <TableHead>{t("partner.payouts.amount")}</TableHead>
+                <TableHead>{t("partner.payouts.reference")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
