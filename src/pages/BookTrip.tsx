@@ -303,7 +303,7 @@ const BookTrip = () => {
       
       if (error) {
         if (error.message.includes("already registered")) {
-          toast.error("E-postadressen är redan registrerad. Logga in istället.");
+          toast.error(t("bookTrip.emailAlreadyRegistered"));
         } else {
           toast.error(error.message);
         }
