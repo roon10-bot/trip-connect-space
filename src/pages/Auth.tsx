@@ -371,12 +371,12 @@ const Auth = () => {
           {isSettingPassword ? (
             <form onSubmit={handleSetPassword} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="newPassword">Nytt lösenord</Label>
+                <Label htmlFor="newPassword">{t("auth.newPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Minst 8 tecken"
+                    placeholder={t("auth.minChars")}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="h-12 pr-12"
@@ -395,7 +395,7 @@ const Auth = () => {
                 className="w-full h-12 bg-gradient-ocean hover:opacity-90 text-lg font-semibold"
                 disabled={isLoading}
               >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Spara lösenord"}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t("auth.savePassword")}
               </Button>
             </form>
           ) : showHostSignup ? (
