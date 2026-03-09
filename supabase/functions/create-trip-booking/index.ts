@@ -266,7 +266,7 @@ serve(async (req: Request) => {
       description: `Bokning skapad med ${travelers} resenärer`,
       metadata: {
         travelers,
-        total_price: totalPrice,
+        total_price,
         discount_code: discount_code || null,
         discount_amount: discount_amount || 0,
       },
