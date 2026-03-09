@@ -8,6 +8,7 @@ const AltapayCallback = () => {
   const { status: pathStatus } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Support /altapay/:status, /altapay/ok, /altapay/fail, /altapay/redirect
   // and legacy /payment/return?status=ok
@@ -18,9 +19,9 @@ const AltapayCallback = () => {
 
   useEffect(() => {
     if (isSuccess) {
-      toast.success("Betalningen genomfördes!");
+      toast.success(t("dashboard.paymentSuccess"));
     } else if (isFail) {
-      toast.error("Betalningen misslyckades.");
+      toast.error(t("dashboard.paymentFailed"));
     }
     // Redirect to dashboard after brief delay
     const timer = setTimeout(() => navigate("/dashboard"), 3000);
