@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { BookingDetailsDialog } from "@/components/BookingDetailsDialog";
+
 import { TripBookingDetailsDialog } from "@/components/TripBookingDetailsDialog";
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { PaymentHistory } from "@/components/dashboard/PaymentHistory";
