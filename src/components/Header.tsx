@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { User } from "@supabase/supabase-js";
 import { Menu, X, LogOut, User as UserIcon, Shield, Home, ChevronDown } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { usePartner } from "@/hooks/usePartner";
