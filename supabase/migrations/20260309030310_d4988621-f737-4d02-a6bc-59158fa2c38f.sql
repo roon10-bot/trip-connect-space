@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN welcome_email_sent boolean NOT NULL DEFAULT false;
