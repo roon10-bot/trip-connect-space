@@ -276,7 +276,7 @@ const BookTrip = () => {
         toast.error(`${t("bookTrip.lastNameRequired")}${label}`);
         return false;
       }
-      if (!ti.email.trim() || !ti.email.includes("@")) {
+      if (!ti.email.trim() || !z.string().email().safeParse(ti.email.trim()).success) {
         toast.error(`${t("bookTrip.emailRequired")}${label}`);
         return false;
       }
