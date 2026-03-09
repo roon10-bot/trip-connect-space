@@ -34,11 +34,16 @@ export const useAuth = () => {
     });
 
     if (!error && data.user) {
-      // Create profile
-      await supabase.from("profiles").insert({
+      // Create profile with error handling
+      const { error: profileError } = await supabase.from("profiles").insert({
         user_id: data.user.id,
         full_name: fullName,
       });
+
+      if (profileError) {
+        console.error("Failed to create profile:", profileError);
+        return { data, error: new Error("Kontot skapades men profilen kunde inte sparas. Kontakta support.") as any };
+      }
 
       // Send welcome email (fire-and-forget)
       try {
