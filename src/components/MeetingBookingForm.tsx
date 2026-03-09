@@ -64,7 +64,7 @@ export const MeetingBookingForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSlot) return;
+    if (!selectedSlot || !turnstileToken) return;
 
     setLoading(true);
     try {
