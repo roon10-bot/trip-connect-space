@@ -346,8 +346,8 @@ const BookTrip = () => {
     setCurrentStep((prev) => Math.max(prev - 1, minStep));
   };
 
-  const handleSubmitBooking = async () => {
-    if (!trip || travelersInfo.length === 0) return;
+  const handleSubmitBooking = async (turnstileToken: string) => {
+    if (!trip || travelersInfo.length === 0 || !turnstileToken) return;
     
     const primaryTraveler = travelersInfo[0];
     if (!primaryTraveler.birthDate) return;
