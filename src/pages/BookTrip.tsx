@@ -346,8 +346,8 @@ const BookTrip = () => {
     setCurrentStep((prev) => Math.max(prev - 1, minStep));
   };
 
-  const handleSubmitBooking = async () => {
-    if (!trip || travelersInfo.length === 0) return;
+  const handleSubmitBooking = async (turnstileToken: string) => {
+    if (!trip || travelersInfo.length === 0 || !turnstileToken) return;
     
     const primaryTraveler = travelersInfo[0];
     if (!primaryTraveler.birthDate) return;
@@ -384,14 +384,15 @@ const BookTrip = () => {
           total_price: totalPrice,
           discount_code: appliedDiscount?.code || null,
           discount_amount: discountAmount > 0 ? discountAmount : 0,
-          travelers_info: travelersInfo.map((t) => ({
-            first_name: t.firstName,
-            last_name: t.lastName,
-            email: t.email,
-            birth_date: format(t.birthDate!, "yyyy-MM-dd"),
-            phone: t.phone,
-            departure_location: t.departureLocation,
-          })),
+            travelers_info: travelersInfo.map((t) => ({
+              first_name: t.firstName,
+              last_name: t.lastName,
+              email: t.email,
+              birth_date: format(t.birthDate!, "yyyy-MM-dd"),
+              phone: t.phone,
+              departure_location: t.departureLocation,
+            })),
+            turnstile_token: turnstileToken,
         },
       });
 

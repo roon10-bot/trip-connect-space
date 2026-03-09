@@ -10,41 +10,26 @@ const corsHeaders = {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[\d\s\-+()]{6,20}$/;
 
-// --- Rate Limiting ---
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const MAX_MEETINGS_PER_IP = 5; // max meeting bookings per IP per hour
-
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-
-const ipRateMap = new Map<string, RateLimitEntry>();
-
-function isRateLimited(map: Map<string, RateLimitEntry>, key: string, max: number): boolean {
-  const now = Date.now();
-  const entry = map.get(key);
-
-  if (!entry || now > entry.resetAt) {
-    map.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+// --- Turnstile verification ---
+async function verifyTurnstile(token: string): Promise<boolean> {
+  const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
+  if (!secret) {
+    console.error("TURNSTILE_SECRET_KEY not configured");
     return false;
   }
-
-  if (entry.count >= max) {
-    return true;
+  try {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ secret, response: token }),
+    });
+    const data = await res.json();
+    return data.success === true;
+  } catch (e) {
+    console.error("Turnstile verification failed");
+    return false;
   }
-
-  entry.count++;
-  return false;
 }
-
-// Cleanup stale entries every 10 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of ipRateMap) {
-    if (now > entry.resetAt) ipRateMap.delete(key);
-  }
-}, 10 * 60 * 1000);
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -59,9 +44,24 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Rate limit by IP
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    if (isRateLimited(ipRateMap, clientIp, MAX_MEETINGS_PER_IP)) {
+
+    // DB-based rate limiting: 15 per IP/hour (generous for shared networks like schools)
+    const { data: ipLimited } = await supabaseAdmin.rpc("check_rate_limit", {
+      p_key_type: "ip",
+      p_key_value: clientIp,
+      p_endpoint: "create-meeting-booking",
+      p_window_minutes: 60,
+      p_max_requests: 15,
+    });
+
+    if (ipLimited === true) {
+      console.log(`[RATE-LIMIT] Blocked IP on create-meeting-booking`);
       return new Response(JSON.stringify({ error: "Too many booking attempts. Please try again later." }), {
         status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -69,7 +69,24 @@ serve(async (req: Request) => {
     }
 
     const body = await req.json();
-    const { slot_id, first_name, last_name, email, phone, school, message } = body;
+    const { slot_id, first_name, last_name, email, phone, school, message, turnstile_token } = body;
+
+    // Verify Turnstile CAPTCHA
+    if (!turnstile_token || typeof turnstile_token !== "string") {
+      return new Response(JSON.stringify({ error: "Security verification required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const turnstileValid = await verifyTurnstile(turnstile_token);
+    if (!turnstileValid) {
+      console.log(`[TURNSTILE] Verification failed on create-meeting-booking`);
+      return new Response(JSON.stringify({ error: "Security verification failed. Please try again." }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Validate required fields
     const errors: string[] = [];
@@ -95,11 +112,6 @@ serve(async (req: Request) => {
       });
     }
 
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
     // Verify the slot exists and is not booked
     const { data: slot, error: slotError } = await supabaseAdmin
       .from("meeting_slots")
@@ -121,7 +133,6 @@ serve(async (req: Request) => {
       });
     }
 
-    // Check the slot date is not in the past
     if (new Date(slot.slot_date) < new Date(new Date().toISOString().split("T")[0])) {
       return new Response(JSON.stringify({ error: "Cannot book a slot in the past" }), {
         status: 400,
@@ -143,7 +154,7 @@ serve(async (req: Request) => {
       });
 
     if (bookingError) {
-      console.error("Booking insert error:", bookingError);
+      console.error("Booking insert error");
       throw new Error("Failed to create booking");
     }
 
@@ -158,7 +169,7 @@ serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error in create-meeting-booking:", error);
+    console.error("Error in create-meeting-booking");
     return new Response(JSON.stringify({ error: error.message || "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

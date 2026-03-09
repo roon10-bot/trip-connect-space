@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { CalendarIcon, Clock, CheckCircle, Video } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useTurnstile } from "@/hooks/useTurnstile";
 
 interface Slot {
   id: string;
@@ -34,6 +35,7 @@ export const MeetingBookingForm = () => {
     school: "",
     message: "",
   });
+  const { containerRef, token: turnstileToken, error: turnstileError } = useTurnstile();
 
   useEffect(() => {
     const fetchSlots = async () => {
@@ -62,7 +64,7 @@ export const MeetingBookingForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSlot) return;
+    if (!selectedSlot || !turnstileToken) return;
 
     setLoading(true);
     try {
@@ -75,6 +77,7 @@ export const MeetingBookingForm = () => {
           phone: form.phone,
           school: form.school,
           message: form.message || null,
+          turnstile_token: turnstileToken,
         },
       });
 
@@ -284,10 +287,18 @@ export const MeetingBookingForm = () => {
             </div>
           </div>
 
+          {/* Turnstile CAPTCHA */}
+          <div className="flex flex-col items-center gap-2">
+            <div ref={containerRef} />
+            {turnstileError && (
+              <p className="text-sm text-destructive">Säkerhetsverifiering misslyckades. Ladda om sidan och försök igen.</p>
+            )}
+          </div>
+
           <Button
             type="submit"
             size="lg"
-            disabled={loading}
+            disabled={loading || !turnstileToken}
             className="w-full bg-gradient-ocean hover:opacity-90"
           >
             {loading ? "Bokar..." : "Boka videosamtal"}
