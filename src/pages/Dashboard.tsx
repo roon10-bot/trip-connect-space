@@ -225,7 +225,9 @@ const Dashboard = () => {
               </h2>
             </div>
             <div className="space-y-3">
-              {cancelledBookings.map((booking) => renderBookingCard(booking, false))}
+              {cancelledBookings.map((booking) => (
+                <BookingCard key={booking.id} booking={booking} showStatus={false} onClick={() => { setSelectedTripBooking(booking); setTripDetailsOpen(true); }} />
+              ))}
             </div>
           </motion.div>
         )}
