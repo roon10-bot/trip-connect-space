@@ -188,6 +188,29 @@ serve(async (req: Request) => {
       });
     }
 
+    // Capacity check: count active travelers for this trip
+    const { data: activeBookings } = await supabaseAdmin
+      .from("trip_bookings")
+      .select("travelers")
+      .eq("trip_id", trip_id)
+      .in("status", ["pending", "preliminary", "confirmed"]);
+
+    const currentTravelers = (activeBookings || []).reduce(
+      (sum: number, b: { travelers: number }) => sum + b.travelers, 0
+    );
+
+    if (currentTravelers + travelers > trip.capacity) {
+      const spotsLeft = trip.capacity - currentTravelers;
+      return new Response(JSON.stringify({
+        error: spotsLeft <= 0
+          ? "Resan är fullbokad"
+          : `Bara ${spotsLeft} platser kvar. Du försöker boka ${travelers}.`,
+      }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const primary = travelers_info[0];
 
     // Insert main booking
