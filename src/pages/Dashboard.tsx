@@ -26,8 +26,6 @@ const Dashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [selectedBooking, setSelectedBooking] = useState<any>(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTripBooking, setSelectedTripBooking] = useState<any>(null);
   const [tripDetailsOpen, setTripDetailsOpen] = useState(false);
 
