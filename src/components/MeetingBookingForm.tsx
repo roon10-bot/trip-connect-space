@@ -287,10 +287,18 @@ export const MeetingBookingForm = () => {
             </div>
           </div>
 
+          {/* Turnstile CAPTCHA */}
+          <div className="flex flex-col items-center gap-2">
+            <div ref={containerRef} />
+            {turnstileError && (
+              <p className="text-sm text-destructive">Säkerhetsverifiering misslyckades. Ladda om sidan och försök igen.</p>
+            )}
+          </div>
+
           <Button
             type="submit"
             size="lg"
-            disabled={loading}
+            disabled={loading || !turnstileToken}
             className="w-full bg-gradient-ocean hover:opacity-90"
           >
             {loading ? "Bokar..." : "Boka videosamtal"}
