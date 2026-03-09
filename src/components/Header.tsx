@@ -2,11 +2,10 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
 import { Menu, X, LogOut, User as UserIcon, Shield, Home, ChevronDown } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { usePartner } from "@/hooks/usePartner";
+import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -19,7 +18,7 @@ import {
 
 export const Header = () => {
   const { t } = useTranslation();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { isAdmin } = useAdmin();
@@ -30,15 +29,6 @@ export const Header = () => {
   const isHomePage = location.pathname === "/" || location.pathname === "/splitveckan" || location.pathname === "/segelveckan" || location.pathname === "/studentveckan";
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -47,7 +37,7 @@ export const Header = () => {
   }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     navigate("/");
   };
 

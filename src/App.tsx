@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 
 // Lazy-load all routes except Index for faster initial load
@@ -63,47 +64,49 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        {COMING_SOON_MODE ? (
-          <Routes>
-            <Route path="*" element={<Suspense fallback={<PageFallback />}><ComingSoon /></Suspense>} />
-          </Routes>
-        ) : (
-          <>
-            <Suspense fallback={<PageFallback />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/destinations" element={<Destinations />} />
-                <Route path="/book/:id" element={<Book />} />
-                <Route path="/book/trip/:id" element={<BookTrip />} />
-                <Route path="/search" element={<SearchTrips />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/kontakt" element={<Contact />} />
-                <Route path="/om-oss" element={<AboutUs />} />
-                <Route path="/for-skolor" element={<ForElevkarer />} />
-                <Route path="/faq" element={<FAQ />} />
-                <Route path="/resevillkor" element={<Terms />} />
-                <Route path="/kontovillkor" element={<AccountTerms />} />
-                <Route path="/splitveckan" element={<Splitveckan />} />
-                <Route path="/segelveckan" element={<Segelveckan />} />
-                <Route path="/studentveckan" element={<Studentveckan />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/partner" element={<Partner />} />
-                <Route path="/altapay/ok" element={<AltapayCallback />} />
-                <Route path="/altapay/fail" element={<AltapayCallback />} />
-                <Route path="/altapay/redirect" element={<AltapayCallback />} />
-                <Route path="/altapay/:status" element={<AltapayCallback />} />
-                <Route path="/payment/return" element={<AltapayCallback />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-            <Suspense fallback={null}>
-              <IdleLoad><ChatAssistant /></IdleLoad>
-            </Suspense>
-          </>
-        )}
+        <AuthProvider>
+          {COMING_SOON_MODE ? (
+            <Routes>
+              <Route path="*" element={<Suspense fallback={<PageFallback />}><ComingSoon /></Suspense>} />
+            </Routes>
+          ) : (
+            <>
+              <Suspense fallback={<PageFallback />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/destinations" element={<Destinations />} />
+                  <Route path="/book/:id" element={<Book />} />
+                  <Route path="/book/trip/:id" element={<BookTrip />} />
+                  <Route path="/search" element={<SearchTrips />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/kontakt" element={<Contact />} />
+                  <Route path="/om-oss" element={<AboutUs />} />
+                  <Route path="/for-skolor" element={<ForElevkarer />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/resevillkor" element={<Terms />} />
+                  <Route path="/kontovillkor" element={<AccountTerms />} />
+                  <Route path="/splitveckan" element={<Splitveckan />} />
+                  <Route path="/segelveckan" element={<Segelveckan />} />
+                  <Route path="/studentveckan" element={<Studentveckan />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/partner" element={<Partner />} />
+                  <Route path="/altapay/ok" element={<AltapayCallback />} />
+                  <Route path="/altapay/fail" element={<AltapayCallback />} />
+                  <Route path="/altapay/redirect" element={<AltapayCallback />} />
+                  <Route path="/altapay/:status" element={<AltapayCallback />} />
+                  <Route path="/payment/return" element={<AltapayCallback />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+              <Suspense fallback={null}>
+                <IdleLoad><ChatAssistant /></IdleLoad>
+              </Suspense>
+            </>
+          )}
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
