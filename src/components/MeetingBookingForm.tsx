@@ -35,6 +35,7 @@ export const MeetingBookingForm = () => {
     school: "",
     message: "",
   });
+  const { containerRef, token: turnstileToken, error: turnstileError } = useTurnstile();
 
   useEffect(() => {
     const fetchSlots = async () => {
