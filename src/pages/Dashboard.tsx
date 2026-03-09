@@ -204,7 +204,9 @@ const Dashboard = () => {
               </h2>
             </div>
             <div className="space-y-3">
-              {pastBookings.map((booking) => renderBookingCard(booking))}
+              {pastBookings.map((booking) => (
+                <BookingCard key={booking.id} booking={booking} onClick={() => { setSelectedTripBooking(booking); setTripDetailsOpen(true); }} />
+              ))}
             </div>
           </motion.div>
         )}
