@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
 import loginHero from "@/assets/login-hero.png";
 import { HostRegistrationForm, type IndividualFormData, type CompanyFormData } from "@/components/auth/HostRegistrationForm";
+import type { PartnerProfileData } from "@/types/partner";
 
 const signupSchema = (t: (key: string) => string) => z.object({
   firstName: z.string().trim().min(1, t("auth.firstNameRequired") || "Förnamn krävs"),
@@ -135,7 +136,7 @@ const Auth = () => {
     email: string,
     password: string,
     fullName: string,
-    partnerData: Record<string, any>
+    partnerData: PartnerProfileData
   ) => {
     setIsLoading(true);
     try {
@@ -156,7 +157,7 @@ const Auth = () => {
       const { error: profileError } = await supabase.from("partner_profiles").insert({
         user_id: userId,
         ...partnerData,
-      } as any);
+      });
 
       if (profileError) {
         console.error("Partner profile insert error:", profileError);
