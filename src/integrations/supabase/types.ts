@@ -829,6 +829,33 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_log: {
+        Row: {
+          blocked: boolean
+          created_at: string
+          endpoint: string
+          id: string
+          key_type: string
+          key_value: string
+        }
+        Insert: {
+          blocked?: boolean
+          created_at?: string
+          endpoint: string
+          id?: string
+          key_type: string
+          key_value: string
+        }
+        Update: {
+          blocked?: boolean
+          created_at?: string
+          endpoint?: string
+          id?: string
+          key_type?: string
+          key_value?: string
+        }
+        Relationships: []
+      }
       trip_booking_documents: {
         Row: {
           created_at: string
@@ -1276,6 +1303,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          p_endpoint: string
+          p_key_type: string
+          p_key_value: string
+          p_max_requests: number
+          p_window_minutes: number
+        }
+        Returns: boolean
+      }
+      cleanup_rate_limit_log: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
