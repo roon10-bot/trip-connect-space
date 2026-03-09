@@ -34,10 +34,8 @@ export const useSEO = ({ title, description, canonical, ogImage, noindex, breadc
     // Meta description
     setOrCreateMeta("name", "description", description);
 
-    // Robots
-    if (noindex) {
-      setOrCreateMeta("name", "robots", "noindex, nofollow");
-    }
+    // Robots — always set explicitly to avoid stale noindex from previous pages
+    setOrCreateMeta("name", "robots", noindex ? "noindex, nofollow" : "index, follow");
 
     // Canonical
     if (canonical) {
