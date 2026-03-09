@@ -453,7 +453,10 @@
     "cancelledTrips": "Otkazana putovanja",
     "confirmed": "Potvrđeno",
     "pending": "Na čekanju",
-    "cancelled": "Otkazano"
+    "cancelled": "Otkazano",
+    "paymentSuccess": "Plaćanje uspješno! Vaše putovanje je potvrđeno.",
+    "paymentCancelled": "Plaćanje je otkazano. Možete platiti kad budete spremni.",
+    "paymentFailed": "Plaćanje nije uspjelo."
   },
   "settings": {
     "backToDashboard": "Natrag na nadzornu ploču",

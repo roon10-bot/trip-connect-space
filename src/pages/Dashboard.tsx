@@ -40,11 +40,10 @@ const Dashboard = () => {
   useEffect(() => {
     const paymentStatus = searchParams.get("payment");
     if (paymentStatus === "success") {
-      toast.success("Betalningen genomfördes! Din resa är nu bekräftad.");
-      // Clean up URL
+      toast.success(t("dashboard.paymentSuccess"));
       window.history.replaceState({}, "", "/dashboard");
     } else if (paymentStatus === "cancelled") {
-      toast.info("Betalningen avbröts. Du kan betala när du är redo.");
+      toast.info(t("dashboard.paymentCancelled"));
       window.history.replaceState({}, "", "/dashboard");
     }
   }, [searchParams]);
