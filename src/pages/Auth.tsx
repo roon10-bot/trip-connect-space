@@ -101,7 +101,7 @@ const Auth = () => {
     if (user && !adminLoading && !partnerLoading && !isSettingPassword) {
       navigate(getRedirectPath());
     }
-  }, [user, isAdmin, adminLoading, partnerLoading, partnerProfile, navigate, isSettingPassword]);
+  }, [user, adminLoading, partnerLoading, navigate, isSettingPassword, getRedirectPath]);
 
   const onSubmit = async (data: AuthFormData) => {
     setIsLoading(true);
