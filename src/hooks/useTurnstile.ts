@@ -12,7 +12,7 @@ declare global {
 
 // Using a visible managed widget - sitekey must be set per-environment
 // For development/testing, use the always-pass testing sitekey
-const TURNSTILE_SITE_KEY = "0x4AAAAAABB_test_sitekey_here";
+const TURNSTILE_SITE_KEY = "0x4AAAAAACoGug93LnyBH6iu";
 
 export function useTurnstile() {
   const containerRef = useRef<HTMLDivElement>(null);
