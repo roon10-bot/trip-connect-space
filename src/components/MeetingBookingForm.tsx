@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { CalendarIcon, Clock, CheckCircle, Video } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useTurnstile } from "@/hooks/useTurnstile";
 
 interface Slot {
   id: string;
