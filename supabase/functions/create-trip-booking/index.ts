@@ -259,6 +259,27 @@ serve(async (req: Request) => {
       console.error("Travelers insert failed");
     }
 
+    // Log booking creation to activity log
+    await supabaseAdmin.from("booking_activity_log").insert({
+      trip_booking_id: booking.id,
+      activity_type: "booking_created",
+      description: `Bokning skapad med ${travelers} resenärer`,
+      metadata: {
+        travelers,
+        total_price: totalPrice,
+        discount_code: discount_code || null,
+        discount_amount: discount_amount || 0,
+      },
+    });
+
+    // Auto-set fullbooked if capacity reached
+    if (currentTravelers + travelers >= trip.capacity) {
+      await supabaseAdmin
+        .from("trips")
+        .update({ is_fullbooked: true })
+        .eq("id", trip_id);
+    }
+
     // Send booking confirmation email (fire-and-forget)
     try {
       const { data: tripData } = await supabaseAdmin
