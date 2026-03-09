@@ -18,6 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, CheckCircle, XCircle, Clock, ChevronRight, History } from "lucide-react";
+import { BookingCard } from "@/components/dashboard/BookingCard";
 import { toast } from "sonner";
 
 const Dashboard = () => {
