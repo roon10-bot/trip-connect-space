@@ -11,6 +11,47 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[\d\s\-+()]{6,20}$/;
 const VALID_DEPARTURES = ["ARN", "GOT", "CPH", "Arlanda (ARN)", "Landvetter (GOT)", "Kastrup (CPH)"];
 
+// --- Rate Limiting ---
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_BOOKINGS_PER_USER = 5; // max bookings per user per hour
+const MAX_BOOKINGS_PER_IP = 10; // max bookings per IP per hour
+
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+const userRateMap = new Map<string, RateLimitEntry>();
+const ipRateMap = new Map<string, RateLimitEntry>();
+
+function isRateLimited(map: Map<string, RateLimitEntry>, key: string, max: number): boolean {
+  const now = Date.now();
+  const entry = map.get(key);
+
+  if (!entry || now > entry.resetAt) {
+    map.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  if (entry.count >= max) {
+    return true;
+  }
+
+  entry.count++;
+  return false;
+}
+
+// Cleanup stale entries every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of userRateMap) {
+    if (now > entry.resetAt) userRateMap.delete(key);
+  }
+  for (const [key, entry] of ipRateMap) {
+    if (now > entry.resetAt) ipRateMap.delete(key);
+  }
+}, 10 * 60 * 1000);
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -48,6 +89,24 @@ serve(async (req: Request) => {
     }
 
     const user = userData.user;
+
+    // Rate limit by user ID
+    if (isRateLimited(userRateMap, user.id, MAX_BOOKINGS_PER_USER)) {
+      return new Response(JSON.stringify({ error: "Too many booking attempts. Please try again later." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Rate limit by IP
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (isRateLimited(ipRateMap, clientIp, MAX_BOOKINGS_PER_IP)) {
+      return new Response(JSON.stringify({ error: "Too many requests from this address. Please try again later." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { trip_id, travelers, discount_code, discount_amount, total_price, travelers_info } = body;
 
