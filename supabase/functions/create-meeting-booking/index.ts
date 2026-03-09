@@ -59,6 +59,15 @@ serve(async (req: Request) => {
   }
 
   try {
+    // Rate limit by IP
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (isRateLimited(ipRateMap, clientIp, MAX_MEETINGS_PER_IP)) {
+      return new Response(JSON.stringify({ error: "Too many booking attempts. Please try again later." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { slot_id, first_name, last_name, email, phone, school, message } = body;
 

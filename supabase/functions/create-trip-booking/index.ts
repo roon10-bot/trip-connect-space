@@ -89,6 +89,24 @@ serve(async (req: Request) => {
     }
 
     const user = userData.user;
+
+    // Rate limit by user ID
+    if (isRateLimited(userRateMap, user.id, MAX_BOOKINGS_PER_USER)) {
+      return new Response(JSON.stringify({ error: "Too many booking attempts. Please try again later." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Rate limit by IP
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (isRateLimited(ipRateMap, clientIp, MAX_BOOKINGS_PER_IP)) {
+      return new Response(JSON.stringify({ error: "Too many requests from this address. Please try again later." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { trip_id, travelers, discount_code, discount_amount, total_price, travelers_info } = body;
 
