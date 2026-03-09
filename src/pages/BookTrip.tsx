@@ -339,13 +339,10 @@ const BookTrip = () => {
   };
 
   const handleNextStep = () => {
-    const travelerInfoStep = needsAccountStep ? 3 : 2;
-    const maxStep = totalSteps;
-    
-    if (currentStep === travelerInfoStep && !validateStep2()) {
+    if (bookingStep === 2 && !validateStep2()) {
       return;
     }
-    setCurrentStep((prev) => Math.min(prev + 1, maxStep));
+    setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
   const handlePrevStep = () => {
