@@ -10,6 +10,42 @@ const corsHeaders = {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[\d\s\-+()]{6,20}$/;
 
+// --- Rate Limiting ---
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_MEETINGS_PER_IP = 5; // max meeting bookings per IP per hour
+
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+const ipRateMap = new Map<string, RateLimitEntry>();
+
+function isRateLimited(map: Map<string, RateLimitEntry>, key: string, max: number): boolean {
+  const now = Date.now();
+  const entry = map.get(key);
+
+  if (!entry || now > entry.resetAt) {
+    map.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  if (entry.count >= max) {
+    return true;
+  }
+
+  entry.count++;
+  return false;
+}
+
+// Cleanup stale entries every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of ipRateMap) {
+    if (now > entry.resetAt) ipRateMap.delete(key);
+  }
+}, 10 * 60 * 1000);
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
