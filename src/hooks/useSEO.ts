@@ -63,7 +63,9 @@ export const useSEO = ({ title, description, canonical, ogImage, noindex, breadc
     setOrCreateMeta("name", "twitter:description", description);
     if (ogImage) setOrCreateMeta("name", "twitter:image", ogImage);
 
-    // BreadcrumbList JSON-LD
+    // BreadcrumbList JSON-LD — remove any existing before adding new
+    document.querySelectorAll('script[data-seo="breadcrumb"]').forEach(el => el.remove());
+
     let breadcrumbScript: HTMLScriptElement | null = null;
     if (breadcrumbs && breadcrumbs.length > 0) {
       const jsonLd = {
@@ -84,9 +86,7 @@ export const useSEO = ({ title, description, canonical, ogImage, noindex, breadc
     }
 
     return () => {
-      if (breadcrumbScript) {
-        document.head.removeChild(breadcrumbScript);
-      }
+      document.querySelectorAll('script[data-seo="breadcrumb"]').forEach(el => el.remove());
     };
   }, [title, description, canonical, ogImage, noindex, breadcrumbs]);
 };
