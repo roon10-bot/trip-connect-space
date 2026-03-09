@@ -11,46 +11,26 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[\d\s\-+()]{6,20}$/;
 const VALID_DEPARTURES = ["ARN", "GOT", "CPH", "Arlanda (ARN)", "Landvetter (GOT)", "Kastrup (CPH)"];
 
-// --- Rate Limiting ---
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const MAX_BOOKINGS_PER_USER = 5; // max bookings per user per hour
-const MAX_BOOKINGS_PER_IP = 10; // max bookings per IP per hour
-
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-
-const userRateMap = new Map<string, RateLimitEntry>();
-const ipRateMap = new Map<string, RateLimitEntry>();
-
-function isRateLimited(map: Map<string, RateLimitEntry>, key: string, max: number): boolean {
-  const now = Date.now();
-  const entry = map.get(key);
-
-  if (!entry || now > entry.resetAt) {
-    map.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+// --- Turnstile verification ---
+async function verifyTurnstile(token: string): Promise<boolean> {
+  const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
+  if (!secret) {
+    console.error("TURNSTILE_SECRET_KEY not configured");
     return false;
   }
-
-  if (entry.count >= max) {
-    return true;
+  try {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ secret, response: token }),
+    });
+    const data = await res.json();
+    return data.success === true;
+  } catch (e) {
+    console.error("Turnstile verification failed");
+    return false;
   }
-
-  entry.count++;
-  return false;
 }
-
-// Cleanup stale entries every 10 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of userRateMap) {
-    if (now > entry.resetAt) userRateMap.delete(key);
-  }
-  for (const [key, entry] of ipRateMap) {
-    if (now > entry.resetAt) ipRateMap.delete(key);
-  }
-}, 10 * 60 * 1000);
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -89,18 +69,35 @@ serve(async (req: Request) => {
     }
 
     const user = userData.user;
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
-    // Rate limit by user ID
-    if (isRateLimited(userRateMap, user.id, MAX_BOOKINGS_PER_USER)) {
+    // DB-based rate limiting: 10 per user/hour, 30 per IP/hour (generous for shared IPs)
+    const { data: userLimited } = await supabaseAdmin.rpc("check_rate_limit", {
+      p_key_type: "user_id",
+      p_key_value: user.id,
+      p_endpoint: "create-trip-booking",
+      p_window_minutes: 60,
+      p_max_requests: 10,
+    });
+
+    if (userLimited === true) {
+      console.log(`[RATE-LIMIT] Blocked user on create-trip-booking`);
       return new Response(JSON.stringify({ error: "Too many booking attempts. Please try again later." }), {
         status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Rate limit by IP
-    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    if (isRateLimited(ipRateMap, clientIp, MAX_BOOKINGS_PER_IP)) {
+    const { data: ipLimited } = await supabaseAdmin.rpc("check_rate_limit", {
+      p_key_type: "ip",
+      p_key_value: clientIp,
+      p_endpoint: "create-trip-booking",
+      p_window_minutes: 60,
+      p_max_requests: 30,
+    });
+
+    if (ipLimited === true) {
+      console.log(`[RATE-LIMIT] Blocked IP on create-trip-booking`);
       return new Response(JSON.stringify({ error: "Too many requests from this address. Please try again later." }), {
         status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -108,7 +105,24 @@ serve(async (req: Request) => {
     }
 
     const body = await req.json();
-    const { trip_id, travelers, discount_code, discount_amount, total_price, travelers_info } = body;
+    const { trip_id, travelers, discount_code, discount_amount, total_price, travelers_info, turnstile_token } = body;
+
+    // Verify Turnstile CAPTCHA
+    if (!turnstile_token || typeof turnstile_token !== "string") {
+      return new Response(JSON.stringify({ error: "Security verification required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const turnstileValid = await verifyTurnstile(turnstile_token);
+    if (!turnstileValid) {
+      console.log(`[TURNSTILE] Verification failed on create-trip-booking`);
+      return new Response(JSON.stringify({ error: "Security verification failed. Please try again." }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Validate required fields
     const errors: string[] = [];
@@ -220,7 +234,6 @@ serve(async (req: Request) => {
 
     if (travelersError) {
       console.error("Travelers insert failed");
-      // Don't fail the whole booking
     }
 
     // Send booking confirmation email (fire-and-forget)
@@ -234,7 +247,6 @@ serve(async (req: Request) => {
       if (tripData) {
         const siteUrl = "https://studentresor.com";
 
-        // Send confirmation to customer
         await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-transactional-email`, {
           method: "POST",
           headers: {
@@ -256,7 +268,6 @@ serve(async (req: Request) => {
           }),
         });
 
-        // Send notification to host if trip is linked to a partner listing
         if (tripData.partner_listing_id) {
           try {
             const { data: listing } = await supabaseAdmin
@@ -295,12 +306,10 @@ serve(async (req: Request) => {
                     action_url: `${siteUrl}/partner`,
                   }),
                 });
-
-                console.log(`[CREATE-TRIP-BOOKING] Host notification sent to ${partner.email}`);
               }
             }
           } catch (hostEmailErr) {
-            console.error("Failed to send host booking notification email:", hostEmailErr);
+            console.error("Failed to send host booking notification email");
           }
         }
       }
