@@ -180,14 +180,12 @@ const BookTrip = () => {
     return types[type] || type;
   };
 
-  const calculateTotalPrice = () => {
+  const getPricePerPerson = () => {
     if (!trip) return 0;
-    
     let pricePerPerson = trip.price;
-    
+
     if (trip.trip_type === "splitveckan" && travelers > 0) {
       if (dynamicFlightPricePerPerson !== null) {
-        // Use dynamic Duffel flight price instead of static base_price_flight
         const accommodation = Number(trip.base_price_accommodation) || 0;
         const extras = Number(trip.base_price_extras) || 0;
         const dynamicPrice = calculateSplitPricePerPerson(accommodation, dynamicFlightPricePerPerson, extras, travelers);
@@ -197,15 +195,20 @@ const BookTrip = () => {
         if (splitPrice > 0) pricePerPerson = splitPrice;
       }
     } else if (dynamicFlightPricePerPerson !== null) {
-      // Non-split: use dynamic flight price
       const accommodation = Number(trip.base_price_accommodation) || 0;
       const extras = Number(trip.base_price_extras) || 0;
       const dynamicPrice = Math.ceil((accommodation + dynamicFlightPricePerPerson + extras) * 1.20);
       if (dynamicPrice > 0) pricePerPerson = dynamicPrice;
     }
-    
+
+    return pricePerPerson;
+  };
+
+  const calculateTotalPrice = () => {
+    if (!trip) return 0;
+    const pricePerPerson = getPricePerPerson();
     const baseTotal = pricePerPerson * travelers;
-    
+
     if (appliedDiscount) {
       if (appliedDiscount.percent) {
         return baseTotal - (baseTotal * appliedDiscount.percent / 100);
