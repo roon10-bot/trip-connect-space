@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -13,17 +13,67 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+/** Send welcome email once after email verification */
+const sendWelcomeEmailIfNeeded = async (user: User) => {
+  // Only proceed if the user's email is confirmed
+  if (!user.email_confirmed_at) return;
+
+  try {
+    // Check if welcome email was already sent
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("welcome_email_sent, full_name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!profile || profile.welcome_email_sent) return;
+
+    // Mark as sent first to prevent duplicates
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ welcome_email_sent: true })
+      .eq("user_id", user.id);
+
+    if (updateError) {
+      console.error("Failed to mark welcome email as sent:", updateError);
+      return;
+    }
+
+    // Send welcome email
+    await supabase.functions.invoke("send-transactional-email", {
+      body: {
+        template_key: "welcome",
+        to_email: user.email,
+        variables: {
+          first_name: profile.full_name?.split(" ")[0] || "",
+        },
+        action_url: "https://studentresor.com/destinations",
+      },
+    });
+  } catch (e) {
+    console.error("Failed to send welcome email:", e);
+  }
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const welcomeCheckDone = useRef<string | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      (_event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
         setLoading(false);
+
+        // Check for welcome email after sign-in (deferred to avoid blocking auth)
+        const currentUser = currentSession?.user;
+        if (currentUser?.email_confirmed_at && welcomeCheckDone.current !== currentUser.id) {
+          welcomeCheckDone.current = currentUser.id;
+          setTimeout(() => sendWelcomeEmailIfNeeded(currentUser), 0);
+        }
       }
     );
 
@@ -54,22 +104,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (profileError) {
         console.error("Failed to create profile:", profileError);
         return { data, error: new Error("Kontot skapades men profilen kunde inte sparas. Kontakta support.") as any };
-      }
-
-      // Send welcome email (fire-and-forget)
-      try {
-        await supabase.functions.invoke("send-transactional-email", {
-          body: {
-            template_key: "welcome",
-            to_email: email,
-            variables: {
-              first_name: fullName?.split(" ")[0] || "",
-            },
-            action_url: `https://studentresor.com/destinations`,
-          },
-        });
-      } catch (e) {
-        console.error("Failed to send welcome email:", e);
       }
     }
 
