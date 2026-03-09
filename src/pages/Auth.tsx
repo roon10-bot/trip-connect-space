@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -84,24 +84,24 @@ const Auth = () => {
     resolver: zodResolver(isLogin ? loginSchema(t) : signupSchema(t)),
   });
 
-  const getRedirectPath = () => {
+  const getRedirectPath = useCallback(() => {
     if (isAdmin) return "/admin";
     if (partnerProfile) return "/partner";
     return "/dashboard";
-  };
+  }, [isAdmin, partnerProfile]);
 
   useEffect(() => {
     if (shouldRedirect && user && !adminLoading && !partnerLoading) {
       navigate(getRedirectPath());
       setShouldRedirect(false);
     }
-  }, [shouldRedirect, user, isAdmin, adminLoading, partnerLoading, partnerProfile, navigate]);
+  }, [shouldRedirect, user, adminLoading, partnerLoading, navigate, getRedirectPath]);
 
   useEffect(() => {
     if (user && !adminLoading && !partnerLoading && !isSettingPassword) {
       navigate(getRedirectPath());
     }
-  }, [user, isAdmin, adminLoading, partnerLoading, partnerProfile, navigate, isSettingPassword]);
+  }, [user, adminLoading, partnerLoading, navigate, isSettingPassword, getRedirectPath]);
 
   const onSubmit = async (data: AuthFormData) => {
     setIsLoading(true);
