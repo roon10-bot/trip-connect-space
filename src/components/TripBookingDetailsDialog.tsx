@@ -257,8 +257,8 @@ export const TripBookingDetailsDialog = ({
   const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
 
   const handlePayment = async () => {
+    if (!booking) return;
     setShowPaymentConfirm(false);
-    setIsProcessingPayment(true);
 
     try {
       // Verify session is still valid before attempting payment

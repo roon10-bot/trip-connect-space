@@ -24,9 +24,9 @@ export function calculateSplitPricePerPerson(
 export function getSplitPricePerPerson(
   trip: {
     base_price?: number | null;
-    base_price_accommodation?: number;
-    base_price_flight?: number;
-    base_price_extras?: number;
+    base_price_accommodation?: number | null;
+    base_price_flight?: number | null;
+    base_price_extras?: number | null;
   },
   persons: number
 ): number {

@@ -191,7 +191,7 @@ const BookTrip = () => {
       if (dynamicFlightPricePerPerson !== null) {
         const accommodation = Number(trip.base_price_accommodation) || 0;
         const extras = Number(trip.base_price_extras) || 0;
-        const dynamicPrice = calculateSplitPricePerPerson(accommodation, dynamicFlightPricePerPerson, extras, travelers);
+        const dynamicPrice = calculateSplitPricePerPerson(accommodation, dynamicFlightPricePerPerson ?? 0, extras, travelers);
         if (dynamicPrice > 0) pricePerPerson = dynamicPrice;
       } else {
         const splitPrice = getSplitPricePerPerson(trip, travelers);
@@ -200,7 +200,7 @@ const BookTrip = () => {
     } else if (dynamicFlightPricePerPerson !== null) {
       const accommodation = Number(trip.base_price_accommodation) || 0;
       const extras = Number(trip.base_price_extras) || 0;
-      const dynamicPrice = Math.ceil((accommodation + dynamicFlightPricePerPerson + extras) * 1.20);
+      const dynamicPrice = Math.ceil((accommodation + (dynamicFlightPricePerPerson ?? 0) + extras) * 1.20);
       if (dynamicPrice > 0) pricePerPerson = dynamicPrice;
     }
 

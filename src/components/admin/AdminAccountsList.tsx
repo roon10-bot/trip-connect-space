@@ -52,7 +52,7 @@ export const AdminAccountsList = () => {
       const { data, error } = await supabase.functions.invoke("manage-users", {
         headers: { Authorization: `Bearer ${token}` },
         method: "GET",
-        body: null,
+        body: undefined,
       });
 
       // supabase.functions.invoke uses POST by default, we need query params

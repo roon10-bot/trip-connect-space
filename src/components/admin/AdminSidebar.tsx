@@ -103,7 +103,7 @@ export const AdminSidebar = ({ currentView, onViewChange }: AdminSidebarProps) =
                   {section.label}
                 </h3>
                 <div className="space-y-1.5">
-                  {section.items.map((item) => (
+                  {section.items?.map((item) => (
                     <button
                       key={item.value}
                       onClick={() => onViewChange(item.value)}
