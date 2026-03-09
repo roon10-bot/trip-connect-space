@@ -84,18 +84,18 @@ const Auth = () => {
     resolver: zodResolver(isLogin ? loginSchema(t) : signupSchema(t)),
   });
 
-  const getRedirectPath = () => {
+  const getRedirectPath = useCallback(() => {
     if (isAdmin) return "/admin";
     if (partnerProfile) return "/partner";
     return "/dashboard";
-  };
+  }, [isAdmin, partnerProfile]);
 
   useEffect(() => {
     if (shouldRedirect && user && !adminLoading && !partnerLoading) {
       navigate(getRedirectPath());
       setShouldRedirect(false);
     }
-  }, [shouldRedirect, user, isAdmin, adminLoading, partnerLoading, partnerProfile, navigate]);
+  }, [shouldRedirect, user, adminLoading, partnerLoading, navigate, getRedirectPath]);
 
   useEffect(() => {
     if (user && !adminLoading && !partnerLoading && !isSettingPassword) {
