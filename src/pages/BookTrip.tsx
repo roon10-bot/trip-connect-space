@@ -68,6 +68,9 @@ const BookTrip = () => {
   const totalSteps = needsAccountStep ? 4 : 3;
   
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Logical booking step (1-3) independent of account step offset
+  const bookingStep = needsAccountStep ? currentStep - 1 : currentStep;
   const [travelers, setTravelers] = useState(routerState?.guests || 1);
   const [discountCode, setDiscountCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<{
