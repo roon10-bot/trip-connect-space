@@ -453,7 +453,10 @@
     "cancelledTrips": "Cancelled trips",
     "confirmed": "Confirmed",
     "pending": "Pending",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "paymentSuccess": "Payment completed! Your trip is now confirmed.",
+    "paymentCancelled": "Payment was cancelled. You can pay when you're ready.",
+    "paymentFailed": "Payment failed."
   },
   "settings": {
     "backToDashboard": "Back to dashboard",

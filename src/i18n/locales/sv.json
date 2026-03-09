@@ -456,7 +456,10 @@
     "cancelledTrips": "Avbokade resor",
     "confirmed": "Bekräftad",
     "pending": "Väntar",
-    "cancelled": "Avbokad"
+    "cancelled": "Avbokad",
+    "paymentSuccess": "Betalningen genomfördes! Din resa är nu bekräftad.",
+    "paymentCancelled": "Betalningen avbröts. Du kan betala när du är redo.",
+    "paymentFailed": "Betalningen misslyckades."
   },
   "settings": {
     "backToDashboard": "Tillbaka till dashboard",
