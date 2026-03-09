@@ -234,11 +234,6 @@ const Dashboard = () => {
 
       <Footer />
 
-      <BookingDetailsDialog
-        booking={selectedBooking}
-        open={detailsOpen}
-        onOpenChange={setDetailsOpen}
-      />
 
       <TripBookingDetailsDialog
         booking={selectedTripBooking}
