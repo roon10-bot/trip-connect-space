@@ -384,14 +384,15 @@ const BookTrip = () => {
           total_price: totalPrice,
           discount_code: appliedDiscount?.code || null,
           discount_amount: discountAmount > 0 ? discountAmount : 0,
-          travelers_info: travelersInfo.map((t) => ({
-            first_name: t.firstName,
-            last_name: t.lastName,
-            email: t.email,
-            birth_date: format(t.birthDate!, "yyyy-MM-dd"),
-            phone: t.phone,
-            departure_location: t.departureLocation,
-          })),
+            travelers_info: travelersInfo.map((t) => ({
+              first_name: t.firstName,
+              last_name: t.lastName,
+              email: t.email,
+              birth_date: format(t.birthDate!, "yyyy-MM-dd"),
+              phone: t.phone,
+              departure_location: t.departureLocation,
+            })),
+            turnstile_token: turnstileToken,
         },
       });
 
