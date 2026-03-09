@@ -216,6 +216,19 @@ serve(async (req: Request) => {
 
     const booking = { id: bookingId };
 
+    // Log booking creation to activity log (fire-and-forget)
+    await supabaseAdmin.from("booking_activity_log").insert({
+      trip_booking_id: booking.id,
+      activity_type: "booking_created",
+      description: `Bokning skapad med ${travelers} resenärer`,
+      metadata: {
+        travelers,
+        total_price,
+        discount_code: discount_code || null,
+        discount_amount: discount_amount || 0,
+      },
+    });
+
     // Send booking confirmation email (fire-and-forget)
     try {
       const { data: tripData } = await supabaseAdmin
