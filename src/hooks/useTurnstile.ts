@@ -10,9 +10,31 @@ declare global {
   }
 }
 
-// Using a visible managed widget - sitekey must be set per-environment
-// For development/testing, use the always-pass testing sitekey
 const TURNSTILE_SITE_KEY = "0x4AAAAAACoGug93LnyBH6iu";
+const TURNSTILE_SCRIPT_URL =
+  "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+
+let scriptLoadPromise: Promise<void> | null = null;
+
+function loadTurnstileScript(): Promise<void> {
+  if (window.turnstile) return Promise.resolve();
+  if (scriptLoadPromise) return scriptLoadPromise;
+
+  scriptLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = TURNSTILE_SCRIPT_URL;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => {
+      scriptLoadPromise = null;
+      reject(new Error("Failed to load Turnstile script"));
+    };
+    document.head.appendChild(script);
+  });
+
+  return scriptLoadPromise;
+}
 
 export function useTurnstile() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,16 +64,20 @@ export function useTurnstile() {
   }, []);
 
   useEffect(() => {
-    // Wait for turnstile script to load
-    const interval = setInterval(() => {
-      if (window.turnstile && containerRef.current) {
-        clearInterval(interval);
-        renderWidget();
-      }
-    }, 200);
+    let cancelled = false;
+
+    loadTurnstileScript()
+      .then(() => {
+        if (!cancelled && containerRef.current) {
+          renderWidget();
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      });
 
     return () => {
-      clearInterval(interval);
+      cancelled = true;
       if (widgetIdRef.current && window.turnstile) {
         window.turnstile.remove(widgetIdRef.current);
         widgetIdRef.current = null;
