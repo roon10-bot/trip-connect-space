@@ -136,7 +136,7 @@ const Auth = () => {
     email: string,
     password: string,
     fullName: string,
-    partnerData: Record<string, any>
+    partnerData: PartnerProfileData
   ) => {
     setIsLoading(true);
     try {
@@ -157,7 +157,7 @@ const Auth = () => {
       const { error: profileError } = await supabase.from("partner_profiles").insert({
         user_id: userId,
         ...partnerData,
-      } as any);
+      });
 
       if (profileError) {
         console.error("Partner profile insert error:", profileError);
