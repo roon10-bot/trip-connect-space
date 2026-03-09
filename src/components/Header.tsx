@@ -19,7 +19,7 @@ import {
 
 export const Header = () => {
   const { t } = useTranslation();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { isAdmin } = useAdmin();
@@ -30,15 +30,6 @@ export const Header = () => {
   const isHomePage = location.pathname === "/" || location.pathname === "/splitveckan" || location.pathname === "/segelveckan" || location.pathname === "/studentveckan";
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -47,7 +38,7 @@ export const Header = () => {
   }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     navigate("/");
   };
 
