@@ -188,6 +188,29 @@ serve(async (req: Request) => {
       });
     }
 
+    // Capacity check: count active travelers for this trip
+    const { data: activeBookings } = await supabaseAdmin
+      .from("trip_bookings")
+      .select("travelers")
+      .eq("trip_id", trip_id)
+      .in("status", ["pending", "preliminary", "confirmed"]);
+
+    const currentTravelers = (activeBookings || []).reduce(
+      (sum: number, b: { travelers: number }) => sum + b.travelers, 0
+    );
+
+    if (currentTravelers + travelers > trip.capacity) {
+      const spotsLeft = trip.capacity - currentTravelers;
+      return new Response(JSON.stringify({
+        error: spotsLeft <= 0
+          ? "Resan är fullbokad"
+          : `Bara ${spotsLeft} platser kvar. Du försöker boka ${travelers}.`,
+      }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const primary = travelers_info[0];
 
     // Insert main booking
@@ -234,6 +257,27 @@ serve(async (req: Request) => {
 
     if (travelersError) {
       console.error("Travelers insert failed");
+    }
+
+    // Log booking creation to activity log
+    await supabaseAdmin.from("booking_activity_log").insert({
+      trip_booking_id: booking.id,
+      activity_type: "booking_created",
+      description: `Bokning skapad med ${travelers} resenärer`,
+      metadata: {
+        travelers,
+        total_price,
+        discount_code: discount_code || null,
+        discount_amount: discount_amount || 0,
+      },
+    });
+
+    // Auto-set fullbooked if capacity reached
+    if (currentTravelers + travelers >= trip.capacity) {
+      await supabaseAdmin
+        .from("trips")
+        .update({ is_fullbooked: true })
+        .eq("id", trip_id);
     }
 
     // Send booking confirmation email (fire-and-forget)
