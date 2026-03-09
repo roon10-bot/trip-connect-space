@@ -527,7 +527,7 @@ const BookTrip = () => {
                 />
               )}
               
-              {((needsAccountStep && currentStep === 2) || (!needsAccountStep && currentStep === 1)) && (
+              {bookingStep === 1 && (
                 <BookingStep1
                   key="step1"
                   travelers={travelers}
@@ -542,7 +542,7 @@ const BookTrip = () => {
                 />
               )}
               
-              {((needsAccountStep && currentStep === 3) || (!needsAccountStep && currentStep === 2)) && (
+              {bookingStep === 2 && (
                 <BookingStep2
                   key="step2"
                   travelersInfo={travelersInfo}
@@ -552,7 +552,7 @@ const BookTrip = () => {
                 />
               )}
               
-              {((needsAccountStep && currentStep === 4) || (!needsAccountStep && currentStep === 3)) && (
+              {bookingStep === 3 && (
                 <BookingStep3
                   key="step3"
                   trip={trip}
