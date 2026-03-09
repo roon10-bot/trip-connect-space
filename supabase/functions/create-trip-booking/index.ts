@@ -160,125 +160,61 @@ serve(async (req: Request) => {
       });
     }
 
-    // Verify trip exists and is active
-    const { data: trip, error: tripError } = await supabaseAdmin
-      .from("trips")
-      .select("id, is_active, is_fullbooked, capacity")
-      .eq("id", trip_id)
-      .maybeSingle();
-
-    if (tripError || !trip) {
-      return new Response(JSON.stringify({ error: "Trip not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!trip.is_active) {
-      return new Response(JSON.stringify({ error: "Trip is not active" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (trip.is_fullbooked) {
-      return new Response(JSON.stringify({ error: "Trip is fully booked" }), {
-        status: 409,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Capacity check: count active travelers for this trip
-    const { data: activeBookings } = await supabaseAdmin
-      .from("trip_bookings")
-      .select("travelers")
-      .eq("trip_id", trip_id)
-      .in("status", ["pending", "preliminary", "confirmed"]);
-
-    const currentTravelers = (activeBookings || []).reduce(
-      (sum: number, b: { travelers: number }) => sum + b.travelers, 0
-    );
-
-    if (currentTravelers + travelers > trip.capacity) {
-      const spotsLeft = trip.capacity - currentTravelers;
-      return new Response(JSON.stringify({
-        error: spotsLeft <= 0
-          ? "Resan är fullbokad"
-          : `Bara ${spotsLeft} platser kvar. Du försöker boka ${travelers}.`,
-      }), {
-        status: 409,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const primary = travelers_info[0];
 
-    // Insert main booking
-    const { data: booking, error: bookingError } = await supabaseAdmin
-      .from("trip_bookings")
-      .insert({
-        trip_id,
-        user_id: user.id,
-        first_name: (primary.first_name as string).trim(),
-        last_name: (primary.last_name as string).trim(),
-        email: (primary.email as string).trim().toLowerCase(),
-        birth_date: primary.birth_date,
-        phone: (primary.phone as string).trim(),
-        departure_location: primary.departure_location,
-        travelers,
-        total_price,
-        discount_code: discount_code || null,
-        discount_amount: discount_amount || 0,
-        status: "pending",
-      })
-      .select("id")
-      .single();
+    // Atomic capacity check + booking insert (prevents race conditions)
+    const { data: bookingId, error: atomicError } = await supabaseAdmin.rpc(
+      "create_trip_booking_atomic",
+      {
+        p_trip_id: trip_id,
+        p_user_id: user.id,
+        p_first_name: (primary.first_name as string).trim(),
+        p_last_name: (primary.last_name as string).trim(),
+        p_email: (primary.email as string).trim().toLowerCase(),
+        p_birth_date: primary.birth_date,
+        p_phone: (primary.phone as string).trim(),
+        p_departure_location: primary.departure_location,
+        p_travelers: travelers,
+        p_total_price: total_price,
+        p_discount_code: discount_code || null,
+        p_discount_amount: discount_amount || 0,
+      }
+    );
 
-    if (bookingError) {
-      console.error("Booking insert failed");
+    if (atomicError) {
+      const msg = atomicError.message || "";
+      if (msg.includes("TRIP_NOT_FOUND")) {
+        return new Response(JSON.stringify({ error: "Trip not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (msg.includes("TRIP_NOT_ACTIVE")) {
+        return new Response(JSON.stringify({ error: "Trip is not active" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (msg.includes("TRIP_FULLBOOKED")) {
+        return new Response(JSON.stringify({ error: "Resan är fullbokad" }), {
+          status: 409,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (msg.includes("INSUFFICIENT_CAPACITY:")) {
+        const spots = msg.split("INSUFFICIENT_CAPACITY:")[1]?.trim();
+        return new Response(JSON.stringify({
+          error: `Bara ${spots} platser kvar. Du försöker boka ${travelers}.`,
+        }), {
+          status: 409,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      console.error("Atomic booking failed");
       throw new Error("Failed to create booking");
     }
 
-    // Insert all travelers
-    const travelerRows = travelers_info.map((t: Record<string, unknown>, index: number) => ({
-      trip_booking_id: booking.id,
-      traveler_index: index,
-      first_name: (t.first_name as string).trim(),
-      last_name: (t.last_name as string).trim(),
-      email: (t.email as string).trim().toLowerCase(),
-      birth_date: t.birth_date,
-      phone: (t.phone as string).trim(),
-      departure_location: t.departure_location,
-    }));
-
-    const { error: travelersError } = await supabaseAdmin
-      .from("trip_booking_travelers")
-      .insert(travelerRows);
-
-    if (travelersError) {
-      console.error("Travelers insert failed");
-    }
-
-    // Log booking creation to activity log
-    await supabaseAdmin.from("booking_activity_log").insert({
-      trip_booking_id: booking.id,
-      activity_type: "booking_created",
-      description: `Bokning skapad med ${travelers} resenärer`,
-      metadata: {
-        travelers,
-        total_price,
-        discount_code: discount_code || null,
-        discount_amount: discount_amount || 0,
-      },
-    });
-
-    // Auto-set fullbooked if capacity reached
-    if (currentTravelers + travelers >= trip.capacity) {
-      await supabaseAdmin
-        .from("trips")
-        .update({ is_fullbooked: true })
-        .eq("id", trip_id);
-    }
+    const booking = { id: bookingId };
 
     // Send booking confirmation email (fire-and-forget)
     try {
