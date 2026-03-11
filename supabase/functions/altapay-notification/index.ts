@@ -101,7 +101,7 @@ serve(async (req) => {
           const { data: existing } = await supabase
             .from("payments")
             .select("id")
-            .eq("stripe_payment_intent_id", finalTransactionId)
+            .eq("provider_transaction_id", finalTransactionId)
             .maybeSingle();
 
           if (existing) {
