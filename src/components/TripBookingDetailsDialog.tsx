@@ -364,7 +364,7 @@ export const TripBookingDetailsDialog = ({
               const { data: payment } = await supabase
                 .from("payments")
                 .select("status")
-                .eq("stripe_payment_intent_id", swishPaymentId)
+                .eq("provider_transaction_id", swishPaymentId)
                 .maybeSingle();
 
               if (payment?.status === "completed") {

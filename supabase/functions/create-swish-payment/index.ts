@@ -228,7 +228,8 @@ serve(async (req) => {
         status: "pending",
         payment_type: "swish",
         user_id: userId,
-        stripe_payment_intent_id: swishPaymentId, // Reuse column for Swish payment ID
+        provider_transaction_id: swishPaymentId,
+        payment_provider: "swish",
       });
 
       logStep("Pending payment record created");

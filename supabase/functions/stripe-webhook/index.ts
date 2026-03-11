@@ -113,10 +113,11 @@ serve(async (req) => {
             payment_type: paymentType,
             status: "completed",
             paid_at: new Date().toISOString(),
-            stripe_session_id: session.id,
-            stripe_payment_intent_id: typeof session.payment_intent === 'string' 
+            provider_session_id: session.id,
+            provider_transaction_id: typeof session.payment_intent === 'string' 
               ? session.payment_intent 
               : session.payment_intent?.id || null,
+            payment_provider: "stripe",
           });
 
         if (insertError) {
