@@ -101,7 +101,7 @@ serve(async (req) => {
           const { data: existing } = await supabase
             .from("payments")
             .select("id")
-            .eq("stripe_payment_intent_id", finalTransactionId)
+            .eq("provider_transaction_id", finalTransactionId)
             .maybeSingle();
 
           if (existing) {
@@ -143,7 +143,8 @@ serve(async (req) => {
             payment_type: paymentType,
             status: "completed",
             paid_at: new Date().toISOString(),
-            stripe_payment_intent_id: finalTransactionId || null,
+            provider_transaction_id: finalTransactionId || null,
+            payment_provider: "altapay",
           });
 
         if (insertError) {

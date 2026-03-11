@@ -755,10 +755,11 @@ export type Database = {
           created_at: string
           id: string
           paid_at: string | null
+          payment_provider: string | null
           payment_type: string
+          provider_session_id: string | null
+          provider_transaction_id: string | null
           status: string
-          stripe_payment_intent_id: string | null
-          stripe_session_id: string | null
           trip_booking_id: string
           updated_at: string
           user_id: string | null
@@ -768,10 +769,11 @@ export type Database = {
           created_at?: string
           id?: string
           paid_at?: string | null
+          payment_provider?: string | null
           payment_type: string
+          provider_session_id?: string | null
+          provider_transaction_id?: string | null
           status?: string
-          stripe_payment_intent_id?: string | null
-          stripe_session_id?: string | null
           trip_booking_id: string
           updated_at?: string
           user_id?: string | null
@@ -781,10 +783,11 @@ export type Database = {
           created_at?: string
           id?: string
           paid_at?: string | null
+          payment_provider?: string | null
           payment_type?: string
+          provider_session_id?: string | null
+          provider_transaction_id?: string | null
           status?: string
-          stripe_payment_intent_id?: string | null
-          stripe_session_id?: string | null
           trip_booking_id?: string
           updated_at?: string
           user_id?: string | null

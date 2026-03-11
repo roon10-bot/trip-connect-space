@@ -46,11 +46,10 @@ serve(async (req) => {
     );
 
     // Find the pending payment by Swish payment ID
-    // We stored it in stripe_payment_intent_id column
     const { data: payment, error: findError } = await supabaseClient
       .from("payments")
       .select("*")
-      .eq("stripe_payment_intent_id", swishPaymentId)
+      .eq("provider_transaction_id", swishPaymentId)
       .maybeSingle();
 
     if (findError || !payment) {
