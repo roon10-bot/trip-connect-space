@@ -1,11 +1,10 @@
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { ArrowLeft, Check, Loader2, User, Mail, Phone, MapPin, Calendar, Plane } from "lucide-react";
+import { ArrowLeft, ArrowRight, User, Mail, Phone, MapPin, Calendar, Plane } from "lucide-react";
 import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useTurnstile } from "@/hooks/useTurnstile";
 import type { TravelerInfo } from "@/pages/BookTrip";
 
 interface Trip {
