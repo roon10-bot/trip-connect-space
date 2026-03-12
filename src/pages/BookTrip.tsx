@@ -14,7 +14,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { BookingStepIndicator } from "@/components/booking/BookingStepIndicator";
 import { BookingStepAccount, AccountFormData } from "@/components/booking/BookingStepAccount";
