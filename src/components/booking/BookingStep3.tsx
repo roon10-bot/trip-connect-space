@@ -1,11 +1,10 @@
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { ArrowLeft, Check, Loader2, User, Mail, Phone, MapPin, Calendar, Plane } from "lucide-react";
+import { ArrowLeft, ArrowRight, User, Mail, Phone, MapPin, Calendar, Plane } from "lucide-react";
 import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useTurnstile } from "@/hooks/useTurnstile";
 import type { TravelerInfo } from "@/pages/BookTrip";
 
 interface Trip {
@@ -32,7 +31,7 @@ interface BookingStep3Props {
   totalPrice: number;
   formatTripType: (type: string) => string;
   onPrev: () => void;
-  onSubmit: (turnstileToken: string) => void;
+  onSubmit: () => void;
   isSubmitting: boolean;
 }
 
@@ -47,18 +46,12 @@ export const BookingStep3 = ({
   onSubmit,
   isSubmitting,
 }: BookingStep3Props) => {
-  const { containerRef, token: turnstileToken, error: turnstileError } = useTurnstile();
   const isSplitVeckan = trip.trip_type === "splitveckan";
   const pricePerPerson = isSplitVeckan && travelers > 0
     ? (getSplitPricePerPerson(trip, travelers) || trip.price)
     : trip.price;
   const baseTotal = pricePerPerson * travelers;
   const discountAmount = baseTotal - totalPrice;
-
-  const handleSubmit = () => {
-    if (!turnstileToken) return;
-    onSubmit(turnstileToken);
-  };
 
   return (
     <motion.div
@@ -168,14 +161,6 @@ export const BookingStep3 = ({
         </CardContent>
       </Card>
 
-      {/* Turnstile CAPTCHA */}
-      <div className="flex flex-col items-center gap-2">
-        <div ref={containerRef} />
-        {turnstileError && (
-          <p className="text-sm text-destructive">Säkerhetsverifiering misslyckades. Ladda om sidan och försök igen.</p>
-        )}
-      </div>
-
       {/* Navigation Buttons */}
       <div className="flex gap-4">
         <Button
@@ -189,19 +174,13 @@ export const BookingStep3 = ({
           Tillbaka
         </Button>
         <Button
-          onClick={handleSubmit}
+          onClick={onSubmit}
           size="lg"
           className="flex-1 bg-sunset hover:bg-sunset/90 text-accent-foreground text-lg font-semibold h-14"
-          disabled={isSubmitting || !turnstileToken}
+          disabled={isSubmitting}
         >
-          {isSubmitting ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <>
-              <Check className="w-5 h-5 mr-2" />
-              Boka resan
-            </>
-          )}
+          <ArrowRight className="w-5 h-5 mr-2" />
+          Gå till betalning
         </Button>
       </div>
     </motion.div>

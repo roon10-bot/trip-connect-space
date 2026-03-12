@@ -27,6 +27,7 @@ serve(async (req) => {
     const status = params.get("status") || params.get("payment_status") || "";
     const transactionId = params.get("transaction_id") || "";
     const bookingId = params.get("transaction_info[booking_id]") || "";
+    const pendingBookingId = params.get("transaction_info[pending_booking_id]") || "";
     const bookingType = params.get("transaction_info[booking_type]") || "";
     const userId = params.get("transaction_info[user_id]") || "";
     const paymentType = params.get("transaction_info[payment_type]") || "altapay_payment";
@@ -56,6 +57,7 @@ serve(async (req) => {
       status: finalStatus,
       transactionId: finalTransactionId,
       bookingId,
+      pendingBookingId,
       bookingType,
       userId,
       paymentType,
@@ -89,14 +91,64 @@ serve(async (req) => {
 
     console.log(`${LOG_PREFIX} Mapped status: ${finalStatus} -> ${paymentStatus}`);
 
-    if (paymentStatus && bookingId) {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // ====== PENDING BOOKING FLOW (booking fee during checkout) ======
+    if (pendingBookingId && bookingType === "pending_trip") {
+      console.log(`${LOG_PREFIX} Processing PENDING BOOKING payment`, { pendingBookingId, paymentStatus });
 
       if (paymentStatus === "completed") {
+        // Idempotency: check if already finalized
+        const { data: pending } = await supabase
+          .from("pending_trip_bookings")
+          .select("status")
+          .eq("id", pendingBookingId)
+          .maybeSingle();
+
+        if (pending?.status === "completed") {
+          console.log(`${LOG_PREFIX} Pending booking already completed, skipping`);
+          return new Response("OK", { status: 200, headers: corsHeaders });
+        }
+
+        // Call finalize-trip-booking to create the actual booking
+        const parsedAmount = parseFloat(amount) || 0;
+        const finalizeRes = await fetch(`${supabaseUrl}/functions/v1/finalize-trip-booking`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({
+            pending_booking_id: pendingBookingId,
+            payment_amount: parsedAmount,
+            payment_provider: "altapay",
+            provider_transaction_id: finalTransactionId,
+          }),
+        });
+
+        const finalizeData = await finalizeRes.json();
+        if (finalizeData.error) {
+          console.error(`${LOG_PREFIX} Finalize error:`, finalizeData.error);
+        } else {
+          console.log(`${LOG_PREFIX} Booking finalized:`, finalizeData);
+        }
+      } else if (paymentStatus === "failed") {
+        await supabase
+          .from("pending_trip_bookings")
+          .update({ status: "payment_failed" })
+          .eq("id", pendingBookingId);
+        console.log(`${LOG_PREFIX} Pending booking marked as payment_failed`);
+      }
+
+      return new Response("OK", { status: 200, headers: corsHeaders });
+    }
+
+    // ====== EXISTING BOOKING FLOW (subsequent payments from dashboard) ======
+    if (paymentStatus && bookingId) {
+      if (paymentStatus === "completed") {
         // === IDEMPOTENCY CHECK ===
-        // Check if a payment with this transaction_id already exists
         if (finalTransactionId) {
           const { data: existing } = await supabase
             .from("payments")
@@ -128,8 +180,6 @@ serve(async (req) => {
           const totalPrice = Number(booking.total_price);
           if (parsedAmount > totalPrice) {
             console.error(`${LOG_PREFIX} AMOUNT MISMATCH: callback amount ${parsedAmount} exceeds booking total ${totalPrice} for booking ${bookingId}`);
-            // Still process but log the warning - don't block legitimate payments
-            // due to rounding differences
           }
         }
 
@@ -206,7 +256,7 @@ serve(async (req) => {
       } else {
         console.log(`${LOG_PREFIX} Non-completed status ${paymentStatus} for booking ${bookingId}, no payment record created`);
       }
-    } else {
+    } else if (!pendingBookingId) {
       console.log(`${LOG_PREFIX} Skipping DB update - paymentStatus: ${paymentStatus}, bookingId: ${bookingId}`);
     }
 
