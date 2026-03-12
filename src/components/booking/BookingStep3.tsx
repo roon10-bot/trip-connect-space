@@ -46,18 +46,12 @@ export const BookingStep3 = ({
   onSubmit,
   isSubmitting,
 }: BookingStep3Props) => {
-  const { containerRef, token: turnstileToken, error: turnstileError } = useTurnstile();
   const isSplitVeckan = trip.trip_type === "splitveckan";
   const pricePerPerson = isSplitVeckan && travelers > 0
     ? (getSplitPricePerPerson(trip, travelers) || trip.price)
     : trip.price;
   const baseTotal = pricePerPerson * travelers;
   const discountAmount = baseTotal - totalPrice;
-
-  const handleSubmit = () => {
-    if (!turnstileToken) return;
-    onSubmit(turnstileToken);
-  };
 
   return (
     <motion.div
