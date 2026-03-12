@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 interface BookingStepIndicatorProps {
   currentStep: number;
-  totalSteps?: 3 | 4;
+  totalSteps?: 4 | 5;
 }
 
 const stepsWithAccount = [
@@ -11,16 +11,18 @@ const stepsWithAccount = [
   { number: 2, title: "Antal resenärer" },
   { number: 3, title: "Resenärinformation" },
   { number: 4, title: "Sammanfattning" },
+  { number: 5, title: "Betalning" },
 ];
 
 const stepsWithoutAccount = [
   { number: 1, title: "Antal resenärer" },
   { number: 2, title: "Resenärinformation" },
   { number: 3, title: "Sammanfattning" },
+  { number: 4, title: "Betalning" },
 ];
 
-export const BookingStepIndicator = ({ currentStep, totalSteps = 3 }: BookingStepIndicatorProps) => {
-  const steps = totalSteps === 4 ? stepsWithAccount : stepsWithoutAccount;
+export const BookingStepIndicator = ({ currentStep, totalSteps = 4 }: BookingStepIndicatorProps) => {
+  const steps = totalSteps === 5 ? stepsWithAccount : stepsWithoutAccount;
   
   return (
     <div className="flex items-center justify-center gap-2 md:gap-4">
