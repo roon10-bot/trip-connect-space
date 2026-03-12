@@ -226,6 +226,7 @@ export const BookingTripSummary = ({
             />
           </div>
         </div>
+      </CardContent>
     </Card>
   );
 };
