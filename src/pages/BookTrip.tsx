@@ -547,8 +547,20 @@ const BookTrip = () => {
                   totalPrice={calculateTotalPrice()}
                   formatTripType={formatTripType}
                   onPrev={handlePrevStep}
-                  onSubmit={handleSubmitBooking}
-                  isSubmitting={isSubmitting}
+                  onSubmit={() => handleNextStep()}
+                  isSubmitting={false}
+                />
+              )}
+
+              {bookingStep === 4 && (
+                <BookingStep4Payment
+                  key="step4"
+                  bookingFee={Math.ceil(calculateTotalPrice() * 0.40)}
+                  totalPrice={calculateTotalPrice()}
+                  tripName={trip.name}
+                  onPrev={handlePrevStep}
+                  onPay={handlePayBookingFee}
+                  isProcessing={isSubmitting}
                 />
               )}
             </AnimatePresence>
