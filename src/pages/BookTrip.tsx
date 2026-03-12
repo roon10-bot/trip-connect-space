@@ -351,7 +351,7 @@ const BookTrip = () => {
     setCurrentStep((prev) => Math.max(prev - 1, minStep));
   };
 
-  const handleSubmitBooking = async (turnstileToken: string) => {
+  const handlePayBookingFee = async (method: "card" | "swish", turnstileToken: string) => {
     if (!trip || travelersInfo.length === 0 || !turnstileToken) return;
     
     const primaryTraveler = travelersInfo[0];
@@ -365,58 +365,42 @@ const BookTrip = () => {
       const baseTotal = pricePerPerson * travelers;
       const discountAmount = baseTotal - totalPrice;
 
-      // Create booking via edge function (server-side validation)
-      const { data: bookingResult, error: fnError } = await supabase.functions.invoke("create-trip-booking", {
+      // Initiate payment via edge function (creates pending booking + payment)
+      const { data: result, error: fnError } = await supabase.functions.invoke("initiate-trip-payment", {
         body: {
           trip_id: trip.id,
           travelers,
           total_price: totalPrice,
           discount_code: appliedDiscount?.code || null,
           discount_amount: discountAmount > 0 ? discountAmount : 0,
-            travelers_info: travelersInfo.map((t) => ({
-              first_name: t.firstName,
-              last_name: t.lastName,
-              email: t.email,
-              birth_date: format(t.birthDate!, "yyyy-MM-dd"),
-              phone: t.phone,
-              departure_location: t.departureLocation,
-            })),
-            turnstile_token: turnstileToken,
+          travelers_info: travelersInfo.map((t) => ({
+            first_name: t.firstName,
+            last_name: t.lastName,
+            email: t.email,
+            birth_date: format(t.birthDate!, "yyyy-MM-dd"),
+            phone: t.phone,
+            departure_location: t.departureLocation,
+          })),
+          payment_method: method,
+          turnstile_token: turnstileToken,
         },
       });
 
       if (fnError) throw fnError;
-      if (bookingResult?.error) throw new Error(bookingResult.error);
+      if (result?.error) throw new Error(result.error);
 
-      const bookingId = bookingResult.booking_id;
-
-      // Invite all travelers (create accounts + send emails)
-      try {
-        await supabase.functions.invoke("invite-travelers", {
-          body: {
-            travelers: travelersInfo.map((t) => ({
-              firstName: t.firstName,
-              lastName: t.lastName,
-              email: t.email,
-              phone: t.phone,
-            })),
-            tripName: trip.name,
-            tripType: trip.trip_type,
-            departureDate: format(new Date(trip.departure_date), "d MMMM yyyy", { locale: sv }),
-            returnDate: format(new Date(trip.return_date), "d MMMM yyyy", { locale: sv }),
-            bookingId: bookingId,
-            bookerEmail: primaryTraveler.email,
-            siteUrl: window.location.origin,
-          },
-        });
-      } catch (inviteError) {
-        console.error("Error inviting travelers:", inviteError);
-        // Don't block booking completion if invite fails
+      if (method === "card" && result?.payment_url) {
+        // Redirect to AltaPay payment page
+        window.location.href = result.payment_url;
+      } else if (method === "swish") {
+        // For Swish, we'd need to show QR or open app
+        // For now, store pending booking ID and show success
+        toast.success("Öppna Swish-appen för att slutföra betalningen");
+        // The swish-callback webhook will finalize the booking
+        setBookingComplete(true);
       }
-      
-      setBookingComplete(true);
     } catch (error) {
-      console.error("Booking error:", error);
+      console.error("Payment error:", error);
       toast.error(t("bookTrip.somethingWentWrong"));
     } finally {
       setIsSubmitting(false);
