@@ -86,6 +86,11 @@ const BookTrip = () => {
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
   const [userProfileLoaded, setUserProfileLoaded] = useState(false);
+  const [swishResult, setSwishResult] = useState<{
+    pendingBookingId: string;
+    paymentRequestToken: string;
+    swishPaymentId: string;
+  } | null>(null);
 
   // Pre-fill first traveler with logged-in user's data
   useEffect(() => {
