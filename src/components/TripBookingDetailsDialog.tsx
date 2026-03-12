@@ -646,6 +646,87 @@ export const TripBookingDetailsDialog = ({
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Flight Info */}
+                {flightData && (
+                  <Card className="mt-4">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Plane className="w-5 h-5 text-ocean" />
+                        Flygdetaljer
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {flightData.airline && (
+                        <div className="flex items-center gap-3">
+                          {flightData.airline_logo && (
+                            <img src={flightData.airline_logo} alt={flightData.airline} className="w-8 h-8 object-contain" />
+                          )}
+                          <span className="font-medium">{flightData.airline}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {flightData.passengers} passagerare
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Outbound */}
+                      {flightData.outbound_origin && (
+                        <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase">Utresa</p>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">{flightData.outbound_origin}</p>
+                              {flightData.outbound_departure_time && (
+                                <p className="text-sm text-muted-foreground">
+                                  {format(new Date(flightData.outbound_departure_time), "d MMM HH:mm", { locale: sv })}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-center text-xs text-muted-foreground">
+                              {flightData.outbound_stops === 0 ? "Direkt" : `${flightData.outbound_stops} stopp`}
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium">{flightData.outbound_destination}</p>
+                              {flightData.outbound_arrival_time && (
+                                <p className="text-sm text-muted-foreground">
+                                  {format(new Date(flightData.outbound_arrival_time), "d MMM HH:mm", { locale: sv })}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Return */}
+                      {flightData.return_origin && (
+                        <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase">Hemresa</p>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">{flightData.return_origin}</p>
+                              {flightData.return_departure_time && (
+                                <p className="text-sm text-muted-foreground">
+                                  {format(new Date(flightData.return_departure_time), "d MMM HH:mm", { locale: sv })}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-center text-xs text-muted-foreground">
+                              {flightData.return_stops === 0 ? "Direkt" : `${flightData.return_stops} stopp`}
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium">{flightData.return_destination}</p>
+                              {flightData.return_arrival_time && (
+                                <p className="text-sm text-muted-foreground">
+                                  {format(new Date(flightData.return_arrival_time), "d MMM HH:mm", { locale: sv })}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
               </motion.div>
             </TabsContent>
 
