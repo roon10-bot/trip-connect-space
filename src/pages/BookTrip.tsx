@@ -21,6 +21,7 @@ import { BookingStepAccount, AccountFormData } from "@/components/booking/Bookin
 import { BookingStep1 } from "@/components/booking/BookingStep1";
 import { BookingStep2 } from "@/components/booking/BookingStep2";
 import { BookingStep3 } from "@/components/booking/BookingStep3";
+import { BookingStep4Payment } from "@/components/booking/BookingStep4Payment";
 import { BookingTripSummary } from "@/components/booking/BookingTripSummary";
 import { BookingSuccess } from "@/components/booking/BookingSuccess";
 
