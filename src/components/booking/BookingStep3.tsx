@@ -31,7 +31,7 @@ interface BookingStep3Props {
   totalPrice: number;
   formatTripType: (type: string) => string;
   onPrev: () => void;
-  onSubmit: (turnstileToken: string) => void;
+  onSubmit: () => void;
   isSubmitting: boolean;
 }
 
