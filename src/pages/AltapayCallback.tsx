@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -7,21 +7,29 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
+const VALID_STATUSES = new Set(["ok", "fail", "redirect"]);
+
 const AltapayCallback = () => {
   const { status: pathStatus } = useParams();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const status = pathStatus || searchParams.get("status") || "redirect";
+  const pathTail = location.pathname.split("/").filter(Boolean).pop() ?? null;
+  const fallbackPathStatus = pathTail && VALID_STATUSES.has(pathTail) ? pathTail : null;
+  const resolvedStatus = pathStatus || searchParams.get("status") || fallbackPathStatus || "redirect";
+  const status = resolvedStatus.toLowerCase();
+
   const pendingBookingId = searchParams.get("pending_booking_id");
 
-  const isSuccess = status === "ok" || status === "redirect";
+  const isSuccess = status === "ok";
+  const isRedirect = status === "redirect";
   const isFail = status === "fail";
+  const shouldPollPending = !!pendingBookingId && !isFail;
 
   // Poll pending_trip_bookings for status change (completed = booking finalized)
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
-  const [tripBookingId, setTripBookingId] = useState<string | null>(null);
 
   const { data: pendingBooking } = useQuery({
     queryKey: ["pending-booking-poll", pendingBookingId],
@@ -34,7 +42,7 @@ const AltapayCallback = () => {
         .maybeSingle();
       return data;
     },
-    enabled: !!pendingBookingId && isSuccess && !bookingConfirmed,
+    enabled: shouldPollPending && !bookingConfirmed,
     refetchInterval: 2000,
   });
 
@@ -57,10 +65,10 @@ const AltapayCallback = () => {
       return () => clearTimeout(timer);
     }
 
-    // For success with pending booking, auto-redirect after 15s max (even if not yet confirmed)
+    // For success/redirect with pending booking, auto-redirect after 15s max (even if not yet confirmed)
     const maxTimer = setTimeout(() => navigate("/dashboard"), 15000);
     return () => clearTimeout(maxTimer);
-  }, [isSuccess, isFail, navigate, pendingBookingId]);
+  }, [isSuccess, isFail, navigate, pendingBookingId, t]);
 
   // Once confirmed, redirect after brief delay
   useEffect(() => {
@@ -87,12 +95,16 @@ const AltapayCallback = () => {
               Din bokningsavgift har betalats och din resa är nu bokad. Du omdirigeras till din dashboard...
             </p>
           </>
-        ) : isSuccess ? (
+        ) : isSuccess || isRedirect ? (
           <>
             <Loader2 className="w-16 h-16 text-primary mx-auto animate-spin" />
-            <h1 className="text-2xl font-serif font-semibold">Betalningen lyckades!</h1>
+            <h1 className="text-2xl font-serif font-semibold">
+              {isSuccess ? "Betalningen lyckades!" : "Verifierar betalning..."}
+            </h1>
             <p className="text-muted-foreground">
-              Vänta medan vi slutför din bokning och bokar dina flygbiljetter...
+              {isSuccess
+                ? "Vänta medan vi slutför din bokning och bokar dina flygbiljetter..."
+                : "Vi verifierar betalningen och slutför din bokning..."}
             </p>
           </>
         ) : (

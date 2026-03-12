@@ -56,7 +56,9 @@ serve(async (req) => {
   const pendingBookingId = bodyParams.get("transaction_info[pending_booking_id]") || 
     url.searchParams.get("pending_booking_id") || "";
 
-  const queryParts: string[] = [];
+  const queryParts: string[] = [
+    `status=${encodeURIComponent(callbackType)}`,
+  ];
   if (pendingBookingId) {
     queryParts.push(`pending_booking_id=${encodeURIComponent(pendingBookingId)}`);
   }
