@@ -39,12 +39,76 @@ serve(async (req) => {
       throw new Error("Missing payment ID in callback");
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const supabaseClient = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false },
+    });
 
+    // Check if this is a pending booking payment (payeePaymentReference = pending_booking_id without dashes)
+    const { data: pendingBooking } = await supabaseClient
+      .from("pending_trip_bookings")
+      .select("id, status")
+      .eq("payment_reference", swishPaymentId)
+      .eq("status", "awaiting_payment")
+      .maybeSingle();
+
+    // ====== PENDING BOOKING FLOW ======
+    if (pendingBooking) {
+      logStep("Processing PENDING BOOKING Swish payment", { pendingId: pendingBooking.id });
+
+      if (status === "PAID") {
+        // Delete the placeholder payment record
+        await supabaseClient
+          .from("payments")
+          .delete()
+          .eq("provider_transaction_id", swishPaymentId)
+          .eq("status", "pending");
+
+        // Finalize the booking
+        const finalizeRes = await fetch(`${supabaseUrl}/functions/v1/finalize-trip-booking`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({
+            pending_booking_id: pendingBooking.id,
+            payment_amount: parseFloat(amount) || 0,
+            payment_provider: "swish",
+            provider_transaction_id: swishPaymentId,
+          }),
+        });
+
+        const finalizeData = await finalizeRes.json();
+        if (finalizeData.error) {
+          logStep("Finalize error", { error: finalizeData.error });
+        } else {
+          logStep("Booking finalized via Swish", finalizeData);
+        }
+      } else if (status === "DECLINED" || status === "ERROR") {
+        await supabaseClient
+          .from("pending_trip_bookings")
+          .update({ status: "payment_failed" })
+          .eq("id", pendingBooking.id);
+
+        // Clean up placeholder payment
+        await supabaseClient
+          .from("payments")
+          .delete()
+          .eq("provider_transaction_id", swishPaymentId)
+          .eq("status", "pending");
+
+        logStep("Pending booking payment failed", { status, errorCode, errorMessage });
+      }
+
+      return new Response(JSON.stringify({ received: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // ====== EXISTING BOOKING FLOW (subsequent payments from dashboard) ======
     // Find the pending payment by Swish payment ID
     const { data: payment, error: findError } = await supabaseClient
       .from("payments")
@@ -54,7 +118,6 @@ serve(async (req) => {
 
     if (findError || !payment) {
       logStep("Payment not found", { swishPaymentId, error: findError?.message });
-      // Return 200 to Swish so they don't retry
       return new Response(JSON.stringify({ received: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -107,14 +170,11 @@ serve(async (req) => {
 
         if (bookingData) {
           const trip = bookingData.trips as any;
-          const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-          const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
           await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${supabaseKey}`,
+              Authorization: `Bearer ${supabaseKey}`,
             },
             body: JSON.stringify({
               template_key: "payment_confirmation",
@@ -156,7 +216,6 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
-    // Return 200 anyway to prevent Swish retries
     return new Response(JSON.stringify({ received: true, error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
