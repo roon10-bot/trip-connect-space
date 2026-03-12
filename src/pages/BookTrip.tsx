@@ -86,6 +86,11 @@ const BookTrip = () => {
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
   const [userProfileLoaded, setUserProfileLoaded] = useState(false);
+  const [swishResult, setSwishResult] = useState<{
+    pendingBookingId: string;
+    paymentRequestToken: string;
+    swishPaymentId: string;
+  } | null>(null);
 
   // Pre-fill first traveler with logged-in user's data
   useEffect(() => {
@@ -392,12 +397,13 @@ const BookTrip = () => {
       if (method === "card" && result?.payment_url) {
         // Redirect to AltaPay payment page
         window.location.href = result.payment_url;
-      } else if (method === "swish") {
-        // For Swish, we'd need to show QR or open app
-        // For now, store pending booking ID and show success
-        toast.success("Öppna Swish-appen för att slutföra betalningen");
-        // The swish-callback webhook will finalize the booking
-        setBookingComplete(true);
+      } else if (method === "swish" && result?.pending_booking_id) {
+        // Show Swish QR/polling UI in step 4
+        setSwishResult({
+          pendingBookingId: result.pending_booking_id,
+          paymentRequestToken: result.payment_request_token || "",
+          swishPaymentId: result.swish_payment_id || "",
+        });
       }
     } catch (error) {
       console.error("Payment error:", error);
@@ -561,6 +567,8 @@ const BookTrip = () => {
                   onPrev={handlePrevStep}
                   onPay={handlePayBookingFee}
                   isProcessing={isSubmitting}
+                  swishResult={swishResult}
+                  onBookingConfirmed={() => setBookingComplete(true)}
                 />
               )}
             </AnimatePresence>

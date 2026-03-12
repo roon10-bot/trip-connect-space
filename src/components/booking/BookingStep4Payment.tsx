@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, CreditCard, Loader2, Smartphone, Shield } from "lucide-react";
+import { ArrowLeft, CreditCard, Loader2, Shield, CheckCircle, Smartphone } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+import { Capacitor } from "@capacitor/core";
+import { AppLauncher } from "@capacitor/app-launcher";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTurnstile } from "@/hooks/useTurnstile";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import swishLogo from "@/assets/swish-logo.png";
 
 interface BookingStep4PaymentProps {
@@ -13,6 +19,14 @@ interface BookingStep4PaymentProps {
   onPrev: () => void;
   onPay: (method: "card" | "swish", turnstileToken: string) => void;
   isProcessing: boolean;
+  // Swish result from parent after onPay resolves
+  swishResult?: {
+    pendingBookingId: string;
+    paymentRequestToken: string;
+    swishPaymentId: string;
+  } | null;
+  // Called when booking is confirmed (swish payment completed)
+  onBookingConfirmed?: () => void;
 }
 
 export const BookingStep4Payment = ({
@@ -22,16 +36,179 @@ export const BookingStep4Payment = ({
   onPrev,
   onPay,
   isProcessing,
+  swishResult,
+  onBookingConfirmed,
 }: BookingStep4PaymentProps) => {
   const { containerRef, token: turnstileToken, error: turnstileError } = useTurnstile();
   const [selectedMethod, setSelectedMethod] = useState<"card" | "swish" | null>(null);
+  const isMobile = useIsMobile();
+
+  // Swish polling state
+  const [swishPollStatus, setSwishPollStatus] = useState<"polling" | "paid" | "error" | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const remainingAmount = totalPrice - bookingFee;
+
+  // Clean up polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
+  }, []);
+
+  // Start polling when swishResult arrives
+  useEffect(() => {
+    if (!swishResult) return;
+
+    const isNativePlatform = Capacitor.isNativePlatform();
+    
+    // On native, launch Swish app
+    if (isNativePlatform) {
+      const callbackUrl = encodeURIComponent(window.location.origin + "/dashboard?payment=success");
+      const swishUrl = `swish://paymentrequest?token=${swishResult.paymentRequestToken}&callbackurl=${callbackUrl}`;
+      
+      (async () => {
+        try {
+          const canOpen = await AppLauncher.canOpenUrl({ url: "swish://" });
+          if (canOpen.value) {
+            await AppLauncher.openUrl({ url: swishUrl });
+          }
+        } catch {
+          window.location.assign(swishUrl);
+        }
+      })();
+      return;
+    }
+
+    // Desktop/mobile web: start polling
+    setSwishPollStatus("polling");
+    
+    pollIntervalRef.current = setInterval(async () => {
+      try {
+        const { data } = await supabase
+          .from("pending_trip_bookings")
+          .select("status")
+          .eq("id", swishResult.pendingBookingId)
+          .maybeSingle();
+
+        if (data?.status === "completed") {
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          setSwishPollStatus("paid");
+          toast.success("Betalningen genomförd! Din bokning bekräftas...");
+          setTimeout(() => onBookingConfirmed?.(), 2000);
+        } else if (data?.status === "failed") {
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          setSwishPollStatus("error");
+          toast.error("Betalningen misslyckades. Försök igen.");
+        }
+      } catch (e) {
+        console.warn("Poll error", e);
+      }
+    }, 3000);
+
+    // Timeout after 5 minutes
+    const timeout = setTimeout(() => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+        setSwishPollStatus("error");
+        toast.error("Tidsgränsen gick ut. Kontrollera Swish-appen och försök igen.");
+      }
+    }, 5 * 60 * 1000);
+
+    return () => {
+      clearTimeout(timeout);
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
+  }, [swishResult, onBookingConfirmed]);
 
   const handlePay = () => {
     if (!selectedMethod || !turnstileToken) return;
     onPay(selectedMethod, turnstileToken);
   };
+
+  // If Swish payment is being polled, show Swish status UI
+  if (swishResult && swishPollStatus) {
+    const isDesktop = !isMobile && !Capacitor.isNativePlatform();
+    const qrContent = isDesktop ? `D${swishResult.paymentRequestToken}` : null;
+    const swishUrl = `swish://paymentrequest?token=${swishResult.paymentRequestToken}`;
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="space-y-6"
+      >
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="font-serif text-xl flex items-center gap-2">
+              <img src={swishLogo} alt="Swish" className="w-6 h-6 object-contain" />
+              {swishPollStatus === "paid" ? "Betalning genomförd!" : "Swish-betalning"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {swishPollStatus === "paid" ? (
+              <div className="text-center py-6">
+                <CheckCircle className="w-16 h-16 text-palm mx-auto mb-4" />
+                <p className="text-lg font-semibold">Betalningen bekräftad!</p>
+                <p className="text-muted-foreground mt-2">Din bokning slutförs nu...</p>
+              </div>
+            ) : swishPollStatus === "error" ? (
+              <div className="text-center py-6">
+                <p className="text-destructive font-medium mb-4">Betalningen kunde inte genomföras</p>
+                <Button onClick={() => { setSwishPollStatus(null); }} variant="outline">
+                  Försök igen
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* Desktop: QR code */}
+                {qrContent && (
+                  <div className="flex flex-col items-center gap-4">
+                    <p className="text-muted-foreground text-sm text-center">
+                      Skanna QR-koden med Swish-appen
+                    </p>
+                    <div className="bg-white p-4 rounded-xl shadow-sm">
+                      <QRCodeSVG value={qrContent} size={220} />
+                    </div>
+                    <p className="text-xl font-bold text-primary">
+                      {bookingFee.toLocaleString("sv-SE")} kr
+                    </p>
+                  </div>
+                )}
+
+                {/* Mobile web: Open Swish button */}
+                {!qrContent && (
+                  <div className="flex flex-col items-center gap-4">
+                    <p className="text-muted-foreground text-sm text-center">
+                      Öppna Swish-appen för att slutföra betalningen
+                    </p>
+                    <p className="text-xl font-bold text-primary">
+                      {bookingFee.toLocaleString("sv-SE")} kr
+                    </p>
+                    <Button
+                      size="lg"
+                      className="bg-[#00A7E1] hover:bg-[#0090c4] text-white h-14 px-8"
+                      onClick={() => window.location.assign(swishUrl)}
+                    >
+                      <Smartphone className="w-5 h-5 mr-2" />
+                      Öppna Swish
+                    </Button>
+                  </div>
+                )}
+
+                {/* Polling indicator */}
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Väntar på betalning...</span>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
