@@ -7,23 +7,25 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
  * Static hosting (Cloudflare Pages) returns 405 for POST requests.
  * This edge function accepts the POST and redirects the user's browser
  * to the corresponding frontend SPA page via HTTP 302.
+ * 
+ * Passes through transaction_info parameters (like pending_booking_id)
+ * as query params on the redirect URL.
  */
 
 const FRONTEND_BASE = "https://studentresor.com";
 
 serve(async (req) => {
-  // Accept any method (POST from AltaPay, GET for testing)
   const url = new URL(req.url);
   
-  // Consume request body to avoid resource leaks
+  // Parse body for POST (AltaPay sends form data)
+  let bodyParams = new URLSearchParams();
   if (req.method === "POST") {
-    await req.text();
+    const body = await req.text();
+    bodyParams = new URLSearchParams(body);
   }
 
-  // Determine the callback type from the path: /altapay-callback?type=ok|fail|redirect
   const callbackType = url.searchParams.get("type") || "redirect";
   
-  // Map to frontend route
   let targetPath: string;
   switch (callbackType) {
     case "ok":
@@ -37,7 +39,17 @@ serve(async (req) => {
       break;
   }
 
-  const redirectUrl = `${FRONTEND_BASE}${targetPath}`;
+  // Extract pending_booking_id from transaction_info if present
+  const pendingBookingId = bodyParams.get("transaction_info[pending_booking_id]") || 
+    url.searchParams.get("pending_booking_id") || "";
+
+  const queryParts: string[] = [];
+  if (pendingBookingId) {
+    queryParts.push(`pending_booking_id=${encodeURIComponent(pendingBookingId)}`);
+  }
+
+  const query = queryParts.length > 0 ? `?${queryParts.join("&")}` : "";
+  const redirectUrl = `${FRONTEND_BASE}${targetPath}${query}`;
   console.log(`[ALTAPAY-CALLBACK] ${req.method} type=${callbackType} -> 302 ${redirectUrl}`);
 
   return new Response(null, {
