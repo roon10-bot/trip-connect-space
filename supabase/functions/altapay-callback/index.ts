@@ -19,12 +19,25 @@ serve(async (req) => {
   
   // Parse body for POST (AltaPay sends form data)
   let bodyParams = new URLSearchParams();
+  let rawBody = "";
   if (req.method === "POST") {
-    const body = await req.text();
-    bodyParams = new URLSearchParams(body);
+    rawBody = await req.text();
+    bodyParams = new URLSearchParams(rawBody);
   }
 
   const callbackType = url.searchParams.get("type") || "redirect";
+
+  // Log AltaPay error details for debugging
+  const errorMessage = bodyParams.get("error_message") || bodyParams.get("merchant_error_message") || "";
+  const paymentStatus = bodyParams.get("status") || bodyParams.get("payment_status") || "";
+  const transactionId = bodyParams.get("transaction_id") || "";
+  const cardholderMessage = bodyParams.get("cardholder_message_must_be_shown") || "";
+  console.log(`[ALTAPAY-CALLBACK] Payment details: status=${paymentStatus}, error=${errorMessage}, cardholder_msg=${cardholderMessage}, txn=${transactionId}`);
+  
+  // Log first 1500 chars of body for full debugging
+  if (rawBody) {
+    console.log(`[ALTAPAY-CALLBACK] Raw body (first 1500): ${rawBody.substring(0, 1500)}`);
+  }
   
   let targetPath: string;
   switch (callbackType) {
