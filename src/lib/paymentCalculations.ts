@@ -243,7 +243,7 @@ export function generateAutoPaymentPlan(
     return [
       {
         type: "full_payment",
-        label: "Fullständig betalning",
+        label: "Bokningsavgift (100%)",
         amount: totalPrice,
         date: toDateStr(ensureFuture(hours48)),
       },
