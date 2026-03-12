@@ -155,6 +155,21 @@ export const TripBookingDetailsDialog = ({
     enabled: !!booking?.id && open,
   });
 
+  // Fetch flight data for this booking
+  const { data: flightData } = useQuery({
+    queryKey: ["booking-flight-data", booking?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trip_booking_flights")
+        .select("*")
+        .eq("trip_booking_id", booking!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!booking?.id && open,
+  });
+
   const totalPaid = useMemo(() => {
     if (!completedPayments) return 0;
     return completedPayments.reduce((sum, p) => sum + Number(p.amount), 0);
