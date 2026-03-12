@@ -161,14 +161,6 @@ export const BookingStep3 = ({
         </CardContent>
       </Card>
 
-      {/* Turnstile CAPTCHA */}
-      <div className="flex flex-col items-center gap-2">
-        <div ref={containerRef} />
-        {turnstileError && (
-          <p className="text-sm text-destructive">Säkerhetsverifiering misslyckades. Ladda om sidan och försök igen.</p>
-        )}
-      </div>
-
       {/* Navigation Buttons */}
       <div className="flex gap-4">
         <Button
@@ -182,19 +174,13 @@ export const BookingStep3 = ({
           Tillbaka
         </Button>
         <Button
-          onClick={handleSubmit}
+          onClick={onSubmit}
           size="lg"
           className="flex-1 bg-sunset hover:bg-sunset/90 text-accent-foreground text-lg font-semibold h-14"
-          disabled={isSubmitting || !turnstileToken}
+          disabled={isSubmitting}
         >
-          {isSubmitting ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <>
-              <Check className="w-5 h-5 mr-2" />
-              Boka resan
-            </>
-          )}
+          <ArrowRight className="w-5 h-5 mr-2" />
+          Gå till betalning
         </Button>
       </div>
     </motion.div>
