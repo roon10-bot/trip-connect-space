@@ -191,31 +191,31 @@ export function generateAutoPaymentPlan(
   day30Before.setDate(day30Before.getDate() - 30);
 
   if (daysUntilDeparture > 120) {
-    // Scenario 1: 30% / 35% / 35%
-    const first = Math.ceil(totalPrice * 0.30);
-    const second = Math.ceil(totalPrice * 0.35);
+    // Scenario 1: 40% / 30% / 30%
+    const first = Math.ceil(totalPrice * 0.40);
+    const second = Math.ceil(totalPrice * 0.30);
     const final_ = totalPrice - first - second;
     return [
       {
         type: "first_payment",
-        label: "Delbetalning 1 (30%)",
+        label: "Bokningsavgift (40%)",
         amount: first,
         date: toDateStr(ensureFuture(hours48)),
-        percentLabel: "30%",
+        percentLabel: "40%",
       },
       {
         type: "second_payment",
-        label: "Delbetalning 2 (35%)",
+        label: "Delbetalning 2 (30%)",
         amount: second,
         date: toDateStr(ensureFuture(day90Before)),
-        percentLabel: "35%",
+        percentLabel: "30%",
       },
       {
         type: "final_payment",
-        label: "Slutbetalning (35%)",
+        label: "Slutbetalning (30%)",
         amount: final_,
         date: toDateStr(ensureFuture(day30Before)),
-        percentLabel: "35%",
+        percentLabel: "30%",
       },
     ];
   } else if (daysUntilDeparture >= 61) {
@@ -225,7 +225,7 @@ export function generateAutoPaymentPlan(
     return [
       {
         type: "first_payment",
-        label: "Delbetalning 1 (50%)",
+        label: "Bokningsavgift (50%)",
         amount: first,
         date: toDateStr(ensureFuture(hours48)),
         percentLabel: "50%",
@@ -243,7 +243,7 @@ export function generateAutoPaymentPlan(
     return [
       {
         type: "full_payment",
-        label: "Fullständig betalning",
+        label: "Bokningsavgift (100%)",
         amount: totalPrice,
         date: toDateStr(ensureFuture(hours48)),
       },

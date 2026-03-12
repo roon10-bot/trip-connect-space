@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AccommodationInfoDialog } from "@/components/AccommodationInfoDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { BookingPaymentPlan } from "@/components/booking/BookingPaymentPlan";
 import type { FlightOffer } from "@/hooks/useFlightSearch";
 
 interface Trip {
@@ -215,6 +216,14 @@ export const BookingTripSummary = ({
                 </span>
               )}
             </div>
+          </div>
+
+          {/* Payment Plan */}
+          <div className="border-t border-border pt-3">
+            <BookingPaymentPlan
+              totalPrice={totalPrice}
+              departureDate={trip.departure_date}
+            />
           </div>
         </div>
       </CardContent>
