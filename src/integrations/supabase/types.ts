@@ -802,6 +802,71 @@ export type Database = {
           },
         ]
       }
+      pending_trip_bookings: {
+        Row: {
+          booking_data: Json
+          booking_fee_amount: number
+          created_at: string
+          discount_amount: number | null
+          discount_code: string | null
+          duffel_offer_data: Json | null
+          duffel_offer_id: string | null
+          expires_at: string
+          flight_price_sek: number | null
+          id: string
+          payment_method: string | null
+          payment_reference: string | null
+          status: string
+          total_price: number
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          booking_data: Json
+          booking_fee_amount: number
+          created_at?: string
+          discount_amount?: number | null
+          discount_code?: string | null
+          duffel_offer_data?: Json | null
+          duffel_offer_id?: string | null
+          expires_at?: string
+          flight_price_sek?: number | null
+          id?: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string
+          total_price: number
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          booking_data?: Json
+          booking_fee_amount?: number
+          created_at?: string
+          discount_amount?: number | null
+          discount_code?: string | null
+          duffel_offer_data?: Json | null
+          duffel_offer_id?: string | null
+          expires_at?: string
+          flight_price_sek?: number | null
+          id?: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string
+          total_price?: number
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_trip_bookings_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -896,6 +961,86 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "trip_booking_documents_trip_booking_id_fkey"
+            columns: ["trip_booking_id"]
+            isOneToOne: false
+            referencedRelation: "trip_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_booking_flights: {
+        Row: {
+          airline: string | null
+          airline_logo: string | null
+          created_at: string
+          duffel_offer_id: string | null
+          duffel_order_id: string | null
+          flight_currency_original: string | null
+          flight_price_original: number | null
+          flight_price_sek: number
+          id: string
+          outbound_arrival_time: string | null
+          outbound_departure_time: string | null
+          outbound_destination: string | null
+          outbound_origin: string | null
+          outbound_stops: number | null
+          passengers: number
+          return_arrival_time: string | null
+          return_departure_time: string | null
+          return_destination: string | null
+          return_origin: string | null
+          return_stops: number | null
+          trip_booking_id: string
+        }
+        Insert: {
+          airline?: string | null
+          airline_logo?: string | null
+          created_at?: string
+          duffel_offer_id?: string | null
+          duffel_order_id?: string | null
+          flight_currency_original?: string | null
+          flight_price_original?: number | null
+          flight_price_sek?: number
+          id?: string
+          outbound_arrival_time?: string | null
+          outbound_departure_time?: string | null
+          outbound_destination?: string | null
+          outbound_origin?: string | null
+          outbound_stops?: number | null
+          passengers?: number
+          return_arrival_time?: string | null
+          return_departure_time?: string | null
+          return_destination?: string | null
+          return_origin?: string | null
+          return_stops?: number | null
+          trip_booking_id: string
+        }
+        Update: {
+          airline?: string | null
+          airline_logo?: string | null
+          created_at?: string
+          duffel_offer_id?: string | null
+          duffel_order_id?: string | null
+          flight_currency_original?: string | null
+          flight_price_original?: number | null
+          flight_price_sek?: number
+          id?: string
+          outbound_arrival_time?: string | null
+          outbound_departure_time?: string | null
+          outbound_destination?: string | null
+          outbound_origin?: string | null
+          outbound_stops?: number | null
+          passengers?: number
+          return_arrival_time?: string | null
+          return_departure_time?: string | null
+          return_destination?: string | null
+          return_origin?: string | null
+          return_stops?: number | null
+          trip_booking_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_booking_flights_trip_booking_id_fkey"
             columns: ["trip_booking_id"]
             isOneToOne: false
             referencedRelation: "trip_bookings"
