@@ -46,6 +46,7 @@ import {
   Cake,
   Tag,
   Wallet,
+  Plane,
 } from "lucide-react";
 import { toast } from "sonner";
 import { calculatePaymentAmount, resolvePaymentPlan, type PaymentValueType } from "@/lib/paymentCalculations";
