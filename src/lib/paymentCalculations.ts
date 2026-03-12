@@ -225,7 +225,7 @@ export function generateAutoPaymentPlan(
     return [
       {
         type: "first_payment",
-        label: "Delbetalning 1 (50%)",
+        label: "Bokningsavgift (50%)",
         amount: first,
         date: toDateStr(ensureFuture(hours48)),
         percentLabel: "50%",
