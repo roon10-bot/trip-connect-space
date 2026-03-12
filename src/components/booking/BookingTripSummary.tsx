@@ -217,8 +217,15 @@ export const BookingTripSummary = ({
               )}
             </div>
           </div>
+
+          {/* Payment Plan */}
+          <div className="border-t border-border pt-3">
+            <BookingPaymentPlan
+              totalPrice={totalPrice}
+              departureDate={trip.departure_date}
+            />
+          </div>
         </div>
-      </CardContent>
     </Card>
   );
 };
