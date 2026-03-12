@@ -567,6 +567,8 @@ const BookTrip = () => {
                   onPrev={handlePrevStep}
                   onPay={handlePayBookingFee}
                   isProcessing={isSubmitting}
+                  swishResult={swishResult}
+                  onBookingConfirmed={() => setBookingComplete(true)}
                 />
               )}
             </AnimatePresence>
