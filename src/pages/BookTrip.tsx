@@ -66,7 +66,7 @@ const BookTrip = () => {
   }, [authLoading, user, startedWithoutAccount]);
   
   const needsAccountStep = startedWithoutAccount === true;
-  const totalSteps = needsAccountStep ? 4 : 3;
+  const totalSteps = needsAccountStep ? 5 : 4;
   
   const [currentStep, setCurrentStep] = useState(1);
 
