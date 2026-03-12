@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AccommodationInfoDialog } from "@/components/AccommodationInfoDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { BookingPaymentPlan } from "@/components/booking/BookingPaymentPlan";
 import type { FlightOffer } from "@/hooks/useFlightSearch";
 
 interface Trip {
