@@ -294,6 +294,7 @@ async function main() {
   console.log("🚀 Storage Migration Script");
   console.log(`   From: ${OLD_SUPABASE_URL}`);
   console.log(`   To:   ${cleanUrl}`);
+  console.log(`   Key source: ${keySource}`);
   console.log(`   Auth: ${isApiKeyFormat ? "sb_* API key" : "legacy JWT service_role"}`);
 
   await ensureBuckets();
