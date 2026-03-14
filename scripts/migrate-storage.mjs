@@ -210,17 +210,32 @@ function getContentType(filename) {
 async function ensureBuckets() {
   console.log("\n🪣 Creating buckets...\n");
   for (const config of BUCKET_CONFIGS) {
-    const { data, error } = await newSupabase.storage.createBucket(config.name, {
-      public: config.public,
-    });
-    if (error) {
-      if (error.message?.includes("already exists")) {
+    try {
+      const response = await fetch(`${targetStorageBase}/bucket`, {
+        method: "POST",
+        headers: getTargetAuthHeaders({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({
+          id: config.name,
+          name: config.name,
+          public: config.public,
+        }),
+      });
+
+      if (response.ok) {
+        console.log(`  ✅ ${config.name} (created, public: ${config.public})`);
+        continue;
+      }
+
+      const text = await response.text();
+      if (response.status === 409 || /already exists/i.test(text)) {
         console.log(`  ✅ ${config.name} (already exists)`);
       } else {
-        console.error(`  ❌ ${config.name}: ${error.message}`);
+        console.error(`  ❌ ${config.name}: ${text || response.statusText}`);
       }
-    } else {
-      console.log(`  ✅ ${config.name} (created, public: ${config.public})`);
+    } catch (error) {
+      console.error(`  ❌ ${config.name}: ${error.message}`);
     }
   }
 }
