@@ -34,6 +34,26 @@ interface EmailTemplate {
 }
 
 const PLACEHOLDER_INFO: Record<string, string[]> = {
+  auth_signup: [
+    "{{email}} – Användarens e-postadress",
+    "{{confirmation_url}} – Bekräftelselänk (hanteras automatiskt via knappen)",
+  ],
+  auth_recovery: [
+    "{{email}} – Användarens e-postadress",
+    "{{confirmation_url}} – Återställningslänk (hanteras automatiskt via knappen)",
+  ],
+  auth_magiclink: [
+    "{{email}} – Användarens e-postadress",
+    "{{confirmation_url}} – Inloggningslänk (hanteras automatiskt via knappen)",
+  ],
+  auth_invite: [
+    "{{email}} – Användarens e-postadress",
+    "{{confirmation_url}} – Inbjudningslänk (hanteras automatiskt via knappen)",
+  ],
+  auth_email_change: [
+    "{{email}} – Användarens e-postadress",
+    "{{confirmation_url}} – Bekräftelselänk (hanteras automatiskt via knappen)",
+  ],
   invite_traveler: [
     "{{first_name}} – Resenärens förnamn",
     "{{trip_name}} – Resans namn",
