@@ -49,6 +49,8 @@ const Auth = () => {
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const [isSettingPassword, setIsSettingPassword] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
   
   const [newPassword, setNewPassword] = useState("");
   const { signIn, signUp, user } = useAuth();
