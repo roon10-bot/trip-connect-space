@@ -291,6 +291,7 @@ async function migrateFile(bucket, filePath) {
 
     if (!uploadResponse.ok) {
       const text = await uploadResponse.text();
+      maybePrintJwsHint(text);
       console.error(`  ❌ Upload failed: ${bucket}/${filePath}: ${text || uploadResponse.statusText}`);
       return false;
     }
