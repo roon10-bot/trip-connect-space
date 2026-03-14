@@ -94,19 +94,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
     });
 
-    if (!error && data.user) {
-      // Create profile with error handling
-      const { error: profileError } = await supabase.from("profiles").insert({
-        user_id: data.user.id,
-        full_name: fullName,
-      });
-
-      if (profileError) {
-        console.error("Failed to create profile:", profileError);
-        return { data, error: new Error("Kontot skapades men profilen kunde inte sparas. Kontakta support.") as any };
-      }
-    }
-
     return { data, error };
   }, []);
 
