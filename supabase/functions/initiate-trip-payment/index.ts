@@ -34,15 +34,15 @@ serve(async (req) => {
       throw new Error("No authorization header provided");
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } =
-      await supabaseClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims)
-      throw new Error(`Authentication error: ${claimsError?.message || "Invalid token"}`);
+    const { data: userData, error: userError } =
+      await supabaseClient.auth.getUser(token);
+    if (userError) throw new Error(`Authentication error: ${userError.message}`);
 
-    const userId = claimsData.claims.sub as string;
-    const userEmail = claimsData.claims.email as string;
-    if (!userId || !userEmail)
+    const user = userData.user;
+    if (!user?.id || !user?.email)
       throw new Error("User not authenticated or email not available");
+    const userId = user.id;
+    const userEmail = user.email;
     logStep("User authenticated", { userId, email: userEmail });
 
     // Parse request
@@ -381,16 +381,8 @@ serve(async (req) => {
         const swishPaymentId = locationHeader.split("/").pop() || instructionUUID;
         const paymentRequestToken = paymentRequestTokenHeader || swishPaymentId;
 
-        // Create pending payment record linked to pending booking
-        await supabaseClient.from("payments").insert({
-          trip_booking_id: "00000000-0000-0000-0000-000000000000", // Placeholder - will be updated after booking created
-          amount: bookingFeeAmount,
-          status: "pending",
-          payment_type: "booking_fee",
-          user_id: userId,
-          provider_transaction_id: swishPaymentId,
-          payment_provider: "swish",
-        });
+        // Note: Payment record will be created by swish-callback/finalize-trip-booking
+        // after the booking is confirmed, since we don't have a trip_booking_id yet
 
         // Update pending booking with payment reference
         await supabaseClient
