@@ -27,7 +27,22 @@ if (!NEW_SUPABASE_URL || !NEW_SUPABASE_KEY) {
   process.exit(1);
 }
 
-const newSupabase = createClient(NEW_SUPABASE_URL, NEW_SUPABASE_KEY);
+// Trim whitespace/newlines that shells sometimes inject
+const cleanKey = NEW_SUPABASE_KEY.trim();
+
+// Validate JWT structure
+const jwtParts = cleanKey.split(".");
+if (jwtParts.length !== 3) {
+  console.error(`❌ Service role key is malformed (expected 3 JWT parts, got ${jwtParts.length})`);
+  console.error(`   Key length: ${cleanKey.length} chars`);
+  console.error(`   Key starts with: ${cleanKey.substring(0, 20)}...`);
+  console.error(`   Key ends with: ...${cleanKey.substring(cleanKey.length - 10)}`);
+  console.error("\n   Make sure to wrap the key in single quotes:");
+  console.error("   export NEW_SUPABASE_SERVICE_ROLE_KEY='eyJhbG...'");
+  process.exit(1);
+}
+
+const newSupabase = createClient(NEW_SUPABASE_URL.trim(), cleanKey);
 
 // Public buckets with direct download URLs
 const PUBLIC_FILES = {
