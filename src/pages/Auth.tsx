@@ -574,16 +574,18 @@ const Auth = () => {
             </>
           )}
 
-          <div className="mt-6 text-center">
-            <button
-              onClick={toggleMode}
-              className="text-primary hover:underline font-medium"
-            >
-              {isLogin
-                ? t("auth.noAccount")
-                : t("auth.hasAccount")}
-            </button>
-          </div>
+          {!showEmailVerification && (
+            <div className="mt-6 text-center">
+              <button
+                onClick={toggleMode}
+                className="text-primary hover:underline font-medium"
+              >
+                {isLogin
+                  ? t("auth.noAccount")
+                  : t("auth.hasAccount")}
+              </button>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
