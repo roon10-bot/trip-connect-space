@@ -18,6 +18,7 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { BookingStepIndicator } from "@/components/booking/BookingStepIndicator";
 import { BookingStepAccount, AccountFormData } from "@/components/booking/BookingStepAccount";
+import { BookingEmailVerification } from "@/components/booking/BookingEmailVerification";
 import { BookingStep1 } from "@/components/booking/BookingStep1";
 import { BookingStep2 } from "@/components/booking/BookingStep2";
 import { BookingStep3 } from "@/components/booking/BookingStep3";
@@ -85,6 +86,8 @@ const BookTrip = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [accountEmail, setAccountEmail] = useState("");
   const [userProfileLoaded, setUserProfileLoaded] = useState(false);
   const [swishResult, setSwishResult] = useState<{
     pendingBookingId: string;
@@ -335,8 +338,8 @@ const BookTrip = () => {
         return updated;
       });
       
-      toast.success(t("bookTrip.accountCreated"));
-      setCurrentStep(2);
+      setAccountEmail(data.email);
+      setShowEmailVerification(true);
     } catch (error) {
       toast.error(t("bookTrip.somethingWentWrong"));
     } finally {
@@ -510,11 +513,22 @@ const BookTrip = () => {
         <div className="grid lg:grid-cols-3 gap-8 mt-8">
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
-              {needsAccountStep && currentStep === 1 && (
+              {needsAccountStep && currentStep === 1 && !showEmailVerification && (
                 <BookingStepAccount
                   key="step-account"
                   onNext={handleAccountCreation}
                   isLoading={isCreatingAccount}
+                />
+              )}
+
+              {showEmailVerification && currentStep === 1 && (
+                <BookingEmailVerification
+                  key="step-email-verify"
+                  email={accountEmail}
+                  onContinue={() => {
+                    setShowEmailVerification(false);
+                    setCurrentStep(2);
+                  }}
                 />
               )}
               
