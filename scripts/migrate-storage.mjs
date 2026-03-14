@@ -20,9 +20,19 @@
 const OLD_SUPABASE_URL = "https://toxucscjfmaoayircihp.supabase.co";
 
 const NEW_SUPABASE_URL = process.env.NEW_SUPABASE_URL;
-// Support both names to avoid shell/env confusion
-const NEW_SUPABASE_KEY =
-  process.env.NEW_SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEW_SUPABASE_KEY;
+
+// Prefer NEW_SUPABASE_KEY if both are set (common shell gotcha)
+const keyFromAlias = process.env.NEW_SUPABASE_KEY;
+const keyFromLegacy = process.env.NEW_SUPABASE_SERVICE_ROLE_KEY;
+const keySource = keyFromAlias
+  ? "NEW_SUPABASE_KEY"
+  : "NEW_SUPABASE_SERVICE_ROLE_KEY";
+const NEW_SUPABASE_KEY = keyFromAlias ?? keyFromLegacy;
+
+if (keyFromAlias && keyFromLegacy && keyFromAlias !== keyFromLegacy) {
+  console.warn("⚠️ Both NEW_SUPABASE_KEY and NEW_SUPABASE_SERVICE_ROLE_KEY are set with different values.");
+  console.warn("   Using NEW_SUPABASE_KEY and ignoring NEW_SUPABASE_SERVICE_ROLE_KEY.");
+}
 
 if (!NEW_SUPABASE_URL || !NEW_SUPABASE_KEY) {
   console.error("❌ Missing environment variables:");
