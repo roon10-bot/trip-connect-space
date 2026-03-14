@@ -335,6 +335,7 @@ async function main() {
   console.log(`   Key source: ${keySource}`);
   console.log(`   Auth: ${isApiKeyFormat ? "sb_* API key" : "legacy JWT service_role"}`);
 
+  await preflightAuth();
   await ensureBuckets();
 
   let total = 0;
