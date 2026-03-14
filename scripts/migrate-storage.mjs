@@ -6,13 +6,12 @@
  * and uploads them to your new Supabase instance.
  * 
  * Usage:
- *   1. Install dependency:  npm install @supabase/supabase-js
- *   2. Set environment variables:
+ *   1. Set environment variables:
  *      export NEW_SUPABASE_URL="https://your-project.supabase.co"
  *      export NEW_SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
  *      # or alias supported by script:
  *      export NEW_SUPABASE_KEY="your-service-role-key"
- *   3. Run:  node scripts/migrate-storage.mjs
+ *   2. Run:  node scripts/migrate-storage.mjs
  */
 
 // No SDK client needed: this script uses direct Storage REST calls for maximum key compatibility.
