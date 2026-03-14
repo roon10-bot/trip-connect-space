@@ -50,7 +50,7 @@ if (!isApiKeyFormat && !isJwtFormat) {
 if (isJwtFormat) {
   try {
     const payload = JSON.parse(
-      Buffer.from(cleanKey.split(".")[1], "base64url").toString("utf8")
+      
     );
     const refFromUrl = cleanUrl
       .replace(/^https?:\/\//, "")
