@@ -21,9 +21,13 @@ import { createClient } from "@supabase/supabase-js";
 const OLD_SUPABASE_URL = "https://toxucscjfmaoayircihp.supabase.co";
 
 const NEW_SUPABASE_URL = process.env.NEW_SUPABASE_URL;
-const NEW_SUPABASE_KEY =
-  process.env.NEW_SUPABASE_SERVICE_ROLE_KEY ??
-  process.env.NEW_SUPABASE_KEY;
+
+const keyFromServiceRole = process.env.NEW_SUPABASE_SERVICE_ROLE_KEY;
+const keyFromAlias = process.env.NEW_SUPABASE_KEY;
+const keySource = keyFromServiceRole
+  ? "NEW_SUPABASE_SERVICE_ROLE_KEY"
+  : "NEW_SUPABASE_KEY";
+const NEW_SUPABASE_KEY = keyFromServiceRole ?? keyFromAlias;
 
 if (!NEW_SUPABASE_URL || !NEW_SUPABASE_KEY) {
   console.error("❌ Missing environment variables:");
@@ -37,6 +41,7 @@ const cleanKey = NEW_SUPABASE_KEY
   .replace(/[\u200B-\u200D\uFEFF]/g, "")
   .trim()
   .replace(/^['"]+|['"]+$/g, "")
+  .replace(/^Bearer\s+/i, "")
   .replace(/\s+/g, "");
 
 const cleanUrl = NEW_SUPABASE_URL.trim().replace(/\/+$/, "");
@@ -44,8 +49,15 @@ const cleanUrl = NEW_SUPABASE_URL.trim().replace(/\/+$/, "");
 const isSecretKey = cleanKey.startsWith("sb_secret_");
 const isJwtKey = cleanKey.split(".").length === 3;
 
+if (cleanKey.includes("...") || (cleanKey.match(/sb_secret_/g) || []).length > 1) {
+  console.error("❌ The key looks masked or accidentally concatenated.");
+  console.error("   Copy the full key using the copy button (no '...' allowed).");
+  process.exit(1);
+}
+
 if (!isSecretKey && !isJwtKey) {
   console.error("❌ Key format not recognized (expected sb_secret_* or JWT eyJ...)");
+  console.error(`   Key source: ${keySource}`);
   console.error(`   Length: ${cleanKey.length}`);
   process.exit(1);
 }
@@ -56,16 +68,36 @@ if (cleanKey.startsWith("sb_publishable_")) {
   process.exit(1);
 }
 
+if (isSecretKey && !/^sb_secret_[A-Za-z0-9_-]+$/.test(cleanKey)) {
+  console.error("❌ Invalid sb_secret_* format. Re-copy the key exactly as shown.");
+  process.exit(1);
+}
+
 console.log("🚀 Storage Migration Script");
 console.log(`   From: ${OLD_SUPABASE_URL}`);
 console.log(`   To:   ${cleanUrl}`);
+console.log(`   Key source: ${keySource}`);
 console.log(`   Key:  ${isSecretKey ? "sb_secret_*" : "legacy JWT service_role"}`);
 
-// ─── Supabase JS client ───────────────────────────────────────────────
-// The SDK handles auth headers correctly for both key types through
-// the Supabase API Gateway, which mints short-lived JWTs internally.
+// For sb_secret_* on some stacks, remove Authorization bearer and keep apikey only.
+const compatFetch = async (url, options = {}) => {
+  if (!isSecretKey) return fetch(url, options);
+
+  const headers = new Headers(options.headers || {});
+  headers.set("apikey", cleanKey);
+
+  const authHeader = headers.get("Authorization") || headers.get("authorization");
+  if (authHeader?.startsWith("Bearer sb_")) {
+    headers.delete("Authorization");
+    headers.delete("authorization");
+  }
+
+  return fetch(url, { ...options, headers });
+};
+
 const newSupabase = createClient(cleanUrl, cleanKey, {
   auth: { persistSession: false, autoRefreshToken: false },
+  global: { fetch: compatFetch },
 });
 
 // ─── File manifest ────────────────────────────────────────────────────
@@ -158,10 +190,11 @@ async function preflightAuth() {
   if (error) {
     console.error(`❌ Auth failed: ${error.message}`);
 
-    if (/JWS Protected Header/i.test(error.message)) {
-      console.error("\n💡 Your project uses ES256 (ECC P-256) JWT signing.");
-      console.error("   Use the sb_secret_* key from Project Settings → API Keys.");
-      console.error("   Legacy JWT service_role keys won't work with ES256 projects.");
+    if (/JWS Protected Header|Invalid Compact JWS/i.test(error.message)) {
+      console.error("\n💡 Likely key issue (masked/invalid/not exported). Use a full sb_secret_* key.");
+      console.error("   Example:");
+      console.error("   export NEW_SUPABASE_SERVICE_ROLE_KEY='sb_secret_xxx' && node scripts/migrate-storage.mjs");
+      console.error("   (Do not paste keys containing '...' and do not concatenate two keys.)");
     }
 
     process.exit(1);
