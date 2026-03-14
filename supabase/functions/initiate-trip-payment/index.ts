@@ -72,11 +72,12 @@ serve(async (req) => {
       if (turnstileSecret) {
         const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ secret: turnstileSecret, response: turnstile_token }),
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ secret: turnstileSecret, response: turnstile_token }),
         });
         const verifyData = await verifyRes.json();
         if (!verifyData.success) {
+          logStep("Turnstile verification failed", { errorCodes: verifyData["error-codes"] || [] });
           throw new Error("Turnstile verification failed");
         }
         logStep("Turnstile verified");
