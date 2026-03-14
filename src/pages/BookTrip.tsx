@@ -18,6 +18,7 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { BookingStepIndicator } from "@/components/booking/BookingStepIndicator";
 import { BookingStepAccount, AccountFormData } from "@/components/booking/BookingStepAccount";
+import { BookingEmailVerification } from "@/components/booking/BookingEmailVerification";
 import { BookingStep1 } from "@/components/booking/BookingStep1";
 import { BookingStep2 } from "@/components/booking/BookingStep2";
 import { BookingStep3 } from "@/components/booking/BookingStep3";
