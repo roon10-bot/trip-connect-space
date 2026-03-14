@@ -15,7 +15,7 @@
  *   3. Run:  node scripts/migrate-storage.mjs
  */
 
-import { createClient } from "@supabase/supabase-js";
+// No SDK client needed: this script uses direct Storage REST calls for maximum key compatibility.
 
 const OLD_SUPABASE_URL = "https://toxucscjfmaoayircihp.supabase.co";
 
@@ -72,23 +72,24 @@ if (isJwtFormat) {
   }
 }
 
-// supabase-js sends Authorization: Bearer <apikey>; that breaks for sb_* keys on some Storage setups
-const fetchWithoutBearerForApiKeys = async (url, options = {}) => {
-  if (!isApiKeyFormat) return fetch(url, options);
+const targetStorageBase = `${cleanUrl}/storage/v1`;
 
-  const headers = new Headers(options.headers || {});
-  const authHeader = headers.get("Authorization") || headers.get("authorization");
-  if (authHeader === `Bearer ${cleanKey}`) {
-    headers.delete("Authorization");
-    headers.delete("authorization");
+function getTargetAuthHeaders(extraHeaders = {}) {
+  // For sb_* keys: use apikey only (Bearer causes JWT parsing errors on some stacks)
+  if (isApiKeyFormat) {
+    return {
+      apikey: cleanKey,
+      ...extraHeaders,
+    };
   }
 
-  return fetch(url, { ...options, headers });
-};
-
-const newSupabase = createClient(cleanUrl, cleanKey, {
-  global: { fetch: fetchWithoutBearerForApiKeys },
-});
+  // For legacy JWT service_role keys: include both
+  return {
+    apikey: cleanKey,
+    Authorization: `Bearer ${cleanKey}`,
+    ...extraHeaders,
+  };
+}
 
 // Public buckets with direct download URLs
 const PUBLIC_FILES = {
@@ -195,44 +196,66 @@ function getContentType(filename) {
 async function ensureBuckets() {
   console.log("\n🪣 Creating buckets...\n");
   for (const config of BUCKET_CONFIGS) {
-    const { data, error } = await newSupabase.storage.createBucket(config.name, {
-      public: config.public,
-    });
-    if (error) {
-      if (error.message?.includes("already exists")) {
+    try {
+      const response = await fetch(`${targetStorageBase}/bucket`, {
+        method: "POST",
+        headers: getTargetAuthHeaders({
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({
+          id: config.name,
+          name: config.name,
+          public: config.public,
+        }),
+      });
+
+      if (response.ok) {
+        console.log(`  ✅ ${config.name} (created, public: ${config.public})`);
+        continue;
+      }
+
+      const text = await response.text();
+      if (response.status === 409 || /already exists/i.test(text)) {
         console.log(`  ✅ ${config.name} (already exists)`);
       } else {
-        console.error(`  ❌ ${config.name}: ${error.message}`);
+        console.error(`  ❌ ${config.name}: ${text || response.statusText}`);
       }
-    } else {
-      console.log(`  ✅ ${config.name} (created, public: ${config.public})`);
+    } catch (error) {
+      console.error(`  ❌ ${config.name}: ${error.message}`);
     }
   }
 }
 
 async function migrateFile(bucket, filePath) {
-  const url = `${OLD_SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
+  const sourceUrl = `${OLD_SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
 
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`  ❌ Download failed: ${bucket}/${filePath} (${response.status})`);
+    const downloadResponse = await fetch(sourceUrl);
+    if (!downloadResponse.ok) {
+      console.error(`  ❌ Download failed: ${bucket}/${filePath} (${downloadResponse.status})`);
       return false;
     }
 
-    const arrayBuffer = await response.arrayBuffer();
+    const arrayBuffer = await downloadResponse.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
     const contentType = getContentType(filePath);
+    const encodedPath = filePath
+      .split("/")
+      .map((part) => encodeURIComponent(part))
+      .join("/");
 
-    const { error } = await newSupabase.storage
-      .from(bucket)
-      .upload(filePath, buffer, {
-        contentType,
-        upsert: true,
-      });
+    const uploadResponse = await fetch(`${targetStorageBase}/object/${bucket}/${encodedPath}`, {
+      method: "POST",
+      headers: getTargetAuthHeaders({
+        "Content-Type": contentType,
+        "x-upsert": "true",
+      }),
+      body: buffer,
+    });
 
-    if (error) {
-      console.error(`  ❌ Upload failed: ${bucket}/${filePath}: ${error.message}`);
+    if (!uploadResponse.ok) {
+      const text = await uploadResponse.text();
+      console.error(`  ❌ Upload failed: ${bucket}/${filePath}: ${text || uploadResponse.statusText}`);
       return false;
     }
 
@@ -247,7 +270,8 @@ async function migrateFile(bucket, filePath) {
 async function main() {
   console.log("🚀 Storage Migration Script");
   console.log(`   From: ${OLD_SUPABASE_URL}`);
-  console.log(`   To:   ${NEW_SUPABASE_URL}`);
+  console.log(`   To:   ${cleanUrl}`);
+  console.log(`   Auth: ${isApiKeyFormat ? "sb_* API key" : "legacy JWT service_role"}`);
 
   await ensureBuckets();
 
