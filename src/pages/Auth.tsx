@@ -346,7 +346,7 @@ const Auth = () => {
           </div>
 
           {/* Tabs: Resenär / Värd – only for signup */}
-          {!isLogin && !isSettingPassword && (
+          {!isLogin && !isSettingPassword && !showEmailVerification && (
             <div className="flex rounded-lg bg-muted p-1 mb-6">
               <button
                 type="button"
