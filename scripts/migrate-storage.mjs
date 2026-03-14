@@ -47,6 +47,7 @@ const cleanKey = NEW_SUPABASE_KEY
   .replace(/[\u200B-\u200D\uFEFF]/g, "")
   .trim()
   .replace(/^['"]+|['"]+$/g, "")
+  .replace(/^Bearer\s+/i, "")
   .replace(/\s+/g, "");
 
 const cleanUrl = NEW_SUPABASE_URL.trim();
@@ -55,7 +56,14 @@ const isJwtFormat = cleanKey.split(".").length === 3;
 
 if (!isApiKeyFormat && !isJwtFormat) {
   console.error("❌ Service key format is invalid (not JWT and not sb_* API key)");
+  console.error(`   Key source: ${keySource}`);
   console.error(`   Key length: ${cleanKey.length}`);
+  process.exit(1);
+}
+
+if (cleanKey.startsWith("sb_publishable_")) {
+  console.error("❌ You are using a publishable key. Use a secret/service key for migration.");
+  console.error(`   Key source: ${keySource}`);
   process.exit(1);
 }
 
