@@ -338,8 +338,8 @@ const BookTrip = () => {
         return updated;
       });
       
-      toast.success(t("bookTrip.accountCreated"));
-      setCurrentStep(2);
+      setAccountEmail(data.email);
+      setShowEmailVerification(true);
     } catch (error) {
       toast.error(t("bookTrip.somethingWentWrong"));
     } finally {
