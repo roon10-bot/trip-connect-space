@@ -19,14 +19,16 @@ export const Hero = () => {
   }, []);
 
   const handleTogglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        videoRef.current.play();
-        setIsPlaying(true);
-      }
+    const video = videoRef.current;
+    if (!video) return;
+    
+    if (isPlaying) {
+      video.pause();
+      setIsPlaying(false);
+    } else {
+      video.play()
+        .then(() => setIsPlaying(true))
+        .catch((err) => console.error("Video playback failed:", err));
     }
   };
 
