@@ -10,6 +10,8 @@
  *   2. Set environment variables:
  *      export NEW_SUPABASE_URL="https://your-project.supabase.co"
  *      export NEW_SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+ *      # or alias supported by script:
+ *      export NEW_SUPABASE_KEY="your-service-role-key"
  *   3. Run:  node scripts/migrate-storage.mjs
  */
 
@@ -18,31 +20,75 @@ import { createClient } from "@supabase/supabase-js";
 const OLD_SUPABASE_URL = "https://toxucscjfmaoayircihp.supabase.co";
 
 const NEW_SUPABASE_URL = process.env.NEW_SUPABASE_URL;
-const NEW_SUPABASE_KEY = process.env.NEW_SUPABASE_SERVICE_ROLE_KEY;
+// Support both names to avoid shell/env confusion
+const NEW_SUPABASE_KEY =
+  process.env.NEW_SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEW_SUPABASE_KEY;
 
 if (!NEW_SUPABASE_URL || !NEW_SUPABASE_KEY) {
   console.error("❌ Missing environment variables:");
   console.error("   export NEW_SUPABASE_URL='https://your-project.supabase.co'");
   console.error("   export NEW_SUPABASE_SERVICE_ROLE_KEY='your-service-role-key'");
+  console.error("   # or: export NEW_SUPABASE_KEY='your-service-role-key'");
   process.exit(1);
 }
 
-// Trim whitespace/newlines that shells sometimes inject
-const cleanKey = NEW_SUPABASE_KEY.trim();
+// Normalize key (remove whitespace/zero-width chars/wrapping quotes)
+const cleanKey = NEW_SUPABASE_KEY
+  .replace(/[\u200B-\u200D\uFEFF]/g, "")
+  .trim()
+  .replace(/^['"]+|['"]+$/g, "")
+  .replace(/\s+/g, "");
 
-// Validate JWT structure
-const jwtParts = cleanKey.split(".");
-if (jwtParts.length !== 3) {
-  console.error(`❌ Service role key is malformed (expected 3 JWT parts, got ${jwtParts.length})`);
-  console.error(`   Key length: ${cleanKey.length} chars`);
-  console.error(`   Key starts with: ${cleanKey.substring(0, 20)}...`);
-  console.error(`   Key ends with: ...${cleanKey.substring(cleanKey.length - 10)}`);
-  console.error("\n   Make sure to wrap the key in single quotes:");
-  console.error("   export NEW_SUPABASE_SERVICE_ROLE_KEY='eyJhbG...'");
+const cleanUrl = NEW_SUPABASE_URL.trim();
+const isApiKeyFormat = cleanKey.startsWith("sb_");
+const isJwtFormat = cleanKey.split(".").length === 3;
+
+if (!isApiKeyFormat && !isJwtFormat) {
+  console.error("❌ Service key format is invalid (not JWT and not sb_* API key)");
+  console.error(`   Key length: ${cleanKey.length}`);
   process.exit(1);
 }
 
-const newSupabase = createClient(NEW_SUPABASE_URL.trim(), cleanKey);
+if (isJwtFormat) {
+  try {
+    const payloadPart = cleanKey.split(".")[1]
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    const payload = JSON.parse(Buffer.from(payloadPart, "base64").toString("utf8"));
+
+    const refFromUrl = cleanUrl
+      .replace(/^https?:\/\//, "")
+      .split(".")[0];
+
+    if (payload.ref && payload.ref !== refFromUrl) {
+      console.error("❌ Service key and URL belong to different projects");
+      console.error(`   URL project: ${refFromUrl}`);
+      console.error(`   Key project: ${payload.ref}`);
+      process.exit(1);
+    }
+  } catch {
+    console.error("❌ Could not parse JWT payload from service key");
+    process.exit(1);
+  }
+}
+
+// supabase-js sends Authorization: Bearer <apikey>; that breaks for sb_* keys on some Storage setups
+const fetchWithoutBearerForApiKeys = async (url, options = {}) => {
+  if (!isApiKeyFormat) return fetch(url, options);
+
+  const headers = new Headers(options.headers || {});
+  const authHeader = headers.get("Authorization") || headers.get("authorization");
+  if (authHeader === `Bearer ${cleanKey}`) {
+    headers.delete("Authorization");
+    headers.delete("authorization");
+  }
+
+  return fetch(url, { ...options, headers });
+};
+
+const newSupabase = createClient(cleanUrl, cleanKey, {
+  global: { fetch: fetchWithoutBearerForApiKeys },
+});
 
 // Public buckets with direct download URLs
 const PUBLIC_FILES = {
