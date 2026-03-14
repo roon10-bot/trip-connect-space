@@ -359,16 +359,35 @@ const BookTrip = () => {
     setCurrentStep((prev) => Math.max(prev - 1, minStep));
   };
 
+  const mapPaymentError = (message: string) => {
+    if (message.includes("No authorization header provided") || message.includes("User not authenticated")) {
+      return t("bookTrip.paymentRequiresLogin");
+    }
+    if (message.includes("Turnstile verification failed")) {
+      return "Säkerhetsverifieringen misslyckades. Ladda om sidan och försök igen.";
+    }
+    if (message.includes("Trip not found") || message.includes("Trip is not active") || message.includes("Trip is fully booked")) {
+      return "Resan är inte längre tillgänglig. Uppdatera sidan och försök igen.";
+    }
+    return message || t("bookTrip.somethingWentWrong");
+  };
+
   const handlePayBookingFee = async (method: "card" | "swish", turnstileToken: string) => {
     if (!trip || travelersInfo.length === 0 || !turnstileToken) return;
-    
+
+    if (!user?.id) {
+      toast.error(t("bookTrip.paymentRequiresLogin"));
+      navigate(`/auth?redirect=${encodeURIComponent(`${location.pathname}${location.search}`)}`);
+      return;
+    }
+
     const primaryTraveler = travelersInfo[0];
     if (!primaryTraveler.birthDate) return;
-    
+
     setIsSubmitting(true);
     try {
       const totalPrice = calculateTotalPrice();
-      
+
       const pricePerPerson = getPricePerPerson();
       const baseTotal = pricePerPerson * travelers;
       const discountAmount = baseTotal - totalPrice;
@@ -394,7 +413,24 @@ const BookTrip = () => {
         },
       });
 
-      if (fnError) throw fnError;
+      if (fnError) {
+        let detailedError = fnError.message || "Payment initialization failed";
+        const fnContext = (fnError as { context?: Response }).context;
+
+        if (fnContext && typeof fnContext.json === "function") {
+          try {
+            const errBody = await fnContext.json();
+            if (errBody?.error && typeof errBody.error === "string") {
+              detailedError = errBody.error;
+            }
+          } catch {
+            // no-op: fallback to fnError.message
+          }
+        }
+
+        throw new Error(detailedError);
+      }
+
       if (result?.error) throw new Error(result.error);
 
       if (method === "card" && result?.payment_url) {
@@ -409,8 +445,9 @@ const BookTrip = () => {
         });
       }
     } catch (error) {
+      const rawMessage = error instanceof Error ? error.message : "";
       console.error("Payment error:", error);
-      toast.error(t("bookTrip.somethingWentWrong"));
+      toast.error(mapPaymentError(rawMessage));
     } finally {
       setIsSubmitting(false);
     }
