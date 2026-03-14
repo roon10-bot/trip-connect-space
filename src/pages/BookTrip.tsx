@@ -86,6 +86,8 @@ const BookTrip = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [accountEmail, setAccountEmail] = useState("");
   const [userProfileLoaded, setUserProfileLoaded] = useState(false);
   const [swishResult, setSwishResult] = useState<{
     pendingBookingId: string;
