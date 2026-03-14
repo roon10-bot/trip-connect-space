@@ -15,7 +15,7 @@
  *   3. Run:  node scripts/migrate-storage.mjs
  */
 
-import { createClient } from "@supabase/supabase-js";
+// No SDK client needed: this script uses direct Storage REST calls for maximum key compatibility.
 
 const OLD_SUPABASE_URL = "https://toxucscjfmaoayircihp.supabase.co";
 
