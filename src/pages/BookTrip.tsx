@@ -513,11 +513,22 @@ const BookTrip = () => {
         <div className="grid lg:grid-cols-3 gap-8 mt-8">
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
-              {needsAccountStep && currentStep === 1 && (
+              {needsAccountStep && currentStep === 1 && !showEmailVerification && (
                 <BookingStepAccount
                   key="step-account"
                   onNext={handleAccountCreation}
                   isLoading={isCreatingAccount}
+                />
+              )}
+
+              {showEmailVerification && currentStep === 1 && (
+                <BookingEmailVerification
+                  key="step-email-verify"
+                  email={accountEmail}
+                  onContinue={() => {
+                    setShowEmailVerification(false);
+                    setCurrentStep(2);
+                  }}
                 />
               )}
               
