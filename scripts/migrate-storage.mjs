@@ -96,6 +96,18 @@ if (isJwtFormat) {
 }
 
 const targetStorageBase = `${cleanUrl}/storage/v1`;
+let printedJwsHint = false;
+
+function maybePrintJwsHint(errorText) {
+  if (printedJwsHint) return;
+  if (!/JWS Protected Header is invalid/i.test(errorText || "")) return;
+
+  printedJwsHint = true;
+  console.error("\n💡 Detected JWS header error from target Storage API.");
+  console.error("   Most common cause: using sb_secret/sb_publishable instead of LEGACY service_role JWT.");
+  console.error("   Use the legacy service_role key (JWT format: xxx.yyy.zzz) from API settings.");
+  console.error("   Keep NEW_SUPABASE_URL unchanged.\n");
+}
 
 function getTargetAuthHeaders(extraHeaders = {}) {
   // For sb_* keys: use apikey only (Bearer causes JWT parsing errors on some stacks)
