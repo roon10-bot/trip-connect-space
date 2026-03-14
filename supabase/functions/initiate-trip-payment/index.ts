@@ -276,16 +276,21 @@ serve(async (req) => {
       });
 
       const responseText = await altapayResponse.text();
-      logStep("AltaPay response", { status: altapayResponse.status });
+      logStep("AltaPay raw response (first 1000 chars)", { status: altapayResponse.status, body: responseText.substring(0, 1000) });
 
       const resultMatch = responseText.match(/<Result>(.*?)<\/Result>/);
       if (resultMatch && resultMatch[1] !== "Success") {
         const errorMsg = responseText.match(/<MerchantErrorMessage>(.*?)<\/MerchantErrorMessage>/);
+        const bodyMsg = responseText.match(/<Body>(.*?)<\/Body>/s);
+        logStep("AltaPay error details", { result: resultMatch[1], merchantError: errorMsg?.[1], body: bodyMsg?.[1]?.substring(0, 500) });
         throw new Error(`AltaPay error: ${errorMsg?.[1] || resultMatch[1]}`);
       }
 
       const urlMatch = responseText.match(/<Url>(.*?)<\/Url>/);
-      if (!urlMatch?.[1]) throw new Error("Could not get payment URL from AltaPay");
+      if (!urlMatch?.[1]) {
+        logStep("AltaPay response missing URL - full body", { body: responseText.substring(0, 2000) });
+        throw new Error("Could not get payment URL from AltaPay");
+      }
 
       const paymentUrl = urlMatch[1].trim();
 
