@@ -130,15 +130,21 @@ serve(async (req: Request) => {
     );
 
     const payload = await req.json();
-    console.log("[AUTH-EMAIL-HOOK] Received payload type:", payload.type);
+    console.log("[AUTH-EMAIL-HOOK] Full payload keys:", Object.keys(payload));
 
-    // Supabase Auth Hook payload
-    const emailType = payload.type; // signup, recovery, magiclink, invite, email_change
+    // Supabase Auth Hook payload - email_action_type is inside email_data
+    const emailType = payload.email_data?.email_action_type || payload.type;
     const recipientEmail = payload.user?.email;
-    const confirmationUrl = payload.email_data?.confirmation_url || payload.email_data?.action_link;
     const token = payload.email_data?.token;
     const tokenHash = payload.email_data?.token_hash;
     const redirectTo = payload.email_data?.redirect_to;
+    const siteUrl = payload.email_data?.site_url || "https://studentresor.com";
+
+    // Build confirmation URL from token_hash if not provided directly
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${tokenHash}&type=${emailType}&redirect_to=${encodeURIComponent(redirectTo || siteUrl)}`;
+
+    console.log("[AUTH-EMAIL-HOOK] Parsed - type:", emailType, "email:", recipientEmail);
 
     if (!recipientEmail || !emailType) {
       console.error("[AUTH-EMAIL-HOOK] Missing email or type in payload");
