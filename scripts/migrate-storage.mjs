@@ -190,10 +190,11 @@ async function preflightAuth() {
   if (error) {
     console.error(`❌ Auth failed: ${error.message}`);
 
-    if (/JWS Protected Header/i.test(error.message)) {
-      console.error("\n💡 Your project uses ES256 (ECC P-256) JWT signing.");
-      console.error("   Use the sb_secret_* key from Project Settings → API Keys.");
-      console.error("   Legacy JWT service_role keys won't work with ES256 projects.");
+    if (/JWS Protected Header|Invalid Compact JWS/i.test(error.message)) {
+      console.error("\n💡 Likely key issue (masked/invalid/not exported). Use a full sb_secret_* key.");
+      console.error("   Example:");
+      console.error("   export NEW_SUPABASE_SERVICE_ROLE_KEY='sb_secret_xxx' && node scripts/migrate-storage.mjs");
+      console.error("   (Do not paste keys containing '...' and do not concatenate two keys.)");
     }
 
     process.exit(1);
