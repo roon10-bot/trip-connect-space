@@ -154,7 +154,6 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const payload = await req.json();
     console.log("[AUTH-EMAIL-HOOK] Full payload keys:", Object.keys(payload));
 
     // Supabase Auth Hook payload - email_action_type is inside email_data
