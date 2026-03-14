@@ -108,6 +108,19 @@ serve(async (req: Request) => {
   }
 
   try {
+    // Verify the webhook authorization token
+    const authHeader = req.headers.get("Authorization");
+    const hookSecret = Deno.env.get("AUTH_HOOK_SECRET");
+    if (hookSecret) {
+      if (!authHeader || authHeader !== `Bearer ${hookSecret}`) {
+        console.error("[AUTH-EMAIL-HOOK] Invalid authorization token");
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const postmarkToken = Deno.env.get("POSTMARK_SERVER_TOKEN");
     if (!postmarkToken) throw new Error("POSTMARK_SERVER_TOKEN is not set");
 
