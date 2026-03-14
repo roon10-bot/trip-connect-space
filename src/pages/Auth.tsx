@@ -373,7 +373,46 @@ const Auth = () => {
             </div>
           )}
 
-          {isSettingPassword ? (
+          {showEmailVerification ? (
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="text-center space-y-4">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                  <Mail className="h-7 w-7 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-serif font-bold text-foreground">
+                    {t("auth.verifyEmailTitle")}
+                  </h2>
+                  <p className="mt-2 text-muted-foreground">
+                    {t("auth.verifyEmailDesc")}
+                  </p>
+                </div>
+
+                <div className="rounded-lg bg-muted/60 p-4 text-left">
+                  <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    {t("auth.verificationSentTo")}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground break-all">{verificationEmail}</p>
+                </div>
+
+                <p className="text-xs text-muted-foreground">{t("auth.checkSpamTip")}</p>
+
+                <Button
+                  type="button"
+                  className="w-full h-12 bg-gradient-ocean hover:opacity-90 text-lg font-semibold"
+                  onClick={() => {
+                    setShowEmailVerification(false);
+                    setIsLogin(true);
+                    setAccountType("traveler");
+                    reset();
+                  }}
+                >
+                  {t("auth.goToLogin")}
+                </Button>
+              </div>
+            </div>
+          ) : isSettingPassword ? (
             <form onSubmit={handleSetPassword} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="newPassword">{t("auth.newPassword")}</Label>
