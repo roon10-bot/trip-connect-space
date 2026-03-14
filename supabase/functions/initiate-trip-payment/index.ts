@@ -34,15 +34,15 @@ serve(async (req) => {
       throw new Error("No authorization header provided");
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } =
-      await supabaseClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims)
-      throw new Error(`Authentication error: ${claimsError?.message || "Invalid token"}`);
+    const { data: userData, error: userError } =
+      await supabaseClient.auth.getUser(token);
+    if (userError) throw new Error(`Authentication error: ${userError.message}`);
 
-    const userId = claimsData.claims.sub as string;
-    const userEmail = claimsData.claims.email as string;
-    if (!userId || !userEmail)
+    const user = userData.user;
+    if (!user?.id || !user?.email)
       throw new Error("User not authenticated or email not available");
+    const userId = user.id;
+    const userEmail = user.email;
     logStep("User authenticated", { userId, email: userEmail });
 
     // Parse request
