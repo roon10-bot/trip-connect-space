@@ -72,20 +72,6 @@ if (isJwtFormat) {
   }
 }
 
-// supabase-js sends Authorization: Bearer <apikey>; that breaks for sb_* keys on some Storage setups
-const fetchWithoutBearerForApiKeys = async (url, options = {}) => {
-  if (!isApiKeyFormat) return fetch(url, options);
-
-  const headers = new Headers(options.headers || {});
-  const authHeader = headers.get("Authorization") || headers.get("authorization");
-  if (authHeader === `Bearer ${cleanKey}`) {
-    headers.delete("Authorization");
-    headers.delete("authorization");
-  }
-
-  return fetch(url, { ...options, headers });
-};
-
 const targetStorageBase = `${cleanUrl}/storage/v1`;
 
 function getTargetAuthHeaders(extraHeaders = {}) {
