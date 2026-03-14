@@ -86,9 +86,24 @@ const fetchWithoutBearerForApiKeys = async (url, options = {}) => {
   return fetch(url, { ...options, headers });
 };
 
-const newSupabase = createClient(cleanUrl, cleanKey, {
-  global: { fetch: fetchWithoutBearerForApiKeys },
-});
+const targetStorageBase = `${cleanUrl}/storage/v1`;
+
+function getTargetAuthHeaders(extraHeaders = {}) {
+  // For sb_* keys: use apikey only (Bearer causes JWT parsing errors on some stacks)
+  if (isApiKeyFormat) {
+    return {
+      apikey: cleanKey,
+      ...extraHeaders,
+    };
+  }
+
+  // For legacy JWT service_role keys: include both
+  return {
+    apikey: cleanKey,
+    Authorization: `Bearer ${cleanKey}`,
+    ...extraHeaders,
+  };
+}
 
 // Public buckets with direct download URLs
 const PUBLIC_FILES = {
