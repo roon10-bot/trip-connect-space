@@ -109,6 +109,30 @@ function maybePrintJwsHint(errorText) {
   console.error("   Keep NEW_SUPABASE_URL unchanged.\n");
 }
 
+async function preflightAuth() {
+  const response = await fetch(`${targetStorageBase}/bucket`, {
+    method: "GET",
+    headers: getTargetAuthHeaders(),
+  });
+
+  if (response.ok) {
+    console.log("✅ Auth preflight succeeded");
+    return;
+  }
+
+  const text = await response.text();
+  maybePrintJwsHint(text);
+
+  console.error(`❌ Auth preflight failed: ${response.status} ${response.statusText}`);
+  console.error(`   Response: ${text}`);
+
+  if (/JWS Protected Header is invalid/i.test(text || "")) {
+    console.error("\n👉 Fix: export NEW_SUPABASE_SERVICE_ROLE_KEY with a LEGACY service_role JWT key.");
+  }
+
+  process.exit(1);
+}
+
 function getTargetAuthHeaders(extraHeaders = {}) {
   // For sb_* keys: use apikey only (Bearer causes JWT parsing errors on some stacks)
   if (isApiKeyFormat) {
