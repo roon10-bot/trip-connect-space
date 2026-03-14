@@ -6,13 +6,12 @@
  * and uploads them to your new Supabase instance.
  * 
  * Usage:
- *   1. Install dependency:  npm install @supabase/supabase-js
- *   2. Set environment variables:
+ *   1. Set environment variables:
  *      export NEW_SUPABASE_URL="https://your-project.supabase.co"
  *      export NEW_SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
  *      # or alias supported by script:
  *      export NEW_SUPABASE_KEY="your-service-role-key"
- *   3. Run:  node scripts/migrate-storage.mjs
+ *   2. Run:  node scripts/migrate-storage.mjs
  */
 
 // No SDK client needed: this script uses direct Storage REST calls for maximum key compatibility.
@@ -20,9 +19,19 @@
 const OLD_SUPABASE_URL = "https://toxucscjfmaoayircihp.supabase.co";
 
 const NEW_SUPABASE_URL = process.env.NEW_SUPABASE_URL;
-// Support both names to avoid shell/env confusion
-const NEW_SUPABASE_KEY =
-  process.env.NEW_SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEW_SUPABASE_KEY;
+
+// Prefer NEW_SUPABASE_KEY if both are set (common shell gotcha)
+const keyFromAlias = process.env.NEW_SUPABASE_KEY;
+const keyFromLegacy = process.env.NEW_SUPABASE_SERVICE_ROLE_KEY;
+const keySource = keyFromAlias
+  ? "NEW_SUPABASE_KEY"
+  : "NEW_SUPABASE_SERVICE_ROLE_KEY";
+const NEW_SUPABASE_KEY = keyFromAlias ?? keyFromLegacy;
+
+if (keyFromAlias && keyFromLegacy && keyFromAlias !== keyFromLegacy) {
+  console.warn("⚠️ Both NEW_SUPABASE_KEY and NEW_SUPABASE_SERVICE_ROLE_KEY are set with different values.");
+  console.warn("   Using NEW_SUPABASE_KEY and ignoring NEW_SUPABASE_SERVICE_ROLE_KEY.");
+}
 
 if (!NEW_SUPABASE_URL || !NEW_SUPABASE_KEY) {
   console.error("❌ Missing environment variables:");
@@ -37,6 +46,7 @@ const cleanKey = NEW_SUPABASE_KEY
   .replace(/[\u200B-\u200D\uFEFF]/g, "")
   .trim()
   .replace(/^['"]+|['"]+$/g, "")
+  .replace(/^Bearer\s+/i, "")
   .replace(/\s+/g, "");
 
 const cleanUrl = NEW_SUPABASE_URL.trim();
@@ -45,7 +55,14 @@ const isJwtFormat = cleanKey.split(".").length === 3;
 
 if (!isApiKeyFormat && !isJwtFormat) {
   console.error("❌ Service key format is invalid (not JWT and not sb_* API key)");
+  console.error(`   Key source: ${keySource}`);
   console.error(`   Key length: ${cleanKey.length}`);
+  process.exit(1);
+}
+
+if (cleanKey.startsWith("sb_publishable_")) {
+  console.error("❌ You are using a publishable key. Use a secret/service key for migration.");
+  console.error(`   Key source: ${keySource}`);
   process.exit(1);
 }
 
@@ -66,6 +83,11 @@ if (isJwtFormat) {
       console.error(`   Key project: ${payload.ref}`);
       process.exit(1);
     }
+
+    if (payload.role && payload.role !== "service_role") {
+      console.error(`❌ JWT key role is '${payload.role}', expected 'service_role' for migration.`);
+      process.exit(1);
+    }
   } catch {
     console.error("❌ Could not parse JWT payload from service key");
     process.exit(1);
@@ -73,6 +95,42 @@ if (isJwtFormat) {
 }
 
 const targetStorageBase = `${cleanUrl}/storage/v1`;
+let printedJwsHint = false;
+
+function maybePrintJwsHint(errorText) {
+  if (printedJwsHint) return;
+  if (!/JWS Protected Header is invalid/i.test(errorText || "")) return;
+
+  printedJwsHint = true;
+  console.error("\n💡 Detected JWS header error from target Storage API.");
+  console.error("   Most common cause: using sb_secret/sb_publishable instead of LEGACY service_role JWT.");
+  console.error("   Use the legacy service_role key (JWT format: xxx.yyy.zzz) from API settings.");
+  console.error("   Keep NEW_SUPABASE_URL unchanged.\n");
+}
+
+async function preflightAuth() {
+  const response = await fetch(`${targetStorageBase}/bucket`, {
+    method: "GET",
+    headers: getTargetAuthHeaders(),
+  });
+
+  if (response.ok) {
+    console.log("✅ Auth preflight succeeded");
+    return;
+  }
+
+  const text = await response.text();
+  maybePrintJwsHint(text);
+
+  console.error(`❌ Auth preflight failed: ${response.status} ${response.statusText}`);
+  console.error(`   Response: ${text}`);
+
+  if (/JWS Protected Header is invalid/i.test(text || "")) {
+    console.error("\n👉 Fix: export NEW_SUPABASE_SERVICE_ROLE_KEY with a LEGACY service_role JWT key.");
+  }
+
+  process.exit(1);
+}
 
 function getTargetAuthHeaders(extraHeaders = {}) {
   // For sb_* keys: use apikey only (Bearer causes JWT parsing errors on some stacks)
@@ -218,6 +276,7 @@ async function ensureBuckets() {
       if (response.status === 409 || /already exists/i.test(text)) {
         console.log(`  ✅ ${config.name} (already exists)`);
       } else {
+        maybePrintJwsHint(text);
         console.error(`  ❌ ${config.name}: ${text || response.statusText}`);
       }
     } catch (error) {
@@ -255,6 +314,7 @@ async function migrateFile(bucket, filePath) {
 
     if (!uploadResponse.ok) {
       const text = await uploadResponse.text();
+      maybePrintJwsHint(text);
       console.error(`  ❌ Upload failed: ${bucket}/${filePath}: ${text || uploadResponse.statusText}`);
       return false;
     }
@@ -271,8 +331,10 @@ async function main() {
   console.log("🚀 Storage Migration Script");
   console.log(`   From: ${OLD_SUPABASE_URL}`);
   console.log(`   To:   ${cleanUrl}`);
+  console.log(`   Key source: ${keySource}`);
   console.log(`   Auth: ${isApiKeyFormat ? "sb_* API key" : "legacy JWT service_role"}`);
 
+  await preflightAuth();
   await ensureBuckets();
 
   let total = 0;
