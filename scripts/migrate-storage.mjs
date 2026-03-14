@@ -84,6 +84,11 @@ if (isJwtFormat) {
       console.error(`   Key project: ${payload.ref}`);
       process.exit(1);
     }
+
+    if (payload.role && payload.role !== "service_role") {
+      console.error(`❌ JWT key role is '${payload.role}', expected 'service_role' for migration.`);
+      process.exit(1);
+    }
   } catch {
     console.error("❌ Could not parse JWT payload from service key");
     process.exit(1);
