@@ -13,7 +13,7 @@ import { usePartner } from "@/hooks/usePartner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Eye, EyeOff, Check } from "lucide-react";
+import { Loader2, Eye, EyeOff, Check, Mail, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
@@ -49,6 +49,8 @@ const Auth = () => {
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const [isSettingPassword, setIsSettingPassword] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
   
   const [newPassword, setNewPassword] = useState("");
   const { signIn, signUp, user } = useAuth();
@@ -121,7 +123,8 @@ const Auth = () => {
         if (error) {
           toast.error(error.message.includes("already registered") ? t("auth.emailRegistered") : error.message);
         } else {
-          toast.success(t("auth.verifyEmail") || "Konto skapat! Verifiera din e-post för att logga in.");
+          setVerificationEmail(data.email);
+          setShowEmailVerification(true);
         }
       }
     } catch {
@@ -259,6 +262,8 @@ const Auth = () => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setAccountType("traveler");
+    setShowEmailVerification(false);
+    setVerificationEmail("");
     reset();
   };
 
@@ -341,7 +346,7 @@ const Auth = () => {
           </div>
 
           {/* Tabs: Resenär / Värd – only for signup */}
-          {!isLogin && !isSettingPassword && (
+          {!isLogin && !isSettingPassword && !showEmailVerification && (
             <div className="flex rounded-lg bg-muted p-1 mb-6">
               <button
                 type="button"
@@ -368,7 +373,46 @@ const Auth = () => {
             </div>
           )}
 
-          {isSettingPassword ? (
+          {showEmailVerification ? (
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="text-center space-y-4">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                  <Mail className="h-7 w-7 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-serif font-bold text-foreground">
+                    {t("auth.verifyEmailTitle")}
+                  </h2>
+                  <p className="mt-2 text-muted-foreground">
+                    {t("auth.verifyEmailDesc")}
+                  </p>
+                </div>
+
+                <div className="rounded-lg bg-muted/60 p-4 text-left">
+                  <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    {t("auth.verificationSentTo")}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground break-all">{verificationEmail}</p>
+                </div>
+
+                <p className="text-xs text-muted-foreground">{t("auth.checkSpamTip")}</p>
+
+                <Button
+                  type="button"
+                  className="w-full h-12 bg-gradient-ocean hover:opacity-90 text-lg font-semibold"
+                  onClick={() => {
+                    setShowEmailVerification(false);
+                    setIsLogin(true);
+                    setAccountType("traveler");
+                    reset();
+                  }}
+                >
+                  {t("auth.goToLogin")}
+                </Button>
+              </div>
+            </div>
+          ) : isSettingPassword ? (
             <form onSubmit={handleSetPassword} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="newPassword">{t("auth.newPassword")}</Label>
@@ -530,16 +574,18 @@ const Auth = () => {
             </>
           )}
 
-          <div className="mt-6 text-center">
-            <button
-              onClick={toggleMode}
-              className="text-primary hover:underline font-medium"
-            >
-              {isLogin
-                ? t("auth.noAccount")
-                : t("auth.hasAccount")}
-            </button>
-          </div>
+          {!showEmailVerification && (
+            <div className="mt-6 text-center">
+              <button
+                onClick={toggleMode}
+                className="text-primary hover:underline font-medium"
+              >
+                {isLogin
+                  ? t("auth.noAccount")
+                  : t("auth.hasAccount")}
+              </button>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
