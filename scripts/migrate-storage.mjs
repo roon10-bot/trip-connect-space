@@ -42,7 +42,7 @@ if (jwtParts.length !== 3) {
   process.exit(1);
 }
 
-const newSupabase = createClient(NEW_SUPABASE_URL, NEW_SUPABASE_KEY);
+const newSupabase = createClient(NEW_SUPABASE_URL.trim(), cleanKey);
 
 // Public buckets with direct download URLs
 const PUBLIC_FILES = {
