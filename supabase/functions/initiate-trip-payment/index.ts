@@ -236,6 +236,31 @@ serve(async (req) => {
         throw new Error("AltaPay configuration incomplete");
       }
 
+      logStep("AltaPay config", {
+        gatewayUrl,
+        terminalName,
+        usernameLength: apiUsername.length,
+        usernamePrefix: apiUsername.substring(0, 4),
+        passwordLength: apiPassword.length,
+      });
+
+      // Build Basic Auth - use standard btoa for ASCII credentials
+      const basicAuth = btoa(`${apiUsername}:${apiPassword}`);
+
+      // Test connectivity first (same as create-altapay-payment)
+      const testUrl = `${gatewayUrl}/merchant/API/getTerminals`;
+      logStep("Testing AltaPay connectivity", { testUrl });
+      const testResponse = await fetch(testUrl, {
+        method: "GET",
+        headers: { Authorization: `Basic ${basicAuth}` },
+      });
+      const testBody = await testResponse.text();
+      logStep("AltaPay connectivity test", { status: testResponse.status, body: testBody.substring(0, 300) });
+
+      if (!testResponse.ok) {
+        throw new Error(`AltaPay auth failed (${testResponse.status}): credentials are invalid`);
+      }
+
       const shopOrderId = `PB-${pendingBookingId.slice(0, 8)}-${Date.now()}`;
       const callbackBase = `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-callback`;
 
@@ -262,9 +287,7 @@ serve(async (req) => {
       formData.append("transaction_info[user_id]", userId);
       formData.append("transaction_info[payment_type]", "booking_fee");
 
-      const encoder = new TextEncoder();
-      const credBytes = encoder.encode(`${apiUsername}:${apiPassword}`);
-      const basicAuth = btoa(String.fromCharCode(...credBytes));
+      logStep("Calling AltaPay createPaymentRequest", { shopOrderId, amount: bookingFeeAmount, terminal: terminalName });
 
       const altapayResponse = await fetch(`${gatewayUrl}/merchant/API/createPaymentRequest`, {
         method: "POST",
@@ -276,7 +299,7 @@ serve(async (req) => {
       });
 
       const responseText = await altapayResponse.text();
-      logStep("AltaPay raw response (first 1000 chars)", { status: altapayResponse.status, body: responseText.substring(0, 1000) });
+      logStep("AltaPay response", { status: altapayResponse.status, body: responseText.substring(0, 1500) });
 
       const resultMatch = responseText.match(/<Result>(.*?)<\/Result>/);
       if (resultMatch && resultMatch[1] !== "Success") {
