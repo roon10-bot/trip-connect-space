@@ -253,6 +253,7 @@ async function ensureBuckets() {
       if (response.status === 409 || /already exists/i.test(text)) {
         console.log(`  ✅ ${config.name} (already exists)`);
       } else {
+        maybePrintJwsHint(text);
         console.error(`  ❌ ${config.name}: ${text || response.statusText}`);
       }
     } catch (error) {
