@@ -121,8 +121,7 @@ const Auth = () => {
         if (error) {
           toast.error(error.message.includes("already registered") ? t("auth.emailRegistered") : error.message);
         } else {
-          toast.success(t("auth.accountCreated"));
-          setShouldRedirect(true);
+          toast.success(t("auth.verifyEmail") || "Konto skapat! Verifiera din e-post för att logga in.");
         }
       }
     } catch {
