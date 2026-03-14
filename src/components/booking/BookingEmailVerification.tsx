@@ -66,7 +66,7 @@ export const BookingEmailVerification = ({ email, onContinue }: BookingEmailVeri
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-3">
-              Du kan verifiera din e-post när som helst innan du slutför betalningen.
+              Du behöver verifiera e-post och vara inloggad innan betalning.
             </p>
           </div>
         </CardContent>
