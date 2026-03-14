@@ -503,7 +503,8 @@
     "travelerLabel": "Putnik {{num}}",
     "emailAlreadyRegistered": "E-pošta je već registrirana. Prijavite se umjesto toga.",
     "accountCreated": "Račun kreiran! Nastavite s rezervacijom.",
-    "somethingWentWrong": "Nešto je pošlo po krivu. Pokušajte ponovno."
+    "somethingWentWrong": "Nešto je pošlo po krivu. Pokušajte ponovno.",
+    "paymentRequiresLogin": "Potvrdite e-poštu i prijavite se prije plaćanja."
   },
   "partner": {
     "portal": "Portal domaćina",

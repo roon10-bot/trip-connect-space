@@ -506,7 +506,8 @@
     "travelerLabel": "Resenär {{num}}",
     "emailAlreadyRegistered": "E-postadressen är redan registrerad. Logga in istället.",
     "accountCreated": "Konto skapat! Fortsätt med bokningen.",
-    "somethingWentWrong": "Något gick fel. Försök igen."
+    "somethingWentWrong": "Något gick fel. Försök igen.",
+    "paymentRequiresLogin": "Du behöver verifiera e-post och logga in innan betalning."
   },
   "partner": {
     "portal": "Värdportal",

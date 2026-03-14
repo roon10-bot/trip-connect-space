@@ -503,7 +503,8 @@
     "travelerLabel": "Traveler {{num}}",
     "emailAlreadyRegistered": "Email is already registered. Please log in instead.",
     "accountCreated": "Account created! Continue with your booking.",
-    "somethingWentWrong": "Something went wrong. Please try again."
+    "somethingWentWrong": "Something went wrong. Please try again.",
+    "paymentRequiresLogin": "Please verify your email and log in before payment."
   },
   "partner": {
     "portal": "Host Portal",
