@@ -49,9 +49,11 @@ if (!isApiKeyFormat && !isJwtFormat) {
 
 if (isJwtFormat) {
   try {
-    const payload = JSON.parse(
-      
-    );
+    const payloadPart = cleanKey.split(".")[1]
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    const payload = JSON.parse(Buffer.from(payloadPart, "base64").toString("utf8"));
+
     const refFromUrl = cleanUrl
       .replace(/^https?:\/\//, "")
       .split(".")[0];
