@@ -56,3 +56,12 @@ verify_jwt = false
 
 [functions.expire-pending-bookings]
 verify_jwt = false
+
+[functions.auth-email-hook]
+verify_jwt = false
+
+[functions.finalize-trip-booking]
+verify_jwt = false
+
+[functions.initiate-trip-payment]
+verify_jwt = false
