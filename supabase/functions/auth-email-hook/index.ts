@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
 const POSTMARK_API = "https://api.postmarkapp.com/email";
 
@@ -108,17 +109,41 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Verify the webhook authorization token
-    const authHeader = req.headers.get("Authorization");
-    const hookSecret = Deno.env.get("AUTH_HOOK_SECRET");
+    // Verify Standard Webhooks signature from Supabase Auth
+    const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET");
     if (hookSecret) {
-      if (!authHeader || authHeader !== `Bearer ${hookSecret}`) {
-        console.error("[AUTH-EMAIL-HOOK] Invalid authorization token");
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      try {
+        const payloadText = await req.text();
+        const svixId = req.headers.get("svix-id");
+        const svixTimestamp = req.headers.get("svix-timestamp");
+        const svixSignature = req.headers.get("svix-signature");
+        
+        if (!svixId || !svixTimestamp || !svixSignature) {
+          console.error("[AUTH-EMAIL-HOOK] Missing svix headers");
+          return new Response(JSON.stringify({ error: "Missing webhook headers" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const wh = new Webhook(hookSecret);
+        wh.verify(payloadText, {
+          "svix-id": svixId,
+          "svix-timestamp": svixTimestamp,
+          "svix-signature": svixSignature,
+        });
+        
+        // Parse the verified payload
+        var payload = JSON.parse(payloadText);
+      } catch (err) {
+        console.error("[AUTH-EMAIL-HOOK] Webhook verification failed:", err.message);
+        return new Response(JSON.stringify({ error: "Invalid webhook signature" }), {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+    } else {
+      var payload = await req.json();
     }
 
     const postmarkToken = Deno.env.get("POSTMARK_SERVER_TOKEN");
@@ -129,7 +154,6 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const payload = await req.json();
     console.log("[AUTH-EMAIL-HOOK] Full payload keys:", Object.keys(payload));
 
     // Supabase Auth Hook payload - email_action_type is inside email_data
