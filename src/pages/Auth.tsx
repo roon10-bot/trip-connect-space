@@ -262,6 +262,8 @@ const Auth = () => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setAccountType("traveler");
+    setShowEmailVerification(false);
+    setVerificationEmail("");
     reset();
   };
 
