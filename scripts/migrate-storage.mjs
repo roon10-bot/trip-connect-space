@@ -241,28 +241,35 @@ async function ensureBuckets() {
 }
 
 async function migrateFile(bucket, filePath) {
-  const url = `${OLD_SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
+  const sourceUrl = `${OLD_SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
 
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`  ❌ Download failed: ${bucket}/${filePath} (${response.status})`);
+    const downloadResponse = await fetch(sourceUrl);
+    if (!downloadResponse.ok) {
+      console.error(`  ❌ Download failed: ${bucket}/${filePath} (${downloadResponse.status})`);
       return false;
     }
 
-    const arrayBuffer = await response.arrayBuffer();
+    const arrayBuffer = await downloadResponse.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
     const contentType = getContentType(filePath);
+    const encodedPath = filePath
+      .split("/")
+      .map((part) => encodeURIComponent(part))
+      .join("/");
 
-    const { error } = await newSupabase.storage
-      .from(bucket)
-      .upload(filePath, buffer, {
-        contentType,
-        upsert: true,
-      });
+    const uploadResponse = await fetch(`${targetStorageBase}/object/${bucket}/${encodedPath}`, {
+      method: "POST",
+      headers: getTargetAuthHeaders({
+        "Content-Type": contentType,
+        "x-upsert": "true",
+      }),
+      body: buffer,
+    });
 
-    if (error) {
-      console.error(`  ❌ Upload failed: ${bucket}/${filePath}: ${error.message}`);
+    if (!uploadResponse.ok) {
+      const text = await uploadResponse.text();
+      console.error(`  ❌ Upload failed: ${bucket}/${filePath}: ${text || uploadResponse.statusText}`);
       return false;
     }
 
