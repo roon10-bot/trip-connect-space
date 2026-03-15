@@ -62,19 +62,26 @@ serve(async (req) => {
     const clientCert = fixPem(rawCert);
     const clientKey = fixPem(rawKey);
 
-    // Count PEM blocks for diagnostics
-    const certBlocks = (clientCert.match(/-----BEGIN/g) || []).length;
-    const keyBlocks = (clientKey.match(/-----BEGIN/g) || []).length;
+    // Validate PEM types
+    const certTypes = [...clientCert.matchAll(/-----BEGIN ([A-Z ]+)-----/g)].map(m => m[1]);
+    const keyTypes = [...clientKey.matchAll(/-----BEGIN ([A-Z ]+)-----/g)].map(m => m[1]);
     
+    const hasValidKey = keyTypes.some(t => t.includes("PRIVATE KEY"));
+    const hasValidCert = certTypes.some(t => t.includes("CERTIFICATE"));
+    
+    if (!hasValidCert) {
+      throw new Error(`SWISH_CLIENT_CERT does not contain a CERTIFICATE block. Found: ${certTypes.join(", ") || "none"}`);
+    }
+    if (!hasValidKey) {
+      throw new Error(`SWISH_CLIENT_KEY does not contain a PRIVATE KEY block. Found: ${keyTypes.join(", ") || "none"}`);
+    }
+
     logStep("Swish config loaded", {
       payeeNumber,
       certLength: clientCert.length,
       keyLength: clientKey.length,
-      certBlocks,
-      keyBlocks,
-      certFirst60: clientCert.substring(0, 60),
-      certLast60: clientCert.substring(clientCert.length - 60),
-      keyFirst60: clientKey.substring(0, 60),
+      certTypes,
+      keyTypes,
     });
 
     // Create Supabase client with service role
