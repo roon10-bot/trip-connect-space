@@ -199,7 +199,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
       setAccommodationAddress(trip.accommodation_address || "");
       setAccommodationDescription(trip.accommodation_description || "");
       setBasePriceAccommodation(((trip as any).base_price_accommodation || 0).toString());
-      
+      setUseDuffelFlights((trip as any).use_duffel_flights !== false);
       setBasePriceExtras(((trip as any).base_price_extras || 0).toString());
     }
   }, [trip, form]);
