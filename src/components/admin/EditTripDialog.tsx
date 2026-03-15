@@ -241,6 +241,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
           base_price_accommodation: Number(basePriceAccommodation) || 0,
           base_price_flight: 0,
           base_price_extras: Number(basePriceExtras) || 0,
+          use_duffel_flights: useDuffelFlights,
         } as any)
         .eq("id", tripId);
 
