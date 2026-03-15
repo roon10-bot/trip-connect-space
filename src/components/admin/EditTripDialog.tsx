@@ -95,7 +95,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
   const [accommodationAddress, setAccommodationAddress] = useState<string>("");
   const [accommodationDescription, setAccommodationDescription] = useState<string>("");
   const [basePriceAccommodation, setBasePriceAccommodation] = useState<string>("0");
-  
+  const [useDuffelFlights, setUseDuffelFlights] = useState(true);
   const [basePriceExtras, setBasePriceExtras] = useState<string>("0");
 
   const { data: trip, isLoading: tripLoading } = useQuery({
