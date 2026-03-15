@@ -12,6 +12,14 @@ const logStep = (step: string, details?: unknown) => {
   console.log(`[SWISH-CALLBACK] ${step}${detailsStr}`);
 };
 
+const parsePendingBookingId = (reference?: string | null): string | null => {
+  if (!reference) return null;
+  const clean = reference.replace(/[^a-fA-F0-9]/g, "").toLowerCase();
+  if (clean.length !== 32) return null;
+
+  return `${clean.slice(0, 8)}-${clean.slice(8, 12)}-${clean.slice(12, 16)}-${clean.slice(16, 20)}-${clean.slice(20)}`;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
