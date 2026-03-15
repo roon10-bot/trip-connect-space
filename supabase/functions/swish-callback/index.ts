@@ -239,15 +239,15 @@ serve(async (req) => {
       }
 
       logStep("Payment completed", { paymentId: payment.id, totalPaid });
-    } else if (status === "DECLINED" || status === "ERROR") {
+    } else if (normalizedStatus === "DECLINED" || normalizedStatus === "ERROR" || normalizedStatus === "CANCELLED") {
       await supabaseClient
         .from("payments")
         .update({ status: "failed" })
         .eq("id", payment.id);
 
-      logStep("Payment failed", { status, errorCode, errorMessage });
+      logStep("Payment failed", { status: normalizedStatus, errorCode, errorMessage });
     } else {
-      logStep("Unhandled status", { status });
+      logStep("Unhandled status", { status: normalizedStatus });
     }
 
     // Always return 200 to Swish
