@@ -62,19 +62,26 @@ serve(async (req) => {
     const clientCert = fixPem(rawCert);
     const clientKey = fixPem(rawKey);
 
-    // Count PEM blocks for diagnostics
-    const certBlocks = (clientCert.match(/-----BEGIN/g) || []).length;
-    const keyBlocks = (clientKey.match(/-----BEGIN/g) || []).length;
+    // Validate PEM types
+    const certTypes = [...clientCert.matchAll(/-----BEGIN ([A-Z ]+)-----/g)].map(m => m[1]);
+    const keyTypes = [...clientKey.matchAll(/-----BEGIN ([A-Z ]+)-----/g)].map(m => m[1]);
     
+    const hasValidKey = keyTypes.some(t => t.includes("PRIVATE KEY"));
+    const hasValidCert = certTypes.some(t => t.includes("CERTIFICATE"));
+    
+    if (!hasValidCert) {
+      throw new Error(`SWISH_CLIENT_CERT does not contain a CERTIFICATE block. Found: ${certTypes.join(", ") || "none"}`);
+    }
+    if (!hasValidKey) {
+      throw new Error(`SWISH_CLIENT_KEY does not contain a PRIVATE KEY block. Found: ${keyTypes.join(", ") || "none"}`);
+    }
+
     logStep("Swish config loaded", {
       payeeNumber,
       certLength: clientCert.length,
       keyLength: clientKey.length,
-      certBlocks,
-      keyBlocks,
-      certFirst60: clientCert.substring(0, 60),
-      certLast60: clientCert.substring(clientCert.length - 60),
-      keyFirst60: clientKey.substring(0, 60),
+      certTypes,
+      keyTypes,
     });
 
     // Create Supabase client with service role
@@ -84,22 +91,22 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Authenticate user via JWT claims (does not require server-side session)
+    // Authenticate user via JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer "))
       throw new Error("No authorization header provided");
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } =
-      await supabaseClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims)
-      throw new Error(`Authentication error: ${claimsError?.message || "Invalid token"}`);
+    const { data: userData, error: userError } =
+      await supabaseClient.auth.getUser(token);
+    if (userError || !userData?.user)
+      throw new Error(`Authentication error: ${userError?.message || "Invalid token"}`);
 
-    const userId = claimsData.claims.sub as string;
-    const userEmail = claimsData.claims.email as string;
+    const userId = userData.user.id;
+    const userEmail = userData.user.email;
     if (!userId || !userEmail)
       throw new Error("User not authenticated or email not available");
-    logStep("User authenticated via claims", { userId, email: userEmail });
+    logStep("User authenticated", { userId });
 
     // Parse request body
     const { bookingId, amount, bookingType, payerPhone, isDesktop, isNativeApp } = await req.json();
