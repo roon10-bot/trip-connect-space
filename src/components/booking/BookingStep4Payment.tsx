@@ -96,7 +96,7 @@ export const BookingStep4Payment = ({
           setSwishPollStatus("paid");
           toast.success("Betalningen genomförd! Din bokning bekräftas...");
           setTimeout(() => onBookingConfirmed?.(), 2000);
-        } else if (data?.status === "failed") {
+        } else if (data?.status === "failed" || data?.status === "payment_failed") {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           setSwishPollStatus("error");
           toast.error("Betalningen misslyckades. Försök igen.");
