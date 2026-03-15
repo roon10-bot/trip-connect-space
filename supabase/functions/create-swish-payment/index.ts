@@ -84,22 +84,22 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Authenticate user via JWT claims (does not require server-side session)
+    // Authenticate user via JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer "))
       throw new Error("No authorization header provided");
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } =
-      await supabaseClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims)
-      throw new Error(`Authentication error: ${claimsError?.message || "Invalid token"}`);
+    const { data: userData, error: userError } =
+      await supabaseClient.auth.getUser(token);
+    if (userError || !userData?.user)
+      throw new Error(`Authentication error: ${userError?.message || "Invalid token"}`);
 
-    const userId = claimsData.claims.sub as string;
-    const userEmail = claimsData.claims.email as string;
+    const userId = userData.user.id;
+    const userEmail = userData.user.email;
     if (!userId || !userEmail)
       throw new Error("User not authenticated or email not available");
-    logStep("User authenticated via claims", { userId, email: userEmail });
+    logStep("User authenticated", { userId });
 
     // Parse request body
     const { bookingId, amount, bookingType, payerPhone, isDesktop, isNativeApp } = await req.json();
