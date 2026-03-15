@@ -618,6 +618,25 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                   </>
                 )}
 
+              {/* Duffel toggle */}
+              <div className="md:col-span-2 flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                <Checkbox
+                  id="use_duffel_flights"
+                  checked={useDuffelFlights}
+                  onCheckedChange={(checked) => setUseDuffelFlights(!!checked)}
+                />
+                <div>
+                  <label htmlFor="use_duffel_flights" className="text-sm font-medium cursor-pointer">
+                    Dynamiskt flygpris (Duffel)
+                  </label>
+                  <p className="text-xs text-muted-foreground">
+                    {useDuffelFlights
+                      ? "Flygpriset hämtas automatiskt i realtid från Duffel"
+                      : "Använd ett fast pris istället – flygpris inkluderas i totalpriset"}
+                  </p>
+                </div>
+              </div>
+
                 <FormField
                   control={form.control}
                   name="departure_location"

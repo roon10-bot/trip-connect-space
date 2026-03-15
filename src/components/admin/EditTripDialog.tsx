@@ -625,6 +625,25 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                     />
                   </div>
 
+                  {/* Duffel toggle */}
+                  <div className="md:col-span-2 flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                    <Checkbox
+                      id="edit_use_duffel_flights"
+                      checked={useDuffelFlights}
+                      onCheckedChange={(checked) => setUseDuffelFlights(!!checked)}
+                    />
+                    <div>
+                      <label htmlFor="edit_use_duffel_flights" className="text-sm font-medium cursor-pointer">
+                        Dynamiskt flygpris (Duffel)
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        {useDuffelFlights
+                          ? "Flygpriset hämtas automatiskt i realtid från Duffel"
+                          : "Använd ett fast pris istället – flygpris inkluderas i totalpriset"}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="grid md:grid-cols-2 gap-4">
                     {isSplit ? (
                       <div className="space-y-2">
