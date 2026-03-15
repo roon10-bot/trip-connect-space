@@ -166,10 +166,14 @@ const BookTrip = () => {
   const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
   
   // Use router state flight data as default, override with fresh data if fetched
-  const cheapestFlight = flightData?.offers?.[0] || (hasRouterFlightData && !travelersChanged ? routerState?.flightOffer : null) || null;
-  const dynamicFlightPricePerPerson = flightData?.offers?.[0]
-    ? parseFloat(flightData.offers[0].price_per_passenger_sek)
-    : (hasRouterFlightData && !travelersChanged ? routerState.flightPricePerPerson : null);
+  const cheapestFlight = tripUsesDuffel
+    ? (flightData?.offers?.[0] || (hasRouterFlightData && !travelersChanged ? routerState?.flightOffer : null) || null)
+    : null;
+  const dynamicFlightPricePerPerson = tripUsesDuffel
+    ? (flightData?.offers?.[0]
+      ? parseFloat(flightData.offers[0].price_per_passenger_sek)
+      : (hasRouterFlightData && !travelersChanged ? routerState.flightPricePerPerson : null))
+    : null;
 
   // Sync travelersInfo array length with travelers count and set departure location from trip
   useEffect(() => {
