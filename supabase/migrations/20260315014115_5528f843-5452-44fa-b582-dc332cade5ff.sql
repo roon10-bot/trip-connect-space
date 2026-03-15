@@ -1,0 +1,1 @@
+ALTER TABLE public.trips ADD COLUMN use_duffel_flights boolean NOT NULL DEFAULT true;
