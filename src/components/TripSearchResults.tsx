@@ -37,6 +37,7 @@ interface Trip {
   base_price_flight?: number;
   base_price_extras?: number;
   is_fullbooked?: boolean;
+  use_duffel_flights?: boolean;
   accommodation_rooms?: number | null;
   accommodation_size_sqm?: number | null;
   accommodation_facilities?: string[] | null;
