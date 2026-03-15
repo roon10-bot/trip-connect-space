@@ -149,10 +149,11 @@ const BookTrip = () => {
     return match?.[1] || null;
   }, [trip?.departure_location]);
 
-  // Only fetch flights if we don't have data from search results, or if travelers changed
+  // Only fetch flights if trip uses Duffel and we don't have data from search results
+  const tripUsesDuffel = (trip as any)?.use_duffel_flights !== false;
   const hasRouterFlightData = routerState?.flightPricePerPerson != null;
   const travelersChanged = routerState?.guests != null && travelers !== routerState.guests;
-  const shouldFetchFlights = departureIATA && trip && (!hasRouterFlightData || travelersChanged);
+  const shouldFetchFlights = tripUsesDuffel && departureIATA && trip && (!hasRouterFlightData || travelersChanged);
 
   const flightSearchParams = shouldFetchFlights ? {
     origin: departureIATA,
