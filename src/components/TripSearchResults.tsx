@@ -271,7 +271,7 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
                             })()} kr
                           </p>
                         )}
-                        {cheapestFlightPrice && flightData?.is_test && (
+                        {trip.use_duffel_flights !== false && cheapestFlightPrice && flightData?.is_test && (
                           <span className="text-[10px] text-muted-foreground/60">Testpris (Duffel)</span>
                         )}
                       </div>
