@@ -43,6 +43,8 @@ serve(async (req) => {
       payerAlias,
     } = body;
 
+    const normalizedStatus = String(status || "").toUpperCase();
+
     if (!swishPaymentId) {
       throw new Error("Missing payment ID in callback");
     }
@@ -53,19 +55,52 @@ serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    // Check if this is a pending booking payment (payeePaymentReference = pending_booking_id without dashes)
-    const { data: pendingBooking } = await supabaseClient
+    // Check if this is a pending booking payment.
+    // Primary lookup: payment_reference (Swish payment id)
+    // Fallback lookup: payeePaymentReference (pending booking id without dashes)
+    let pendingBooking: { id: string; status: string; payment_reference: string | null } | null = null;
+
+    const { data: pendingByPaymentReference } = await supabaseClient
       .from("pending_trip_bookings")
-      .select("id, status")
+      .select("id, status, payment_reference")
       .eq("payment_reference", swishPaymentId)
       .eq("status", "awaiting_payment")
       .maybeSingle();
 
+    pendingBooking = pendingByPaymentReference;
+
+    const pendingIdFromReference = parsePendingBookingId(payeePaymentReference);
+    if (!pendingBooking && pendingIdFromReference) {
+      const { data: pendingByReference } = await supabaseClient
+        .from("pending_trip_bookings")
+        .select("id, status, payment_reference")
+        .eq("id", pendingIdFromReference)
+        .eq("status", "awaiting_payment")
+        .maybeSingle();
+
+      pendingBooking = pendingByReference;
+    }
+
+    logStep("Pending booking lookup", {
+      swishPaymentId,
+      payeePaymentReference,
+      pendingIdFromReference,
+      found: !!pendingBooking,
+    });
+
     // ====== PENDING BOOKING FLOW ======
     if (pendingBooking) {
-      logStep("Processing PENDING BOOKING Swish payment", { pendingId: pendingBooking.id });
+      logStep("Processing PENDING BOOKING Swish payment", { pendingId: pendingBooking.id, normalizedStatus });
 
-      if (status === "PAID") {
+      // Keep payment_reference in sync when found via payeePaymentReference fallback
+      if (pendingBooking.payment_reference !== swishPaymentId) {
+        await supabaseClient
+          .from("pending_trip_bookings")
+          .update({ payment_reference: swishPaymentId })
+          .eq("id", pendingBooking.id);
+      }
+
+      if (normalizedStatus === "PAID") {
         // Delete the placeholder payment record
         await supabaseClient
           .from("payments")
@@ -94,7 +129,7 @@ serve(async (req) => {
         } else {
           logStep("Booking finalized via Swish", finalizeData);
         }
-      } else if (status === "DECLINED" || status === "ERROR") {
+      } else if (normalizedStatus === "DECLINED" || normalizedStatus === "ERROR" || normalizedStatus === "CANCELLED") {
         await supabaseClient
           .from("pending_trip_bookings")
           .update({ status: "payment_failed" })
@@ -107,9 +142,8 @@ serve(async (req) => {
           .eq("provider_transaction_id", swishPaymentId)
           .eq("status", "pending");
 
-        logStep("Pending booking payment failed", { status, errorCode, errorMessage });
+        logStep("Pending booking payment failed", { status: normalizedStatus, errorCode, errorMessage });
       }
-
       return new Response(JSON.stringify({ received: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
