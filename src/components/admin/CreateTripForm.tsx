@@ -314,6 +314,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
         base_price_accommodation: Number(basePriceAccommodation) || 0,
         base_price_flight: 0,
         base_price_extras: Number(basePriceExtras) || 0,
+        use_duffel_flights: useDuffelFlights,
       } as any).select('id').single();
 
       if (tripError) throw tripError;
