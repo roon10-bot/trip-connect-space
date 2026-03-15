@@ -8,6 +8,7 @@ import { sv } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
