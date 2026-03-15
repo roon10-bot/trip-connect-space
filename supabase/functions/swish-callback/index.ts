@@ -168,7 +168,7 @@ serve(async (req) => {
 
     logStep("Payment found", { paymentId: payment.id, currentStatus: payment.status });
 
-    if (status === "PAID") {
+    if (normalizedStatus === "PAID") {
       // Update payment to completed
       await supabaseClient
         .from("payments")
