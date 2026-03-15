@@ -60,9 +60,10 @@ interface TripSearchResultsProps {
 }
 
 export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 }: TripSearchResultsProps) => {
-  // Pick the first trip to determine flight search params (same departure date pattern)
+  // Only search flights if at least one trip uses Duffel
   const firstTrip = trips[0];
-  const flightSearchParams = departureIATA && firstTrip ? {
+  const anyTripUsesDuffel = trips.some(t => t.use_duffel_flights !== false);
+  const flightSearchParams = anyTripUsesDuffel && departureIATA && firstTrip ? {
     origin: departureIATA,
     destination: "SPU", // Split, Croatia - primary destination
     departure_date: firstTrip.departure_date,
