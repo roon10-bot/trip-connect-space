@@ -149,10 +149,11 @@ const BookTrip = () => {
     return match?.[1] || null;
   }, [trip?.departure_location]);
 
-  // Only fetch flights if we don't have data from search results, or if travelers changed
+  // Only fetch flights if trip uses Duffel and we don't have data from search results
+  const tripUsesDuffel = (trip as any)?.use_duffel_flights !== false;
   const hasRouterFlightData = routerState?.flightPricePerPerson != null;
   const travelersChanged = routerState?.guests != null && travelers !== routerState.guests;
-  const shouldFetchFlights = departureIATA && trip && (!hasRouterFlightData || travelersChanged);
+  const shouldFetchFlights = tripUsesDuffel && departureIATA && trip && (!hasRouterFlightData || travelersChanged);
 
   const flightSearchParams = shouldFetchFlights ? {
     origin: departureIATA,
@@ -165,10 +166,14 @@ const BookTrip = () => {
   const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
   
   // Use router state flight data as default, override with fresh data if fetched
-  const cheapestFlight = flightData?.offers?.[0] || (hasRouterFlightData && !travelersChanged ? routerState?.flightOffer : null) || null;
-  const dynamicFlightPricePerPerson = flightData?.offers?.[0]
-    ? parseFloat(flightData.offers[0].price_per_passenger_sek)
-    : (hasRouterFlightData && !travelersChanged ? routerState.flightPricePerPerson : null);
+  const cheapestFlight = tripUsesDuffel
+    ? (flightData?.offers?.[0] || (hasRouterFlightData && !travelersChanged ? routerState?.flightOffer : null) || null)
+    : null;
+  const dynamicFlightPricePerPerson = tripUsesDuffel
+    ? (flightData?.offers?.[0]
+      ? parseFloat(flightData.offers[0].price_per_passenger_sek)
+      : (hasRouterFlightData && !travelersChanged ? routerState.flightPricePerPerson : null))
+    : null;
 
   // Sync travelersInfo array length with travelers count and set departure location from trip
   useEffect(() => {

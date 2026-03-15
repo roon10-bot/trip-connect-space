@@ -37,6 +37,7 @@ interface Trip {
   base_price_flight?: number;
   base_price_extras?: number;
   is_fullbooked?: boolean;
+  use_duffel_flights?: boolean;
   accommodation_rooms?: number | null;
   accommodation_size_sqm?: number | null;
   accommodation_facilities?: string[] | null;
@@ -59,9 +60,10 @@ interface TripSearchResultsProps {
 }
 
 export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 }: TripSearchResultsProps) => {
-  // Pick the first trip to determine flight search params (same departure date pattern)
+  // Only search flights if at least one trip uses Duffel
   const firstTrip = trips[0];
-  const flightSearchParams = departureIATA && firstTrip ? {
+  const anyTripUsesDuffel = trips.some(t => t.use_duffel_flights !== false);
+  const flightSearchParams = anyTripUsesDuffel && departureIATA && firstTrip ? {
     origin: departureIATA,
     destination: "SPU", // Split, Croatia - primary destination
     departure_date: firstTrip.departure_date,
@@ -243,20 +245,22 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
                         ) : (
                           <p className="text-2xl font-bold text-primary">
                             {(() => {
+                              const tripUsesDuffel = trip.use_duffel_flights !== false;
+                              const effectiveFlightPrice = tripUsesDuffel ? cheapestFlightPrice : null;
                               // If we have a Duffel flight price, use it for dynamic pricing
-                              if (cheapestFlightPrice && trip.trip_type === "splitveckan" && guests > 0) {
+                              if (effectiveFlightPrice && trip.trip_type === "splitveckan" && guests > 0) {
                                 const accommodation = Number(trip.base_price_accommodation) || 0;
                                 const extras = Number(trip.base_price_extras) || 0;
                                 const dynamicPrice = calculateSplitPricePerPerson(
-                                  accommodation, cheapestFlightPrice, extras, guests
+                                  accommodation, effectiveFlightPrice, extras, guests
                                 );
                                 return dynamicPrice > 0 ? dynamicPrice.toLocaleString("sv-SE") : trip.price.toLocaleString("sv-SE");
                               }
-                              if (cheapestFlightPrice) {
+                              if (effectiveFlightPrice) {
                                 // Non-split: flight + accommodation + extras with 20% margin
                                 const accommodation = Number(trip.base_price_accommodation) || 0;
                                 const extras = Number(trip.base_price_extras) || 0;
-                                const dynamicPrice = Math.ceil((accommodation + cheapestFlightPrice + extras) * 1.20);
+                                const dynamicPrice = Math.ceil((accommodation + effectiveFlightPrice + extras) * 1.20);
                                 return dynamicPrice > 0 ? dynamicPrice.toLocaleString("sv-SE") : trip.price.toLocaleString("sv-SE");
                               }
                               if (trip.trip_type === "splitveckan" && trip.max_persons) {
@@ -267,7 +271,7 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
                             })()} kr
                           </p>
                         )}
-                        {cheapestFlightPrice && flightData?.is_test && (
+                        {trip.use_duffel_flights !== false && cheapestFlightPrice && flightData?.is_test && (
                           <span className="text-[10px] text-muted-foreground/60">Testpris (Duffel)</span>
                         )}
                       </div>

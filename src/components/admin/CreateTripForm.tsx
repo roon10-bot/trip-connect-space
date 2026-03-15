@@ -98,6 +98,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const [accommodationAddress, setAccommodationAddress] = useState<string>("");
   const [accommodationDescription, setAccommodationDescription] = useState<string>("");
   const [useManualPaymentPlan, setUseManualPaymentPlan] = useState(false);
+  const [useDuffelFlights, setUseDuffelFlights] = useState(true);
   const [basePriceAccommodation, setBasePriceAccommodation] = useState<string>("0");
   
   const [basePriceExtras, setBasePriceExtras] = useState<string>("0");
@@ -313,6 +314,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
         base_price_accommodation: Number(basePriceAccommodation) || 0,
         base_price_flight: 0,
         base_price_extras: Number(basePriceExtras) || 0,
+        use_duffel_flights: useDuffelFlights,
       } as any).select('id').single();
 
       if (tripError) throw tripError;
@@ -615,6 +617,25 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                     </div>
                   </>
                 )}
+
+              {/* Duffel toggle */}
+              <div className="md:col-span-2 flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                <Checkbox
+                  id="use_duffel_flights"
+                  checked={useDuffelFlights}
+                  onCheckedChange={(checked) => setUseDuffelFlights(!!checked)}
+                />
+                <div>
+                  <label htmlFor="use_duffel_flights" className="text-sm font-medium cursor-pointer">
+                    Dynamiskt flygpris (Duffel)
+                  </label>
+                  <p className="text-xs text-muted-foreground">
+                    {useDuffelFlights
+                      ? "Flygpriset hämtas automatiskt i realtid från Duffel"
+                      : "Använd ett fast pris istället – flygpris inkluderas i totalpriset"}
+                  </p>
+                </div>
+              </div>
 
                 <FormField
                   control={form.control}

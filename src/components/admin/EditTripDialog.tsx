@@ -8,6 +8,7 @@ import { sv } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { calculateSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -95,7 +96,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
   const [accommodationAddress, setAccommodationAddress] = useState<string>("");
   const [accommodationDescription, setAccommodationDescription] = useState<string>("");
   const [basePriceAccommodation, setBasePriceAccommodation] = useState<string>("0");
-  
+  const [useDuffelFlights, setUseDuffelFlights] = useState(true);
   const [basePriceExtras, setBasePriceExtras] = useState<string>("0");
 
   const { data: trip, isLoading: tripLoading } = useQuery({
@@ -199,7 +200,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
       setAccommodationAddress(trip.accommodation_address || "");
       setAccommodationDescription(trip.accommodation_description || "");
       setBasePriceAccommodation(((trip as any).base_price_accommodation || 0).toString());
-      
+      setUseDuffelFlights((trip as any).use_duffel_flights !== false);
       setBasePriceExtras(((trip as any).base_price_extras || 0).toString());
     }
   }, [trip, form]);
@@ -241,6 +242,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
           base_price_accommodation: Number(basePriceAccommodation) || 0,
           base_price_flight: 0,
           base_price_extras: Number(basePriceExtras) || 0,
+          use_duffel_flights: useDuffelFlights,
         } as any)
         .eq("id", tripId);
 
@@ -622,6 +624,25 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                         </FormItem>
                       )}
                     />
+                  </div>
+
+                  {/* Duffel toggle */}
+                  <div className="md:col-span-2 flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                    <Checkbox
+                      id="edit_use_duffel_flights"
+                      checked={useDuffelFlights}
+                      onCheckedChange={(checked) => setUseDuffelFlights(!!checked)}
+                    />
+                    <div>
+                      <label htmlFor="edit_use_duffel_flights" className="text-sm font-medium cursor-pointer">
+                        Dynamiskt flygpris (Duffel)
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        {useDuffelFlights
+                          ? "Flygpriset hämtas automatiskt i realtid från Duffel"
+                          : "Använd ett fast pris istället – flygpris inkluderas i totalpriset"}
+                      </p>
+                    </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">

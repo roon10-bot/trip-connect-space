@@ -1341,6 +1341,7 @@ export type Database = {
           second_payment_type: Database["public"]["Enums"]["payment_value_type"]
           trip_type: Database["public"]["Enums"]["trip_type"]
           updated_at: string
+          use_duffel_flights: boolean
         }
         Insert: {
           accommodation_address?: string | null
@@ -1379,6 +1380,7 @@ export type Database = {
           second_payment_type?: Database["public"]["Enums"]["payment_value_type"]
           trip_type: Database["public"]["Enums"]["trip_type"]
           updated_at?: string
+          use_duffel_flights?: boolean
         }
         Update: {
           accommodation_address?: string | null
@@ -1417,6 +1419,7 @@ export type Database = {
           second_payment_type?: Database["public"]["Enums"]["payment_value_type"]
           trip_type?: Database["public"]["Enums"]["trip_type"]
           updated_at?: string
+          use_duffel_flights?: boolean
         }
         Relationships: [
           {
