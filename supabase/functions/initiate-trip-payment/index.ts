@@ -236,32 +236,12 @@ serve(async (req) => {
         throw new Error("AltaPay configuration incomplete");
       }
 
-      logStep("AltaPay config", {
-        gatewayUrl,
-        terminalName,
-        usernameLength: apiUsername.length,
-        usernamePrefix: apiUsername.substring(0, 4),
-        passwordLength: apiPassword.length,
-      });
+      logStep("AltaPay config", { gatewayUrl, terminalName });
 
       // Build Basic Auth - use TextEncoder to handle special characters
       const encoder = new TextEncoder();
       const credBytes = encoder.encode(`${apiUsername}:${apiPassword}`);
       const basicAuth = btoa(String.fromCharCode(...credBytes));
-
-      // Test connectivity first (same as create-altapay-payment)
-      const testUrl = `${gatewayUrl}/merchant/API/getTerminals`;
-      logStep("Testing AltaPay connectivity", { testUrl });
-      const testResponse = await fetch(testUrl, {
-        method: "GET",
-        headers: { Authorization: `Basic ${basicAuth}` },
-      });
-      const testBody = await testResponse.text();
-      logStep("AltaPay connectivity test", { status: testResponse.status, body: testBody.substring(0, 300) });
-
-      if (!testResponse.ok) {
-        throw new Error(`AltaPay auth failed (${testResponse.status}): credentials are invalid`);
-      }
 
       const shopOrderId = `PB-${pendingBookingId.slice(0, 8)}-${Date.now()}`;
       const callbackBase = `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-callback`;
