@@ -573,6 +573,13 @@ export const AdminBookingDetailDialog = ({
                 <p>Inga betalningar registrerade</p>
               </div>
             )}
+
+            <ManualPaymentDialog
+              open={manualPaymentOpen}
+              onOpenChange={setManualPaymentOpen}
+              bookingId={booking.id}
+              bookingName={booking.trips?.name || ""}
+            />
           </TabsContent>
 
           {/* DOKUMENT */}
