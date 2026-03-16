@@ -530,7 +530,12 @@ export const AdminBookingDetailDialog = ({
             <div className="rounded-lg border p-4 space-y-3">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Totalpris</span>
-                <span className="font-semibold">{totalPrice.toLocaleString("sv-SE")} kr</span>
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold">{totalPrice.toLocaleString("sv-SE")} kr</span>
+                  <Button size="sm" variant="outline" onClick={() => setManualPaymentOpen(true)}>
+                    + Manuell betalning
+                  </Button>
+                </div>
               </div>
               <Progress value={percentage} className="h-3" />
               <div className="flex justify-between text-sm text-muted-foreground">
