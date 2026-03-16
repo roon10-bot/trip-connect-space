@@ -64,6 +64,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ManualPaymentDialog } from "./ManualPaymentDialog";
 
 interface AdminBookingDetailDialogProps {
   booking: any;
@@ -88,6 +89,7 @@ export const AdminBookingDetailDialog = ({
   const [emailResult, setEmailResult] = useState<{ success: boolean; message: string } | null>(null);
   const [editSubject, setEditSubject] = useState("");
   const [editBody, setEditBody] = useState("");
+  const [manualPaymentOpen, setManualPaymentOpen] = useState(false);
 
   // Editable fields
   const [editData, setEditData] = useState({
@@ -528,7 +530,12 @@ export const AdminBookingDetailDialog = ({
             <div className="rounded-lg border p-4 space-y-3">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Totalpris</span>
-                <span className="font-semibold">{totalPrice.toLocaleString("sv-SE")} kr</span>
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold">{totalPrice.toLocaleString("sv-SE")} kr</span>
+                  <Button size="sm" variant="outline" onClick={() => setManualPaymentOpen(true)}>
+                    + Manuell betalning
+                  </Button>
+                </div>
               </div>
               <Progress value={percentage} className="h-3" />
               <div className="flex justify-between text-sm text-muted-foreground">
@@ -566,6 +573,13 @@ export const AdminBookingDetailDialog = ({
                 <p>Inga betalningar registrerade</p>
               </div>
             )}
+
+            <ManualPaymentDialog
+              open={manualPaymentOpen}
+              onOpenChange={setManualPaymentOpen}
+              bookingId={booking.id}
+              bookingName={booking.trips?.name || ""}
+            />
           </TabsContent>
 
           {/* DOKUMENT */}
