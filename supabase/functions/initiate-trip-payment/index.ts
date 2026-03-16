@@ -244,8 +244,10 @@ serve(async (req) => {
         passwordLength: apiPassword.length,
       });
 
-      // Build Basic Auth - use standard btoa for ASCII credentials
-      const basicAuth = btoa(`${apiUsername}:${apiPassword}`);
+      // Build Basic Auth - use TextEncoder to handle special characters
+      const encoder = new TextEncoder();
+      const credBytes = encoder.encode(`${apiUsername}:${apiPassword}`);
+      const basicAuth = btoa(String.fromCharCode(...credBytes));
 
       // Test connectivity first (same as create-altapay-payment)
       const testUrl = `${gatewayUrl}/merchant/API/getTerminals`;
