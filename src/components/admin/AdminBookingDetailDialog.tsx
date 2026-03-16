@@ -64,6 +64,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ManualPaymentDialog } from "./ManualPaymentDialog";
 
 interface AdminBookingDetailDialogProps {
   booking: any;
