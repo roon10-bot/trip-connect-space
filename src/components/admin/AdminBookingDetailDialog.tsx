@@ -89,6 +89,7 @@ export const AdminBookingDetailDialog = ({
   const [emailResult, setEmailResult] = useState<{ success: boolean; message: string } | null>(null);
   const [editSubject, setEditSubject] = useState("");
   const [editBody, setEditBody] = useState("");
+  const [manualPaymentOpen, setManualPaymentOpen] = useState(false);
 
   // Editable fields
   const [editData, setEditData] = useState({
