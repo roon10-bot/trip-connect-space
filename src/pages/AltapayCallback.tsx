@@ -102,9 +102,7 @@ const AltapayCallback = () => {
               {isSuccess ? "Betalningen lyckades!" : "Verifierar betalning..."}
             </h1>
             <p className="text-muted-foreground">
-              {isSuccess
-                ? "Vänta medan vi slutför din bokning och bokar dina flygbiljetter..."
-                : "Vi verifierar betalningen och slutför din bokning..."}
+              Vänta medan vi slutför din bokning...
             </p>
           </>
         ) : (
