@@ -116,6 +116,7 @@ const Admin = () => {
     "trip-templates": "Skapa och hantera resmallar",
     partners: "Hantera värdansökningar",
     "partner-listings": "Godkänn boenden från värdar",
+    "sales-report": "Generera och exportera försäljningsrapporter",
   };
 
   return (
