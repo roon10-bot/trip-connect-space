@@ -72,6 +72,11 @@ const menuItems = [
         value: "documents" as AdminView,
         icon: FileText,
       },
+      {
+        label: "Försäljningsrapport",
+        value: "sales-report" as AdminView,
+        icon: BarChart3,
+      },
     ],
   },
   {
@@ -86,16 +91,6 @@ const menuItems = [
         label: "Boenden",
         value: "partner-listings" as AdminView,
         icon: Home,
-      },
-    ],
-  },
-  {
-    label: "Rapporter",
-    items: [
-      {
-        label: "Försäljningsrapport",
-        value: "sales-report" as AdminView,
-        icon: BarChart3,
       },
     ],
   },
