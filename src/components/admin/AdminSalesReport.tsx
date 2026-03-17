@@ -147,7 +147,7 @@ export const AdminSalesReport = () => {
         .in("trip_booking_id", bookingIds);
 
       // Fetch profiles for "booked by" info
-      const userIds = [...new Set(filtered.map((b) => b.user_id).filter(Boolean))];
+      const userIds = [...new Set(filtered.map((b) => b.user_id).filter((id): id is string => !!id))];
       let profilesMap: Record<string, string> = {};
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
