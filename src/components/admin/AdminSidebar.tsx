@@ -89,6 +89,16 @@ const menuItems = [
       },
     ],
   },
+  {
+    label: "Rapporter",
+    items: [
+      {
+        label: "Försäljningsrapport",
+        value: "sales-report" as AdminView,
+        icon: BarChart3,
+      },
+    ],
+  },
 ];
 
 export const AdminSidebar = ({ currentView, onViewChange }: AdminSidebarProps) => {
