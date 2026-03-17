@@ -1050,6 +1050,7 @@ export type Database = {
       }
       trip_booking_travelers: {
         Row: {
+          address: string | null
           birth_date: string
           created_at: string
           departure_location: string
@@ -1057,12 +1058,15 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+          passport_number: string | null
           phone: string
+          school: string | null
           traveler_index: number
           trip_booking_id: string
           updated_at: string
         }
         Insert: {
+          address?: string | null
           birth_date: string
           created_at?: string
           departure_location: string
@@ -1070,12 +1074,15 @@ export type Database = {
           first_name: string
           id?: string
           last_name: string
+          passport_number?: string | null
           phone: string
+          school?: string | null
           traveler_index?: number
           trip_booking_id: string
           updated_at?: string
         }
         Update: {
+          address?: string | null
           birth_date?: string
           created_at?: string
           departure_location?: string
@@ -1083,7 +1090,9 @@ export type Database = {
           first_name?: string
           id?: string
           last_name?: string
+          passport_number?: string | null
           phone?: string
+          school?: string | null
           traveler_index?: number
           trip_booking_id?: string
           updated_at?: string
@@ -1224,6 +1233,7 @@ export type Database = {
           min_persons: number | null
           name: string | null
           price: number | null
+          project_number: string | null
           second_payment_amount: number | null
           second_payment_date: string | null
           second_payment_type: string | null
@@ -1259,6 +1269,7 @@ export type Database = {
           min_persons?: number | null
           name?: string | null
           price?: number | null
+          project_number?: string | null
           second_payment_amount?: number | null
           second_payment_date?: string | null
           second_payment_type?: string | null
@@ -1294,6 +1305,7 @@ export type Database = {
           min_persons?: number | null
           name?: string | null
           price?: number | null
+          project_number?: string | null
           second_payment_amount?: number | null
           second_payment_date?: string | null
           second_payment_type?: string | null
@@ -1335,6 +1347,7 @@ export type Database = {
           name: string
           partner_listing_id: string | null
           price: number
+          project_number: string | null
           return_date: string
           second_payment_amount: number
           second_payment_date: string | null
@@ -1374,6 +1387,7 @@ export type Database = {
           name: string
           partner_listing_id?: string | null
           price?: number
+          project_number?: string | null
           return_date: string
           second_payment_amount?: number
           second_payment_date?: string | null
@@ -1413,6 +1427,7 @@ export type Database = {
           name?: string
           partner_listing_id?: string | null
           price?: number
+          project_number?: string | null
           return_date?: string
           second_payment_amount?: number
           second_payment_date?: string | null
