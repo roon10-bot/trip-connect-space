@@ -18,6 +18,7 @@ import { TripBookingDocuments } from "@/components/admin/TripBookingDocuments";
 import { TripTemplatesList } from "@/components/admin/TripTemplatesList";
 import { AdminPartnersList } from "@/components/admin/AdminPartnersList";
 import { AdminListingsList } from "@/components/admin/AdminListingsList";
+import { AdminSalesReport } from "@/components/admin/AdminSalesReport";
 import { Shield, LogOut, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
