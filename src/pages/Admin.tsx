@@ -94,6 +94,8 @@ const Admin = () => {
         return <AdminPartnersList />;
       case "partner-listings":
         return <AdminListingsList />;
+      case "sales-report":
+        return <AdminSalesReport />;
       default:
         return <AdminDashboard isAdmin={isAdmin} userId={user?.id} />;
     }
