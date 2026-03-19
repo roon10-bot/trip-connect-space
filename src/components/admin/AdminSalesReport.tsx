@@ -498,7 +498,7 @@ export const AdminSalesReport = () => {
                 <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
-          ) : reportData && reportData.length > 0 ? (
+          ) : filteredData && filteredData.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -511,7 +511,7 @@ export const AdminSalesReport = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {reportData.map((row, idx) => (
+                  {filteredData.map((row, idx) => (
                     <TableRow key={idx}>
                       {visibleColumns.map((col) => (
                         <TableCell key={col.key} className="whitespace-nowrap text-sm">
