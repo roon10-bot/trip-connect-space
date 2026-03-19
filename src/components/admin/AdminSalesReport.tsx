@@ -79,7 +79,21 @@ export const AdminSalesReport = () => {
   const [endDate, setEndDate] = useState("");
   const [activeOnly, setActiveOnly] = useState(true);
   const [selectedColumns, setSelectedColumns] = useState<ColumnKey[]>(DEFAULT_COLUMNS);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTripId, setSelectedTripId] = useState<string>("all");
 
+  // Fetch trips for filter dropdown
+  const { data: allTrips } = useQuery({
+    queryKey: ["admin-trips-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trips")
+        .select("id, name, departure_date, project_number")
+        .order("departure_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
   // Fetch bookings with related data
   const { data: reportData, isLoading } = useQuery({
     queryKey: ["admin-sales-report", dateFilterType, startDate, endDate, activeOnly],
