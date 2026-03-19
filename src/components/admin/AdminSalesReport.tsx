@@ -81,6 +81,7 @@ export const AdminSalesReport = () => {
   const [selectedColumns, setSelectedColumns] = useState<ColumnKey[]>(DEFAULT_COLUMNS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTripId, setSelectedTripId] = useState<string>("all");
+  const [hasSearched, setHasSearched] = useState(false);
 
   // Fetch trips for filter dropdown
   const { data: allTrips } = useQuery({
@@ -96,8 +97,9 @@ export const AdminSalesReport = () => {
   });
   // Fetch bookings with related data
   const { data: reportData, isLoading } = useQuery({
-    queryKey: ["admin-sales-report", dateFilterType, startDate, endDate, activeOnly, selectedTripId],
+    queryKey: ["admin-sales-report", dateFilterType, startDate, endDate, activeOnly, selectedTripId, hasSearched],
     queryFn: async () => {
+      if (!hasSearched) return null;
       // Fetch bookings
       let bookingsQuery = supabase
         .from("trip_bookings")
@@ -425,14 +427,21 @@ export const AdminSalesReport = () => {
             </div>
           </div>
 
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Sök namn, e-post, bokningsnr..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex items-center gap-3 pt-2">
+            <Button onClick={() => setHasSearched(true)} className="px-6">
+              <Search className="w-4 h-4 mr-2" />
+              Sök
+            </Button>
+            <div className="relative max-w-sm flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Filtrera resultat: namn, e-post, bokningsnr..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+                disabled={!hasSearched || !reportData}
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-3 pt-2">
@@ -480,7 +489,7 @@ export const AdminSalesReport = () => {
               Ladda ner PDF
             </Button>
 
-            {filteredData && (
+            {hasSearched && filteredData && (
               <Badge variant="secondary" className="ml-auto">
                 {filteredData.length} bokningar
               </Badge>
@@ -527,7 +536,9 @@ export const AdminSalesReport = () => {
             <div className="text-center py-12">
               <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                Inga bokningar hittades med valda filter
+                {hasSearched
+                  ? "Inga bokningar hittades med valda filter"
+                  : "Ange filter ovan och tryck Sök för att visa bokningar"}
               </p>
             </div>
           )}
