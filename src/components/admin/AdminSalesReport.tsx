@@ -134,6 +134,7 @@ export const AdminSalesReport = () => {
       }
 
       const { data: bookings, error: bookingsError } = await bookingsQuery;
+      console.log("[SalesReport] bookings response:", { count: bookings?.length, error: bookingsError, activeOnly, selectedTripId });
       if (bookingsError) throw bookingsError;
 
       let filtered = bookings || [];
