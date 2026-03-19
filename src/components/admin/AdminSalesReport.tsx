@@ -79,10 +79,24 @@ export const AdminSalesReport = () => {
   const [endDate, setEndDate] = useState("");
   const [activeOnly, setActiveOnly] = useState(true);
   const [selectedColumns, setSelectedColumns] = useState<ColumnKey[]>(DEFAULT_COLUMNS);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTripId, setSelectedTripId] = useState<string>("all");
 
+  // Fetch trips for filter dropdown
+  const { data: allTrips } = useQuery({
+    queryKey: ["admin-trips-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trips")
+        .select("id, name, departure_date, project_number")
+        .order("departure_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
   // Fetch bookings with related data
   const { data: reportData, isLoading } = useQuery({
-    queryKey: ["admin-sales-report", dateFilterType, startDate, endDate, activeOnly],
+    queryKey: ["admin-sales-report", dateFilterType, startDate, endDate, activeOnly, selectedTripId],
     queryFn: async () => {
       // Fetch bookings
       let bookingsQuery = supabase
@@ -99,6 +113,10 @@ export const AdminSalesReport = () => {
           )
         `)
         .order("created_at", { ascending: false });
+
+      if (selectedTripId !== "all") {
+        bookingsQuery = bookingsQuery.eq("trip_id", selectedTripId);
+      }
 
       if (activeOnly) {
         bookingsQuery = bookingsQuery.in("status", ["pending", "preliminary", "confirmed"]);
@@ -239,6 +257,25 @@ export const AdminSalesReport = () => {
     [selectedColumns]
   );
 
+  const filteredData = useMemo(() => {
+    if (!reportData) return [];
+    if (!searchQuery.trim()) return reportData;
+    const q = searchQuery.toLowerCase();
+    return reportData.filter((row) => {
+      const searchable = [
+        row.customer_name,
+        row.email,
+        row.booking_id,
+        row.trip_name,
+        row.phone,
+        row.project_number,
+        row.discount_code,
+        row.school,
+      ].join(" ").toLowerCase();
+      return searchable.includes(q);
+    });
+  }, [reportData, searchQuery]);
+
   const formatCellValue = (key: ColumnKey, value: any): string => {
     if (key === "paid_amount" || key === "remaining_amount" || key === "trip_price" || key === "discount_amount") {
       return `${Number(value).toLocaleString("sv-SE")} kr`;
@@ -328,7 +365,7 @@ export const AdminSalesReport = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <div className="space-y-2">
               <Label>Filtrera på</Label>
               <Select
@@ -360,6 +397,22 @@ export const AdminSalesReport = () => {
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Resa</Label>
+              <Select value={selectedTripId} onValueChange={setSelectedTripId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Alla resor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla resor</SelectItem>
+                  {allTrips?.map((trip) => (
+                    <SelectItem key={trip.id} value={trip.id}>
+                      {trip.name} {trip.project_number ? `(${trip.project_number})` : ""} {trip.departure_date ? `– ${format(new Date(trip.departure_date), "d MMM yyyy", { locale: sv })}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center gap-2 pb-1">
               <Checkbox
                 id="active-only"
@@ -370,6 +423,16 @@ export const AdminSalesReport = () => {
                 Endast aktiva bokningar
               </Label>
             </div>
+          </div>
+
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Sök namn, e-post, bokningsnr..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
           </div>
 
           <div className="flex items-center gap-3 pt-2">
@@ -417,9 +480,9 @@ export const AdminSalesReport = () => {
               Ladda ner PDF
             </Button>
 
-            {reportData && (
+            {filteredData && (
               <Badge variant="secondary" className="ml-auto">
-                {reportData.length} bokningar
+                {filteredData.length} bokningar
               </Badge>
             )}
           </div>
@@ -435,7 +498,7 @@ export const AdminSalesReport = () => {
                 <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
-          ) : reportData && reportData.length > 0 ? (
+          ) : filteredData && filteredData.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -448,7 +511,7 @@ export const AdminSalesReport = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {reportData.map((row, idx) => (
+                  {filteredData.map((row, idx) => (
                     <TableRow key={idx}>
                       {visibleColumns.map((col) => (
                         <TableCell key={col.key} className="whitespace-nowrap text-sm">
