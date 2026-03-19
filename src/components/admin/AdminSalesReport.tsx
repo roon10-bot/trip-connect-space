@@ -81,6 +81,7 @@ export const AdminSalesReport = () => {
   const [selectedColumns, setSelectedColumns] = useState<ColumnKey[]>(DEFAULT_COLUMNS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTripId, setSelectedTripId] = useState<string>("all");
+  const [hasSearched, setHasSearched] = useState(false);
 
   // Fetch trips for filter dropdown
   const { data: allTrips } = useQuery({
@@ -96,8 +97,9 @@ export const AdminSalesReport = () => {
   });
   // Fetch bookings with related data
   const { data: reportData, isLoading } = useQuery({
-    queryKey: ["admin-sales-report", dateFilterType, startDate, endDate, activeOnly, selectedTripId],
+    queryKey: ["admin-sales-report", dateFilterType, startDate, endDate, activeOnly, selectedTripId, hasSearched],
     queryFn: async () => {
+      if (!hasSearched) return null;
       // Fetch bookings
       let bookingsQuery = supabase
         .from("trip_bookings")
