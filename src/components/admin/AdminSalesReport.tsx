@@ -96,7 +96,7 @@ export const AdminSalesReport = () => {
   });
   // Fetch bookings with related data
   const { data: reportData, isLoading } = useQuery({
-    queryKey: ["admin-sales-report", dateFilterType, startDate, endDate, activeOnly],
+    queryKey: ["admin-sales-report", dateFilterType, startDate, endDate, activeOnly, selectedTripId],
     queryFn: async () => {
       // Fetch bookings
       let bookingsQuery = supabase
