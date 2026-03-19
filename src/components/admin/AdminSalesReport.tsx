@@ -489,7 +489,7 @@ export const AdminSalesReport = () => {
               Ladda ner PDF
             </Button>
 
-            {filteredData && (
+            {hasSearched && filteredData && (
               <Badge variant="secondary" className="ml-auto">
                 {filteredData.length} bokningar
               </Badge>
