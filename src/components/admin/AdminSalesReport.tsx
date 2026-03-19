@@ -346,7 +346,7 @@ export const AdminSalesReport = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <div className="space-y-2">
               <Label>Filtrera på</Label>
               <Select
@@ -378,6 +378,22 @@ export const AdminSalesReport = () => {
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Resa</Label>
+              <Select value={selectedTripId} onValueChange={setSelectedTripId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Alla resor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla resor</SelectItem>
+                  {allTrips?.map((trip) => (
+                    <SelectItem key={trip.id} value={trip.id}>
+                      {trip.name} {trip.project_number ? `(${trip.project_number})` : ""} {trip.departure_date ? `– ${format(new Date(trip.departure_date), "d MMM yyyy", { locale: sv })}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center gap-2 pb-1">
               <Checkbox
                 id="active-only"
@@ -388,6 +404,16 @@ export const AdminSalesReport = () => {
                 Endast aktiva bokningar
               </Label>
             </div>
+          </div>
+
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Sök namn, e-post, bokningsnr..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
           </div>
 
           <div className="flex items-center gap-3 pt-2">
