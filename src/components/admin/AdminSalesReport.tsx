@@ -257,6 +257,25 @@ export const AdminSalesReport = () => {
     [selectedColumns]
   );
 
+  const filteredData = useMemo(() => {
+    if (!reportData) return [];
+    if (!searchQuery.trim()) return reportData;
+    const q = searchQuery.toLowerCase();
+    return reportData.filter((row) => {
+      const searchable = [
+        row.customer_name,
+        row.email,
+        row.booking_id,
+        row.trip_name,
+        row.phone,
+        row.project_number,
+        row.discount_code,
+        row.school,
+      ].join(" ").toLowerCase();
+      return searchable.includes(q);
+    });
+  }, [reportData, searchQuery]);
+
   const formatCellValue = (key: ColumnKey, value: any): string => {
     if (key === "paid_amount" || key === "remaining_amount" || key === "trip_price" || key === "discount_amount") {
       return `${Number(value).toLocaleString("sv-SE")} kr`;
