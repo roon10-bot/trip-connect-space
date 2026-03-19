@@ -114,6 +114,10 @@ export const AdminSalesReport = () => {
         `)
         .order("created_at", { ascending: false });
 
+      if (selectedTripId !== "all") {
+        bookingsQuery = bookingsQuery.eq("trip_id", selectedTripId);
+      }
+
       if (activeOnly) {
         bookingsQuery = bookingsQuery.in("status", ["pending", "preliminary", "confirmed"]);
       }
