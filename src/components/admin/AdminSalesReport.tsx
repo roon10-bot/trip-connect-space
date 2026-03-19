@@ -480,9 +480,9 @@ export const AdminSalesReport = () => {
               Ladda ner PDF
             </Button>
 
-            {reportData && (
+            {filteredData && (
               <Badge variant="secondary" className="ml-auto">
-                {reportData.length} bokningar
+                {filteredData.length} bokningar
               </Badge>
             )}
           </div>
