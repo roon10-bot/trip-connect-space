@@ -427,14 +427,21 @@ export const AdminSalesReport = () => {
             </div>
           </div>
 
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Sök namn, e-post, bokningsnr..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex items-center gap-3 pt-2">
+            <Button onClick={() => setHasSearched(true)} className="px-6">
+              <Search className="w-4 h-4 mr-2" />
+              Sök
+            </Button>
+            <div className="relative max-w-sm flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Filtrera resultat: namn, e-post, bokningsnr..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+                disabled={!hasSearched || !reportData}
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-3 pt-2">
