@@ -536,7 +536,9 @@ export const AdminSalesReport = () => {
             <div className="text-center py-12">
               <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                Inga bokningar hittades med valda filter
+                {hasSearched
+                  ? "Inga bokningar hittades med valda filter"
+                  : "Ange filter ovan och tryck Sök för att visa bokningar"}
               </p>
             </div>
           )}
