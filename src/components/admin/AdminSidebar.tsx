@@ -1,7 +1,7 @@
-import { Map, PlusCircle, Ticket, LayoutDashboard, ClipboardList, CreditCard, Users, Video, UserCog, Mail, FileText, BookTemplate, Handshake, Home, BarChart3 } from "lucide-react";
+import { Map, PlusCircle, Ticket, LayoutDashboard, ClipboardList, CreditCard, Users, Video, UserCog, Mail, FileText, BookTemplate, Handshake, Home, BarChart3, ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type AdminView = "dashboard" | "trips" | "create-trip" | "discount-codes" | "bookings" | "transactions" | "customers" | "meeting-slots" | "accounts" | "email-templates" | "documents" | "trip-templates" | "partners" | "partner-listings" | "sales-report";
+export type AdminView = "dashboard" | "trips" | "create-trip" | "discount-codes" | "bookings" | "transactions" | "customers" | "meeting-slots" | "accounts" | "email-templates" | "documents" | "trip-templates" | "partners" | "partner-listings" | "sales-report" | "test-checklist";
 
 interface AdminSidebarProps {
   currentView: AdminView;
@@ -91,6 +91,16 @@ const menuItems = [
         label: "Boenden",
         value: "partner-listings" as AdminView,
         icon: Home,
+      },
+    ],
+  },
+  {
+    label: "Verktyg",
+    items: [
+      {
+        label: "Testchecklista",
+        value: "test-checklist" as AdminView,
+        icon: ListChecks,
       },
     ],
   },
