@@ -20,7 +20,6 @@ import studentresorLogo from "@/assets/studentresor-logo.svg";
 import loginHero from "@/assets/login-hero.png";
 import { HostRegistrationForm, type IndividualFormData, type CompanyFormData } from "@/components/auth/HostRegistrationForm";
 import type { PartnerProfileData } from "@/types/partner";
-import { sendWelcomeEmailIfNeeded } from "@/lib/welcomeEmail";
 
 const signupSchema = (t: (key: string) => string) => z.object({
   firstName: z.string().trim().min(1, t("auth.firstNameRequired") || "Förnamn krävs"),
