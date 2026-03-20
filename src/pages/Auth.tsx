@@ -146,6 +146,8 @@ const Auth = () => {
     setIsLoading(true);
     try {
       if (isLogin) {
+        // Clear verification flag so the sign-out guard doesn't fire after manual login
+        setEmailJustVerified(false);
         const { error } = await signIn(data.email, data.password);
         if (error) {
           toast.error(error.message.includes("Invalid login credentials") ? t("auth.invalidCredentials") : error.message);
