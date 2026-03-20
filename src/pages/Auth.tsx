@@ -65,7 +65,24 @@ const Auth = () => {
     return hash && (hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=magiclink"));
   };
 
+  // Check if URL contains email confirmation hash (signup verification)
+  const hasEmailConfirmationHash = () => {
+    const hash = window.location.hash;
+    return hash && hash.includes("type=signup");
+  };
+
   useEffect(() => {
+    // If user arrived via email confirmation link, sign them out and show success
+    if (hasEmailConfirmationHash()) {
+      setEmailJustVerified(true);
+      setIsLogin(true);
+      // Sign out the auto-created session so user must log in manually
+      supabase.auth.signOut().catch(() => {});
+      // Clean hash from URL
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      return;
+    }
+
     if (hasMagicLinkHash()) {
       setIsSettingPassword(true);
     }
@@ -102,10 +119,10 @@ const Auth = () => {
   }, [shouldRedirect, user, adminLoading, partnerLoading, navigate, getRedirectPath]);
 
   useEffect(() => {
-    if (user && !adminLoading && !partnerLoading && !isSettingPassword) {
+    if (user && !adminLoading && !partnerLoading && !isSettingPassword && !emailJustVerified) {
       navigate(getRedirectPath());
     }
-  }, [user, adminLoading, partnerLoading, navigate, isSettingPassword, getRedirectPath]);
+  }, [user, adminLoading, partnerLoading, navigate, isSettingPassword, emailJustVerified, getRedirectPath]);
 
   const onSubmit = async (data: AuthFormData) => {
     setIsLoading(true);
