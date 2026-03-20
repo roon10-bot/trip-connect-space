@@ -20,6 +20,7 @@ import studentresorLogo from "@/assets/studentresor-logo.svg";
 import loginHero from "@/assets/login-hero.png";
 import { HostRegistrationForm, type IndividualFormData, type CompanyFormData } from "@/components/auth/HostRegistrationForm";
 import type { PartnerProfileData } from "@/types/partner";
+import { sendWelcomeEmailIfNeeded } from "@/lib/welcomeEmail";
 
 const signupSchema = (t: (key: string) => string) => z.object({
   firstName: z.string().trim().min(1, t("auth.firstNameRequired") || "Förnamn krävs"),
@@ -86,9 +87,7 @@ const Auth = () => {
       setIsLogin(true);
       setIsSettingPassword(false);
 
-      void supabase.auth.signOut({ scope: "local" }).finally(() => {
-        window.history.replaceState(null, "", `${window.location.pathname}?verified=1`);
-      });
+      window.history.replaceState(null, "", `${window.location.pathname}?verified=1`);
       return;
     }
 
@@ -110,7 +109,11 @@ const Auth = () => {
   useEffect(() => {
     if (emailJustVerified && user) {
       setShouldRedirect(false);
-      void supabase.auth.signOut({ scope: "local" });
+
+      void (async () => {
+        await sendWelcomeEmailIfNeeded(user);
+        await supabase.auth.signOut({ scope: "local" });
+      })();
     }
   }, [emailJustVerified, user]);
 
