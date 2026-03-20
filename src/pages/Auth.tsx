@@ -108,11 +108,7 @@ const Auth = () => {
   useEffect(() => {
     if (emailJustVerified && user) {
       setShouldRedirect(false);
-
-      void (async () => {
-        await sendWelcomeEmailIfNeeded(user);
-        await supabase.auth.signOut({ scope: "local" });
-      })();
+      void supabase.auth.signOut({ scope: "local" });
     }
   }, [emailJustVerified, user]);
 
