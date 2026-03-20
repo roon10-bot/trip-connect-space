@@ -42,7 +42,9 @@ type AccountType = "traveler" | "host";
 const Auth = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
-  const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
+  const initialHash = typeof window !== "undefined" ? window.location.hash : "";
+  const isEmailConfirmationFlow = initialHash.includes("type=signup");
+  const [isLogin, setIsLogin] = useState(isEmailConfirmationFlow || searchParams.get("mode") !== "signup");
   const [accountType, setAccountType] = useState<AccountType>("traveler");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +53,7 @@ const Auth = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
-  const [emailJustVerified, setEmailJustVerified] = useState(false);
+  const [emailJustVerified, setEmailJustVerified] = useState(isEmailConfirmationFlow);
   
   const [newPassword, setNewPassword] = useState("");
   const { signIn, signUp, user } = useAuth();
