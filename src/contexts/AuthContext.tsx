@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { sendWelcomeEmailIfNeeded } from "@/lib/welcomeEmail";
 
 interface AuthContextValue {
   user: User | null;
@@ -12,49 +13,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
-/** Send welcome email once after email verification */
-const sendWelcomeEmailIfNeeded = async (user: User) => {
-  // Only proceed if the user's email is confirmed and we have an email address
-  if (!user.email_confirmed_at || !user.email) return;
-
-  try {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("welcome_email_sent, full_name")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (!profile || profile.welcome_email_sent) return;
-
-    const { error: sendError } = await supabase.functions.invoke("send-transactional-email", {
-      body: {
-        template_key: "welcome",
-        to_email: user.email,
-        variables: {
-          first_name: profile.full_name?.split(" ")[0] || "",
-        },
-        action_url: "https://studentresor.com/destinations",
-      },
-    });
-
-    if (sendError) {
-      console.error("Failed to send welcome email:", sendError);
-      return;
-    }
-
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ welcome_email_sent: true })
-      .eq("user_id", user.id);
-
-    if (updateError) {
-      console.error("Failed to mark welcome email as sent:", updateError);
-    }
-  } catch (e) {
-    console.error("Failed to send welcome email:", e);
-  }
-};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
