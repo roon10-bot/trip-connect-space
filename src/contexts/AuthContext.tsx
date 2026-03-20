@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
-import { User, Session } from "@supabase/supabase-js";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { sendWelcomeEmailIfNeeded } from "@/lib/welcomeEmail";
 
 interface AuthContextValue {
   user: User | null;
