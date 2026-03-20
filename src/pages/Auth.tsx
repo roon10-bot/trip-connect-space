@@ -43,7 +43,10 @@ const Auth = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const initialHash = typeof window !== "undefined" ? window.location.hash : "";
-  const isEmailConfirmationFlow = initialHash.includes("type=signup");
+  const isEmailConfirmationFlow =
+    searchParams.get("verified") === "1" ||
+    searchParams.get("type") === "signup" ||
+    initialHash.includes("type=signup");
   const [isLogin, setIsLogin] = useState(isEmailConfirmationFlow || searchParams.get("mode") !== "signup");
   const [accountType, setAccountType] = useState<AccountType>("traveler");
   const [showPassword, setShowPassword] = useState(false);
@@ -67,27 +70,32 @@ const Auth = () => {
     return hash && (hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=magiclink"));
   };
 
-  // Check if URL contains email confirmation hash (signup verification)
-  const hasEmailConfirmationHash = () => {
+  const isVerificationLanding = () => {
     const hash = window.location.hash;
-    return hash && hash.includes("type=signup");
+    return (
+      searchParams.get("verified") === "1" ||
+      searchParams.get("type") === "signup" ||
+      hash.includes("type=signup")
+    );
   };
 
   useEffect(() => {
-    // If user arrived via email confirmation link, sign them out and show success
-    if (hasEmailConfirmationHash()) {
+    if (isVerificationLanding()) {
+      setShouldRedirect(false);
       setEmailJustVerified(true);
       setIsLogin(true);
-      // Sign out the auto-created session so user must log in manually
-      supabase.auth.signOut().catch(() => {});
-      // Clean hash from URL
-      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      setIsSettingPassword(false);
+
+      void supabase.auth.signOut({ scope: "local" }).finally(() => {
+        window.history.replaceState(null, "", `${window.location.pathname}?verified=1`);
+      });
       return;
     }
 
     if (hasMagicLinkHash()) {
       setIsSettingPassword(true);
     }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         if (hasMagicLinkHash()) {
@@ -95,8 +103,16 @@ const Auth = () => {
         }
       }
     });
+
     return () => subscription.unsubscribe();
-  }, []);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (emailJustVerified && user) {
+      setShouldRedirect(false);
+      void supabase.auth.signOut({ scope: "local" });
+    }
+  }, [emailJustVerified, user]);
 
   const {
     register,
