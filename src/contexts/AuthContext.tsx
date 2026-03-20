@@ -109,6 +109,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       password,
     });
+
+    const currentUser = data.user;
+    if (!error && currentUser?.email_confirmed_at && welcomeCheckDone.current !== currentUser.id) {
+      welcomeCheckDone.current = currentUser.id;
+      setTimeout(() => sendWelcomeEmailIfNeeded(currentUser), 0);
+    }
+
     return { data, error };
   }, []);
 
