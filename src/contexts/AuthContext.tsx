@@ -63,10 +63,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, currentSession) => {
+      (event, currentSession) => {
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         setLoading(false);
+
+        // Reset welcome check on sign-out so it re-runs on next sign-in
+        if (event === "SIGNED_OUT") {
+          welcomeCheckDone.current = null;
+          return;
+        }
 
         // Check for welcome email after sign-in (deferred to avoid blocking auth)
         const currentUser = currentSession?.user;
