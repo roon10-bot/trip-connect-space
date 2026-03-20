@@ -211,6 +211,69 @@ serve(async (req: Request) => {
 
     console.log(`[AUTH-EMAIL-HOOK] Sent ${emailType} email to ${recipientEmail}`);
 
+    // After sending signup verification email, also queue welcome email
+    if (emailType === "signup") {
+      try {
+        const userId = payload.user?.id;
+        if (userId) {
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("welcome_email_sent, full_name")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+          if (profile && !profile.welcome_email_sent) {
+            const { data: welcomeTpl } = await supabaseAdmin
+              .from("email_templates")
+              .select("subject, heading, body_text, button_text, footer_text, primary_color, logo_url, is_active")
+              .eq("template_key", "welcome")
+              .maybeSingle();
+
+            if (welcomeTpl && welcomeTpl.is_active) {
+              const wTemplate = welcomeTpl as EmailTemplate;
+              const wVars: Record<string, string> = {
+                first_name: profile.full_name?.split(" ")[0] || "",
+                email: recipientEmail,
+                site_url: "https://studentresor.com",
+              };
+              const wSubject = replacePlaceholders(wTemplate.subject, wVars);
+              const wHtml = buildEmailHtml(wTemplate, wVars, "https://studentresor.com/destinations");
+
+              const wRes = await fetch(POSTMARK_API, {
+                method: "POST",
+                headers: {
+                  Accept: "application/json",
+                  "Content-Type": "application/json",
+                  "X-Postmark-Server-Token": postmarkToken,
+                },
+                body: JSON.stringify({
+                  From: "Studentresor <noreply@studentresor.com>",
+                  To: recipientEmail,
+                  Subject: wSubject,
+                  HtmlBody: wHtml,
+                  TextBody: stripHtml(wHtml),
+                }),
+              });
+
+              const wData = await wRes.json();
+              if (wRes.ok && !wData.ErrorCode) {
+                await supabaseAdmin
+                  .from("profiles")
+                  .update({ welcome_email_sent: true })
+                  .eq("user_id", userId)
+                  .eq("welcome_email_sent", false);
+                console.log(`[AUTH-EMAIL-HOOK] Welcome email sent to ${recipientEmail}`);
+              } else {
+                console.error("[AUTH-EMAIL-HOOK] Welcome Postmark error:", wData);
+              }
+            }
+          }
+        }
+      } catch (wErr) {
+        console.error("[AUTH-EMAIL-HOOK] Welcome email error (non-fatal):", wErr);
+      }
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

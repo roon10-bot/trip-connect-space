@@ -1,7 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { sendWelcomeEmailIfNeeded } from "@/lib/welcomeEmail";
 
 interface AuthContextValue {
   user: User | null;
@@ -18,7 +17,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const welcomeCheckDone = useRef<string | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -26,19 +24,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         setLoading(false);
-
-        // Reset welcome check on sign-out so it re-runs on next sign-in
-        if (event === "SIGNED_OUT") {
-          welcomeCheckDone.current = null;
-          return;
-        }
-
-        // Check for welcome email after sign-in (deferred to avoid blocking auth)
-        const currentUser = currentSession?.user;
-        if (currentUser?.email_confirmed_at && welcomeCheckDone.current !== currentUser.id) {
-          welcomeCheckDone.current = currentUser.id;
-          setTimeout(() => sendWelcomeEmailIfNeeded(currentUser), 0);
-        }
       }
     );
 
@@ -67,13 +52,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       password,
     });
-
-    const currentUser = data.user;
-    if (!error && currentUser?.email_confirmed_at && welcomeCheckDone.current !== currentUser.id) {
-      welcomeCheckDone.current = currentUser.id;
-      setTimeout(() => sendWelcomeEmailIfNeeded(currentUser), 0);
-    }
-
     return { data, error };
   }, []);
 
