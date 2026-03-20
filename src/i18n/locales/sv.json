@@ -404,6 +404,8 @@
     "verificationSentTo": "Verifieringsmail skickat till:",
     "checkSpamTip": "Hittar du inte mailet? Kolla skräppost/spam. Det kan ta någon minut.",
     "goToLogin": "Gå till inloggning",
+    "emailVerifiedTitle": "E-postadressen är bekräftad!",
+    "emailVerifiedDesc": "Logga in med dina uppgifter för att fortsätta.",
     "invalidCredentials": "Felaktiga inloggningsuppgifter",
     "emailRegistered": "E-postadressen är redan registrerad",
     "unexpectedError": "Ett oväntat fel uppstod",
