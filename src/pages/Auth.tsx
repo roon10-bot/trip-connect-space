@@ -391,6 +391,24 @@ const Auth = () => {
             </div>
           )}
 
+          {emailJustVerified && (
+            <div className="rounded-xl border border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
+                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-green-800 dark:text-green-300">
+                    {t("auth.emailVerifiedTitle") || "E-postadressen är bekräftad!"}
+                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-400">
+                    {t("auth.emailVerifiedDesc") || "Logga in med dina uppgifter för att fortsätta."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {showEmailVerification ? (
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
               <div className="text-center space-y-4">
