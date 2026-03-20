@@ -51,6 +51,7 @@ const Auth = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
+  const [emailJustVerified, setEmailJustVerified] = useState(false);
   
   const [newPassword, setNewPassword] = useState("");
   const { signIn, signUp, user } = useAuth();
