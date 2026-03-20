@@ -108,7 +108,25 @@ const Auth = () => {
   useEffect(() => {
     if (emailJustVerified && user) {
       setShouldRedirect(false);
-      void supabase.auth.signOut({ scope: "local" });
+
+      // Send welcome email server-side before signing out
+      void (async () => {
+        try {
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              template_key: "welcome",
+              to_email: user.email,
+              variables: {
+                first_name: user.user_metadata?.full_name?.split(" ")[0] || "",
+              },
+              action_url: "https://studentresor.com/destinations",
+            },
+          });
+        } catch (e) {
+          console.error("Welcome email failed:", e);
+        }
+        await supabase.auth.signOut({ scope: "local" });
+      })();
     }
   }, [emailJustVerified, user]);
 
