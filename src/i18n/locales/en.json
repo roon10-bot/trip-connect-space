@@ -401,6 +401,8 @@
     "verificationSentTo": "Verification email sent to:",
     "checkSpamTip": "Can't find it? Check your spam folder. It can take up to a minute.",
     "goToLogin": "Go to login",
+    "emailVerifiedTitle": "Email address verified!",
+    "emailVerifiedDesc": "Log in with your credentials to continue.",
     "invalidCredentials": "Invalid login credentials",
     "emailRegistered": "This email is already registered",
     "unexpectedError": "An unexpected error occurred",

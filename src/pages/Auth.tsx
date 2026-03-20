@@ -51,6 +51,7 @@ const Auth = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
+  const [emailJustVerified, setEmailJustVerified] = useState(false);
   
   const [newPassword, setNewPassword] = useState("");
   const { signIn, signUp, user } = useAuth();
@@ -64,7 +65,24 @@ const Auth = () => {
     return hash && (hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=magiclink"));
   };
 
+  // Check if URL contains email confirmation hash (signup verification)
+  const hasEmailConfirmationHash = () => {
+    const hash = window.location.hash;
+    return hash && hash.includes("type=signup");
+  };
+
   useEffect(() => {
+    // If user arrived via email confirmation link, sign them out and show success
+    if (hasEmailConfirmationHash()) {
+      setEmailJustVerified(true);
+      setIsLogin(true);
+      // Sign out the auto-created session so user must log in manually
+      supabase.auth.signOut().catch(() => {});
+      // Clean hash from URL
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      return;
+    }
+
     if (hasMagicLinkHash()) {
       setIsSettingPassword(true);
     }
@@ -101,10 +119,10 @@ const Auth = () => {
   }, [shouldRedirect, user, adminLoading, partnerLoading, navigate, getRedirectPath]);
 
   useEffect(() => {
-    if (user && !adminLoading && !partnerLoading && !isSettingPassword) {
+    if (user && !adminLoading && !partnerLoading && !isSettingPassword && !emailJustVerified) {
       navigate(getRedirectPath());
     }
-  }, [user, adminLoading, partnerLoading, navigate, isSettingPassword, getRedirectPath]);
+  }, [user, adminLoading, partnerLoading, navigate, isSettingPassword, emailJustVerified, getRedirectPath]);
 
   const onSubmit = async (data: AuthFormData) => {
     setIsLoading(true);
@@ -370,6 +388,24 @@ const Auth = () => {
               >
                 {t("auth.host")}
               </button>
+            </div>
+          )}
+
+          {emailJustVerified && (
+            <div className="rounded-xl border border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800 p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
+                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-green-800 dark:text-green-300">
+                    {t("auth.emailVerifiedTitle") || "E-postadressen är bekräftad!"}
+                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-400">
+                    {t("auth.emailVerifiedDesc") || "Logga in med dina uppgifter för att fortsätta."}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
