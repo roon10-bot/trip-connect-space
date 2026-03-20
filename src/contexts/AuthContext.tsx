@@ -15,11 +15,10 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 /** Send welcome email once after email verification */
 const sendWelcomeEmailIfNeeded = async (user: User) => {
-  // Only proceed if the user's email is confirmed
-  if (!user.email_confirmed_at) return;
+  // Only proceed if the user's email is confirmed and we have an email address
+  if (!user.email_confirmed_at || !user.email) return;
 
   try {
-    // Check if welcome email was already sent
     const { data: profile } = await supabase
       .from("profiles")
       .select("welcome_email_sent, full_name")
@@ -28,19 +27,7 @@ const sendWelcomeEmailIfNeeded = async (user: User) => {
 
     if (!profile || profile.welcome_email_sent) return;
 
-    // Mark as sent first to prevent duplicates
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ welcome_email_sent: true })
-      .eq("user_id", user.id);
-
-    if (updateError) {
-      console.error("Failed to mark welcome email as sent:", updateError);
-      return;
-    }
-
-    // Send welcome email
-    await supabase.functions.invoke("send-transactional-email", {
+    const { error: sendError } = await supabase.functions.invoke("send-transactional-email", {
       body: {
         template_key: "welcome",
         to_email: user.email,
@@ -50,6 +37,20 @@ const sendWelcomeEmailIfNeeded = async (user: User) => {
         action_url: "https://studentresor.com/destinations",
       },
     });
+
+    if (sendError) {
+      console.error("Failed to send welcome email:", sendError);
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ welcome_email_sent: true })
+      .eq("user_id", user.id);
+
+    if (updateError) {
+      console.error("Failed to mark welcome email as sent:", updateError);
+    }
   } catch (e) {
     console.error("Failed to send welcome email:", e);
   }
