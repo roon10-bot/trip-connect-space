@@ -19,6 +19,7 @@ import { TripTemplatesList } from "@/components/admin/TripTemplatesList";
 import { AdminPartnersList } from "@/components/admin/AdminPartnersList";
 import { AdminListingsList } from "@/components/admin/AdminListingsList";
 import { AdminSalesReport } from "@/components/admin/AdminSalesReport";
+import { AdminTestChecklist } from "@/components/admin/AdminTestChecklist";
 import { Shield, LogOut, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -96,6 +97,8 @@ const Admin = () => {
         return <AdminListingsList />;
       case "sales-report":
         return <AdminSalesReport />;
+      case "test-checklist":
+        return <AdminTestChecklist />;
       default:
         return <AdminDashboard isAdmin={isAdmin} userId={user?.id} />;
     }
@@ -117,6 +120,7 @@ const Admin = () => {
     partners: "Hantera värdansökningar",
     "partner-listings": "Godkänn boenden från värdar",
     "sales-report": "Generera och exportera försäljningsrapporter",
+    "test-checklist": "Bocka av testfall innan produktionslansering",
   };
 
   return (
