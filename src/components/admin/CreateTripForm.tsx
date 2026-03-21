@@ -279,6 +279,14 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const createTripMutation = useMutation({
     mutationFn: async (values: TripFormValues) => {
       if (!user?.id) throw new Error("Du måste vara inloggad");
+      
+      // Force token refresh to ensure valid JWT for RLS policies
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error("[CreateTrip] Session refresh failed:", refreshError.message);
+        throw new Error("Din session har gått ut. Logga ut och logga in igen.");
+      }
+      
       setIsUploading(true);
 
       // First create the trip to get the ID
