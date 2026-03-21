@@ -282,7 +282,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       setIsUploading(true);
 
       // First create the trip to get the ID
-      const { data: tripData, error: tripError } = await supabase.from("trips").insert({
+      const insertPayload = {
         trip_type: values.trip_type,
         name: values.name,
         capacity: values.capacity,
@@ -315,9 +315,16 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
         base_price_flight: 0,
         base_price_extras: Number(basePriceExtras) || 0,
         use_duffel_flights: useDuffelFlights,
-      } as any).select('id').single();
+      };
 
-      if (tripError) throw tripError;
+      console.log("[CreateTrip] Inserting trip, user.id:", user.id);
+      const { data: tripData, error: tripError } = await supabase.from("trips").insert(insertPayload as any).select('id').single();
+
+      if (tripError) {
+        console.error("[CreateTrip] Trip insert failed:", tripError.message, tripError.code, tripError.details);
+        throw new Error(`Trip insert: ${tripError.message}`);
+      }
+      console.log("[CreateTrip] Trip created:", tripData.id);
 
       // Upload new image files if any
       if (imageFiles.length > 0 && tripData) {
