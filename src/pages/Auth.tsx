@@ -105,8 +105,11 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [searchParams]);
 
+  const welcomeEmailSentRef = useRef(false);
+
   useEffect(() => {
-    if (emailJustVerified && user) {
+    if (emailJustVerified && user && !welcomeEmailSentRef.current) {
+      welcomeEmailSentRef.current = true;
       setShouldRedirect(false);
 
       // Send welcome email server-side before signing out
