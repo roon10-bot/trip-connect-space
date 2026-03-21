@@ -13,6 +13,33 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const AUTH_STORAGE_KEY_SUFFIX = "-auth-token";
+
+const clearStoredAuthState = () => {
+  if (typeof window === "undefined") return;
+
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+  const exactKeys = new Set(
+    [
+      projectId ? `sb-${projectId}${AUTH_STORAGE_KEY_SUFFIX}` : "",
+      "supabase.auth.token",
+    ].filter(Boolean)
+  );
+
+  const clearFromStorage = (storage: Storage) => {
+    Object.keys(storage)
+      .filter(
+        (key) =>
+          exactKeys.has(key) ||
+          (key.startsWith("sb-") && key.endsWith(AUTH_STORAGE_KEY_SUFFIX))
+      )
+      .forEach((key) => storage.removeItem(key));
+  };
+
+  clearFromStorage(window.localStorage);
+  clearFromStorage(window.sessionStorage);
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -56,7 +83,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signOut = useCallback(async () => {
-    const { error } = await supabase.auth.signOut();
+    let error: any = null;
+
+    try {
+      const globalSignOut = await supabase.auth.signOut();
+      error = globalSignOut.error;
+
+      if (error) {
+        const localSignOut = await supabase.auth.signOut({ scope: "local" });
+        error = localSignOut.error ?? error;
+      }
+    } finally {
+      clearStoredAuthState();
+      setSession(null);
+      setUser(null);
+    }
+
     return { error };
   }, []);
 
