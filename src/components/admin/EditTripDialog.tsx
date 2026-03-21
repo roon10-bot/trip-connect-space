@@ -97,6 +97,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
   const [accommodationDescription, setAccommodationDescription] = useState<string>("");
   const [basePriceAccommodation, setBasePriceAccommodation] = useState<string>("0");
   const [useDuffelFlights, setUseDuffelFlights] = useState(true);
+  const [basePriceFlight, setBasePriceFlight] = useState<string>("0");
   const [basePriceExtras, setBasePriceExtras] = useState<string>("0");
 
   const { data: trip, isLoading: tripLoading } = useQuery({
@@ -201,6 +202,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
       setAccommodationDescription(trip.accommodation_description || "");
       setBasePriceAccommodation(((trip as any).base_price_accommodation || 0).toString());
       setUseDuffelFlights((trip as any).use_duffel_flights !== false);
+      setBasePriceFlight(((trip as any).base_price_flight || 0).toString());
       setBasePriceExtras(((trip as any).base_price_extras || 0).toString());
     }
   }, [trip, form]);
@@ -240,7 +242,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
           accommodation_address: accommodationAddress || null,
           accommodation_description: accommodationDescription || null,
           base_price_accommodation: Number(basePriceAccommodation) || 0,
-          base_price_flight: 0,
+          base_price_flight: useDuffelFlights ? 0 : Number(basePriceFlight) || 0,
           base_price_extras: Number(basePriceExtras) || 0,
           use_duffel_flights: useDuffelFlights,
         } as any)
@@ -644,6 +646,23 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                       </p>
                     </div>
                   </div>
+
+                  {/* Manual flight price when Duffel is off */}
+                  {!useDuffelFlights && (
+                    <div className="md:col-span-2 space-y-2">
+                      <label className="text-sm font-medium">Manuellt flygpris per person (kr)</label>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="t.ex. 3000"
+                        value={basePriceFlight}
+                        onChange={(e) => setBasePriceFlight(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Fast flygpris per person som läggs till i totalpriset
+                      </p>
+                    </div>
+                  )}
 
                   <div className="grid md:grid-cols-2 gap-4">
                     {isSplit ? (

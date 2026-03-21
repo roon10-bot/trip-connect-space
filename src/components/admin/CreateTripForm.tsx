@@ -321,7 +321,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
         accommodation_address: accommodationAddress || null,
         accommodation_description: accommodationDescription || null,
         base_price_accommodation: Number(basePriceAccommodation) || 0,
-        base_price_flight: 0,
+        base_price_flight: useDuffelFlights ? 0 : Number(basePriceFlight) || 0,
         base_price_extras: Number(basePriceExtras) || 0,
         use_duffel_flights: useDuffelFlights,
       };
@@ -651,7 +651,24 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
                       ? "Flygpriset hämtas automatiskt i realtid från Duffel"
                       : "Använd ett fast pris istället – flygpris inkluderas i totalpriset"}
                   </p>
+              </div>
+
+              {/* Manual flight price when Duffel is off */}
+              {!useDuffelFlights && (
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-sm font-medium">Manuellt flygpris per person (kr)</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="t.ex. 3000"
+                    value={basePriceFlight}
+                    onChange={(e) => setBasePriceFlight(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Fast flygpris per person som läggs till i totalpriset
+                  </p>
                 </div>
+              )}
               </div>
 
                 <FormField
