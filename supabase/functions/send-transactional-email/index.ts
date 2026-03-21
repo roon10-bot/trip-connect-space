@@ -97,6 +97,23 @@ serve(async (req: Request) => {
 
     console.log(`[SEND-EMAIL] Sending ${template_key} to ${to_email}`);
 
+    // Server-side idempotency check for welcome emails
+    if (template_key === "welcome") {
+      const { data: profileData } = await supabaseAdmin
+        .from("profiles")
+        .select("welcome_email_sent")
+        .eq("user_id", (await supabaseAdmin.auth.admin.getUserByEmail(to_email)).data?.user?.id || "")
+        .maybeSingle();
+
+      if (profileData?.welcome_email_sent) {
+        console.log(`[SEND-EMAIL] Welcome email already sent to ${to_email}, skipping`);
+        return new Response(JSON.stringify({ skipped: true, reason: "already_sent" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const { data: tplData, error: tplError } = await supabaseAdmin
       .from("email_templates")
       .select("subject, heading, body_text, button_text, footer_text, primary_color, logo_url, is_active")
