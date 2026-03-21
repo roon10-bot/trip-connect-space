@@ -280,10 +280,11 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
     mutationFn: async (values: TripFormValues) => {
       if (!user?.id) throw new Error("Du måste vara inloggad");
       
-      // Force session refresh to ensure valid JWT for RLS
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData.session) {
-        throw new Error("Din session har gått ut. Ladda om sidan och logga in igen.");
+      // Force token refresh to ensure valid JWT for RLS policies
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error("[CreateTrip] Session refresh failed:", refreshError.message);
+        throw new Error("Din session har gått ut. Logga ut och logga in igen.");
       }
       
       setIsUploading(true);
