@@ -59,7 +59,7 @@ const Auth = () => {
   const [emailJustVerified, setEmailJustVerified] = useState(isEmailConfirmationFlow);
   
   const [newPassword, setNewPassword] = useState("");
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, signOut, user } = useAuth();
   const { isAdmin, isLoading: adminLoading } = useAdmin();
   const { partnerProfile, isLoading: partnerLoading } = usePartner();
   const navigate = useNavigate();
@@ -134,10 +134,10 @@ const Auth = () => {
         } catch (e) {
           console.error("Welcome email failed:", e);
         }
-        await supabase.auth.signOut({ scope: "local" });
+        await signOut();
       })();
     }
-  }, [emailJustVerified, user]);
+  }, [emailJustVerified, signOut, user]);
 
   const {
     register,
