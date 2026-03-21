@@ -97,6 +97,23 @@ serve(async (req: Request) => {
 
     console.log(`[SEND-EMAIL] Sending ${template_key} to ${to_email}`);
 
+    // Server-side idempotency check for welcome emails
+    if (template_key === "welcome") {
+      const { data: profileData } = await supabaseAdmin
+        .from("profiles")
+        .select("welcome_email_sent")
+        .eq("user_id", (await supabaseAdmin.auth.admin.getUserByEmail(to_email)).data?.user?.id || "")
+        .maybeSingle();
+
+      if (profileData?.welcome_email_sent) {
+        console.log(`[SEND-EMAIL] Welcome email already sent to ${to_email}, skipping`);
+        return new Response(JSON.stringify({ skipped: true, reason: "already_sent" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const { data: tplData, error: tplError } = await supabaseAdmin
       .from("email_templates")
       .select("subject, heading, body_text, button_text, footer_text, primary_color, logo_url, is_active")
@@ -152,6 +169,19 @@ serve(async (req: Request) => {
     }
 
     console.log(`[SEND-EMAIL] Successfully sent ${template_key} to ${to_email}`);
+
+    // Mark welcome email as sent in profiles table
+    if (template_key === "welcome") {
+      const userRes = await supabaseAdmin.auth.admin.getUserByEmail(to_email);
+      const userId = userRes.data?.user?.id;
+      if (userId) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ welcome_email_sent: true })
+          .eq("user_id", userId);
+        console.log(`[SEND-EMAIL] Marked welcome_email_sent=true for ${to_email}`);
+      }
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
