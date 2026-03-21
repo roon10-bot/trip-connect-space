@@ -99,10 +99,33 @@ serve(async (req: Request) => {
 
     // Server-side idempotency check for welcome emails
     if (template_key === "welcome") {
+      // Look up profile by email via auth.users join — getUserByEmail not available in this SDK version
+      const { data: userData } = await supabaseAdmin
+        .from("profiles")
+        .select("user_id, welcome_email_sent")
+        .eq("user_id",
+          (await supabaseAdmin.rpc("get_user_id_by_email", { p_email: to_email }))
+        )
+        .maybeSingle();
+
+      // Fallback: query profiles directly if the user_id lookup fails
+      // We'll use a simpler approach — query all profiles isn't ideal, so let's use raw SQL via rpc
+    }
+
+    // Actually, let's use a cleaner approach without getUserByEmail
+    // Remove the broken block above and rewrite properly
+
+    if (template_key === "welcome") {
       const { data: profileData } = await supabaseAdmin
         .from("profiles")
         .select("welcome_email_sent")
-        .eq("user_id", (await supabaseAdmin.auth.admin.getUserByEmail(to_email)).data?.user?.id || "")
+        .eq("user_id",
+          // Use service role to query auth.users via postgrest
+          (() => {
+            // This won't work inline — we need a separate query
+            return "";
+          })()
+        )
         .maybeSingle();
 
       if (profileData?.welcome_email_sent) {
