@@ -99,6 +99,7 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
   const [accommodationDescription, setAccommodationDescription] = useState<string>("");
   const [useManualPaymentPlan, setUseManualPaymentPlan] = useState(false);
   const [useDuffelFlights, setUseDuffelFlights] = useState(true);
+  const [basePriceFlight, setBasePriceFlight] = useState<string>("0");
   const [basePriceAccommodation, setBasePriceAccommodation] = useState<string>("0");
   
   const [basePriceExtras, setBasePriceExtras] = useState<string>("0");
