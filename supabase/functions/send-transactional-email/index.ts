@@ -170,6 +170,19 @@ serve(async (req: Request) => {
 
     console.log(`[SEND-EMAIL] Successfully sent ${template_key} to ${to_email}`);
 
+    // Mark welcome email as sent in profiles table
+    if (template_key === "welcome") {
+      const userRes = await supabaseAdmin.auth.admin.getUserByEmail(to_email);
+      const userId = userRes.data?.user?.id;
+      if (userId) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ welcome_email_sent: true })
+          .eq("user_id", userId);
+        console.log(`[SEND-EMAIL] Marked welcome_email_sent=true for ${to_email}`);
+      }
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
