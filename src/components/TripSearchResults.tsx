@@ -257,10 +257,10 @@ export const TripSearchResults = ({ trips, isLoading, departureIATA, guests = 2 
                                 return dynamicPrice > 0 ? dynamicPrice.toLocaleString("sv-SE") : trip.price.toLocaleString("sv-SE");
                               }
                               if (effectiveFlightPrice) {
-                                // Non-split: flight + accommodation + extras with 20% margin
+                                // Non-split: 20% margin on accommodation only, flight + extras at cost
                                 const accommodation = Number(trip.base_price_accommodation) || 0;
                                 const extras = Number(trip.base_price_extras) || 0;
-                                const dynamicPrice = Math.ceil((accommodation + effectiveFlightPrice + extras) * 1.20);
+                                const dynamicPrice = Math.ceil((accommodation * 1.20) + effectiveFlightPrice + extras);
                                 return dynamicPrice > 0 ? dynamicPrice.toLocaleString("sv-SE") : trip.price.toLocaleString("sv-SE");
                               }
                               if (trip.trip_type === "splitveckan" && trip.max_persons) {
