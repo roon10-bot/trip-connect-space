@@ -85,8 +85,6 @@ const Auth = () => {
       setEmailJustVerified(true);
       setIsLogin(true);
       setIsSettingPassword(false);
-
-      window.history.replaceState(null, "", `${window.location.pathname}?verified=1`);
       return;
     }
 
@@ -115,7 +113,11 @@ const Auth = () => {
       // Send welcome email server-side before signing out
       void (async () => {
         try {
-          await supabase.functions.invoke("send-transactional-email", {
+          if (window.location.hash) {
+            window.history.replaceState(null, "", `${window.location.pathname}?verified=1`);
+          }
+
+          const { error } = await supabase.functions.invoke("send-transactional-email", {
             body: {
               template_key: "welcome",
               to_email: user.email,
@@ -125,6 +127,10 @@ const Auth = () => {
               action_url: "https://studentresor.com/destinations",
             },
           });
+
+          if (error) {
+            throw error;
+          }
         } catch (e) {
           console.error("Welcome email failed:", e);
         }
