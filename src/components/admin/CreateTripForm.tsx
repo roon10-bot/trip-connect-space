@@ -369,10 +369,11 @@ export const CreateTripForm = ({ onSuccess }: CreateTripFormProps) => {
       setTemplateMainImageUrl(null);
       onSuccess?.();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       setIsUploading(false);
-      console.error("Error creating trip:", error);
-      toast.error("Kunde inte skapa resan");
+      const msg = error?.message || error?.details || JSON.stringify(error);
+      console.error("Error creating trip:", msg, error);
+      toast.error(`Kunde inte skapa resan: ${msg}`);
     },
   });
 
