@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -105,8 +105,11 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [searchParams]);
 
+  const welcomeEmailSentRef = useRef(false);
+
   useEffect(() => {
-    if (emailJustVerified && user) {
+    if (emailJustVerified && user && !welcomeEmailSentRef.current) {
+      welcomeEmailSentRef.current = true;
       setShouldRedirect(false);
 
       // Send welcome email server-side before signing out
