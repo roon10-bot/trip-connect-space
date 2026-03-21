@@ -98,19 +98,24 @@ serve(async (req: Request) => {
     console.log(`[SEND-EMAIL] Sending ${template_key} to ${to_email}`);
 
     // Server-side idempotency check for welcome emails
+    // Uses DB function get_user_id_by_email to look up the user without auth.admin.getUserByEmail
     if (template_key === "welcome") {
-      const { data: profileData } = await supabaseAdmin
-        .from("profiles")
-        .select("welcome_email_sent")
-        .eq("user_id", (await supabaseAdmin.auth.admin.getUserByEmail(to_email)).data?.user?.id || "")
-        .maybeSingle();
+      const { data: userId } = await supabaseAdmin.rpc("get_user_id_by_email", { p_email: to_email });
 
-      if (profileData?.welcome_email_sent) {
-        console.log(`[SEND-EMAIL] Welcome email already sent to ${to_email}, skipping`);
-        return new Response(JSON.stringify({ skipped: true, reason: "already_sent" }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (userId) {
+        const { data: profileData } = await supabaseAdmin
+          .from("profiles")
+          .select("welcome_email_sent")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (profileData?.welcome_email_sent) {
+          console.log(`[SEND-EMAIL] Welcome email already sent to ${to_email}, skipping`);
+          return new Response(JSON.stringify({ skipped: true, reason: "already_sent" }), {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
     }
 
@@ -172,8 +177,7 @@ serve(async (req: Request) => {
 
     // Mark welcome email as sent in profiles table
     if (template_key === "welcome") {
-      const userRes = await supabaseAdmin.auth.admin.getUserByEmail(to_email);
-      const userId = userRes.data?.user?.id;
+      const { data: userId } = await supabaseAdmin.rpc("get_user_id_by_email", { p_email: to_email });
       if (userId) {
         await supabaseAdmin
           .from("profiles")
