@@ -65,7 +65,8 @@ export const BookingTripSummary = ({
     if (isSplitVeckan && travelers > 0) {
       pricePerPerson = calculateSplitPricePerPerson(accommodation, dynamicFlightPricePerPerson, extras, travelers);
     } else {
-      pricePerPerson = Math.ceil((accommodation + dynamicFlightPricePerPerson + extras) * 1.20);
+      // Non-split trips with dynamic flight: 20% on accommodation only, extras + flight at cost
+      pricePerPerson = Math.ceil((accommodation * 1.20) + dynamicFlightPricePerPerson + extras);
     }
     if (pricePerPerson <= 0) pricePerPerson = trip.price;
   } else if (isSplitVeckan && travelers > 0) {

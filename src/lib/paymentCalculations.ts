@@ -5,7 +5,11 @@
 
 /**
  * Calculate Splitveckan price per person using the component-based formula:
- * ((accommodation / persons) + flight + extras) × 1.20
+ * (accommodation × 1.20 / persons) + extras + flight
+ *
+ * - 20% margin applies ONLY to accommodation
+ * - extras is a per-person cost (no margin)
+ * - flight is a per-person cost (no margin, typically dynamic via Duffel)
  */
 export function calculateSplitPricePerPerson(
   basePriceAccommodation: number,
@@ -14,7 +18,7 @@ export function calculateSplitPricePerPerson(
   persons: number
 ): number {
   if (persons <= 0) return 0;
-  return Math.ceil(((basePriceAccommodation / persons) + basePriceFlight + basePriceExtras) * 1.20);
+  return Math.ceil((basePriceAccommodation * 1.20 / persons) + basePriceExtras + basePriceFlight);
 }
 
 /**
@@ -37,7 +41,7 @@ export function getSplitPricePerPerson(
   if (accommodation > 0 || flight > 0 || extras > 0) {
     return calculateSplitPricePerPerson(accommodation, flight, extras, persons);
   }
-  // Fallback for old data without sub-fields
+  // Fallback for old data without sub-fields (margin on total base_price only)
   if (trip.base_price && persons > 0) {
     return Math.ceil((Number(trip.base_price) * 1.20) / persons);
   }

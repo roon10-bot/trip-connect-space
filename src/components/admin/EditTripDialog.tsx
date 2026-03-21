@@ -665,7 +665,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                           }
                           placeholder="Beräknas automatiskt"
                         />
-                        <p className="text-sm text-muted-foreground">Beräknat pris per person ((boende / antal + extras) × 1.20). Flygpris tillkommer dynamiskt.</p>
+                        <p className="text-sm text-muted-foreground">Beräknat pris per person: (boende × 1.20 / antal) + extras. Flygpris tillkommer dynamiskt.</p>
                       </div>
                     ) : (
                       <FormField
@@ -690,7 +690,7 @@ export const EditTripDialog = ({ tripId, open, onOpenChange }: EditTripDialogPro
                     <div className="bg-muted/50 border rounded-lg p-4 space-y-3">
                       <h4 className="font-semibold text-sm">Prisberäkning per person (Splitveckan)</h4>
                       <p className="text-xs text-muted-foreground">
-                        Formel: ((boende / antal) + extras) × 1.20 (flygpris tillkommer dynamiskt)
+                        Formel: (boende × 1.20 / antal) + extras (flygpris tillkommer dynamiskt)
                       </p>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         {Array.from(
