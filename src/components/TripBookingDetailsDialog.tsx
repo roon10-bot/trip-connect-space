@@ -806,35 +806,44 @@ export const TripBookingDetailsDialog = ({
                         </p>
                         
                         <div className="space-y-3">
-                          {paymentOptions.map((option) => (
+                          {paymentOptions.map((option) => {
+                            const isPaidItem = !option.isAvailable;
+                            return (
                             <label
                               key={option.id}
-                              className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                                selectedPayments.has(option.id)
-                                  ? "border-ocean bg-ocean/5"
-                                  : "border-border hover:border-ocean/50"
+                              className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                                isPaidItem
+                                  ? "border-palm/30 bg-palm/5 cursor-default"
+                                  : selectedPayments.has(option.id)
+                                  ? "border-ocean bg-ocean/5 cursor-pointer"
+                                  : "border-border hover:border-ocean/50 cursor-pointer"
                               }`}
                             >
                               <div className="flex items-center gap-3">
-                                <Checkbox
-                                  checked={selectedPayments.has(option.id)}
-                                  onCheckedChange={() => togglePayment(option.id)}
-                                  className="data-[state=checked]:bg-ocean data-[state=checked]:border-ocean"
-                                />
+                                {isPaidItem ? (
+                                  <CheckCircle className="w-5 h-5 text-palm shrink-0" />
+                                ) : (
+                                  <Checkbox
+                                    checked={selectedPayments.has(option.id)}
+                                    onCheckedChange={() => togglePayment(option.id)}
+                                    className="data-[state=checked]:bg-ocean data-[state=checked]:border-ocean"
+                                  />
+                                )}
                                 <div>
-                                  <p className="font-medium">{option.label}</p>
+                                  <p className={`font-medium ${isPaidItem ? "text-palm" : ""}`}>{option.label}</p>
                                   {option.date && (
-                                    <p className="text-sm text-muted-foreground">
-                                      Förfaller: {format(new Date(option.date), "d MMMM yyyy", { locale: sv })}
+                                    <p className={`text-sm ${isPaidItem ? "text-palm/70" : "text-muted-foreground"}`}>
+                                      {isPaidItem ? "Betald" : `Förfaller: ${format(new Date(option.date), "d MMMM yyyy", { locale: sv })}`}
                                     </p>
                                   )}
                                 </div>
                               </div>
-                              <span className="font-semibold text-lg">
+                              <span className={`font-semibold text-lg ${isPaidItem ? "text-palm" : ""}`}>
                                 {option.amount.toLocaleString("sv-SE")} kr
                               </span>
                             </label>
-                          ))}
+                            );
+                          })}
                         </div>
 
                         {/* Custom Amount Option */}
