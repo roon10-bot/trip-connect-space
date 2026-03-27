@@ -27,6 +27,8 @@ interface BookingStep4PaymentProps {
   } | null;
   // Called when booking is confirmed (swish payment completed)
   onBookingConfirmed?: () => void;
+  // Primary traveler email for redirect
+  primaryEmail?: string;
 }
 
 export const BookingStep4Payment = ({
@@ -38,6 +40,7 @@ export const BookingStep4Payment = ({
   isProcessing,
   swishResult,
   onBookingConfirmed,
+  primaryEmail,
 }: BookingStep4PaymentProps) => {
   const { containerRef, token: turnstileToken, error: turnstileError } = useTurnstile();
   const [selectedMethod, setSelectedMethod] = useState<"card" | "swish" | null>(null);
