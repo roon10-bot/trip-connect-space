@@ -142,9 +142,11 @@ const BookingConfirmation = () => {
       });
 
       if (error) {
-        if (error.message.includes("already registered")) {
+        if (error.message.includes("already registered") || error.message.includes("already been registered")) {
           setExistingAccount(true);
           toast.error("Det finns redan ett konto med den här e-postadressen");
+        } else if (error.status === 429 || error.message.toLowerCase().includes("rate limit")) {
+          toast.error("För många försök. Vänta en stund och försök igen.");
         } else {
           toast.error(error.message);
         }
