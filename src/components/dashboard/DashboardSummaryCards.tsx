@@ -122,7 +122,6 @@ export const DashboardSummaryCards = ({
     );
     if (paidTypes.has("booking_fee")) {
       paidTypes.add("first_payment");
-      paidTypes.add("full_payment");
     }
     const planItems = resolvePaymentPlan(trip, totalPrice, activeBooking.created_at);
     const totalSteps = planItems.length;
