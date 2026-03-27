@@ -99,7 +99,8 @@ export const BookingStep4Payment = ({
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           setSwishPollStatus("paid");
           toast.success("Betalningen genomförd! Din bokning bekräftas...");
-          setTimeout(() => onBookingConfirmed?.(), 2000);
+          const confirmUrl = `/booking/confirmation?pending_booking_id=${swishResult.pendingBookingId}${primaryEmail ? `&email=${encodeURIComponent(primaryEmail)}` : ""}`;
+          setTimeout(() => navigate(confirmUrl), 2000);
         } else if (data?.status === "failed" || data?.status === "payment_failed") {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           setSwishPollStatus("error");
