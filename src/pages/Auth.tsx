@@ -200,7 +200,27 @@ const Auth = () => {
     }
   };
 
-  const handleHostSubmit = async (
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+      if (error) {
+        toast.error(error.message);
+      } else {
+        setForgotSent(true);
+        toast.success(t("auth.forgotPasswordSent") || "Återställningslänk skickad!");
+      }
+    } catch {
+      toast.error(t("auth.unexpectedError"));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
     email: string,
     password: string,
     fullName: string,
