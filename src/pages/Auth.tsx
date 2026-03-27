@@ -57,6 +57,9 @@ const Auth = () => {
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
   const [emailJustVerified, setEmailJustVerified] = useState(isEmailConfirmationFlow);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
   
   const [newPassword, setNewPassword] = useState("");
   const { signIn, signUp, signOut, user } = useAuth();
