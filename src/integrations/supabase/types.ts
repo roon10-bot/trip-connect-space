@@ -1054,6 +1054,8 @@ export type Database = {
           birth_date: string
           created_at: string
           departure_location: string
+          discount_amount: number | null
+          discount_code_id: string | null
           email: string
           first_name: string
           id: string
@@ -1070,6 +1072,8 @@ export type Database = {
           birth_date: string
           created_at?: string
           departure_location: string
+          discount_amount?: number | null
+          discount_code_id?: string | null
           email: string
           first_name: string
           id?: string
@@ -1086,6 +1090,8 @@ export type Database = {
           birth_date?: string
           created_at?: string
           departure_location?: string
+          discount_amount?: number | null
+          discount_code_id?: string | null
           email?: string
           first_name?: string
           id?: string
@@ -1098,6 +1104,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "trip_booking_travelers_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trip_booking_travelers_trip_booking_id_fkey"
             columns: ["trip_booking_id"]
