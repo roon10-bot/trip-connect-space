@@ -273,8 +273,48 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_code_uses: {
+        Row: {
+          discount_code_id: string
+          email: string
+          id: string
+          trip_booking_id: string | null
+          used_at: string
+        }
+        Insert: {
+          discount_code_id: string
+          email: string
+          id?: string
+          trip_booking_id?: string | null
+          used_at?: string
+        }
+        Update: {
+          discount_code_id?: string
+          email?: string
+          id?: string
+          trip_booking_id?: string | null
+          used_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_code_uses_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_code_uses_trip_booking_id_fkey"
+            columns: ["trip_booking_id"]
+            isOneToOne: false
+            referencedRelation: "trip_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discount_codes: {
         Row: {
+          allowed_email: string | null
           code: string
           created_at: string
           created_by: string
@@ -289,6 +329,7 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
+          allowed_email?: string | null
           code: string
           created_at?: string
           created_by: string
@@ -303,6 +344,7 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
+          allowed_email?: string | null
           code?: string
           created_at?: string
           created_by?: string
