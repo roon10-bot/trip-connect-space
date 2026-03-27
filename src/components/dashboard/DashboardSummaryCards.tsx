@@ -71,19 +71,16 @@ export const DashboardSummaryCards = ({
       ? Number(activeBooking.total_price)
       : Math.ceil(Number(activeBooking.total_price) / travelers);
 
-    const paidTypes = new Set(
-      payments
-        .filter((p) => p.trip_booking_id === activeBooking.id)
-        .map((p) => p.payment_type)
-    );
-    if (paidTypes.has("booking_fee")) {
-      paidTypes.add("first_payment");
-    }
+    const bookingPayments = payments.filter((p) => p.trip_booking_id === activeBooking.id);
+    const totalPaidAmount = bookingPayments.reduce((s, p) => s + Number(p.amount), 0);
 
     const planItems = resolvePaymentPlan(trip, totalPrice, activeBooking.created_at);
 
+    // Use cumulative amount logic to find next unpaid item
+    let cumulativeAmount = 0;
     for (const p of planItems) {
-      if (p.amount > 0 && !paidTypes.has(p.type)) {
+      cumulativeAmount += p.amount;
+      if (p.amount > 0 && totalPaidAmount < cumulativeAmount) {
         return {
           amount: p.amount,
           dueDate: p.date || null,
@@ -115,17 +112,15 @@ export const DashboardSummaryCards = ({
     const totalPrice = isBooker
       ? Number(activeBooking.total_price)
       : Math.ceil(Number(activeBooking.total_price) / travelers);
-    const paidTypes = new Set(
-      payments
-        .filter((p) => p.trip_booking_id === activeBooking.id)
-        .map((p) => p.payment_type)
-    );
-    if (paidTypes.has("booking_fee")) {
-      paidTypes.add("first_payment");
-    }
+    const bookingPayments = payments.filter((p) => p.trip_booking_id === activeBooking.id);
+    const totalPaidAmount = bookingPayments.reduce((s, p) => s + Number(p.amount), 0);
     const planItems = resolvePaymentPlan(trip, totalPrice, activeBooking.created_at);
     const totalSteps = planItems.length;
-    const completedSteps = planItems.filter((p) => paidTypes.has(p.type)).length;
+    let cumulativeAmount = 0;
+    const completedSteps = planItems.filter((p) => {
+      cumulativeAmount += p.amount;
+      return p.amount > 0 && totalPaidAmount >= cumulativeAmount;
+    }).length;
     return { totalSteps, completedSteps };
   }, [activeBooking, payments, userId]);
 

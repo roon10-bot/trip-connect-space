@@ -178,10 +178,6 @@ export const PaymentOverview = ({ userId, onPayClick }: PaymentOverviewProps) =>
         const bookingPayments = payments.filter(
           (p) => p.trip_booking_id === booking.id && p.status === "completed"
         );
-        const paidTypes = new Set(bookingPayments.map((p) => p.payment_type));
-        if (paidTypes.has("booking_fee")) {
-          paidTypes.add("first_payment");
-        }
         const totalPaidAmount = bookingPayments.reduce((s, p) => s + Number(p.amount), 0);
 
         const planItems = resolvePaymentPlan(booking.trips!, totalPrice, booking.created_at);
@@ -192,10 +188,15 @@ export const PaymentOverview = ({ userId, onPayClick }: PaymentOverviewProps) =>
         else if (planItems.length === 2) planTypeLabel = "50 / 50";
         else if (planItems.length === 1) planTypeLabel = "100%";
 
-        const itemsWithStatus = planItems.map((item) => ({
-          ...item,
-          isPaid: paidTypes.has(item.type),
-        }));
+        // Use cumulative amount logic to determine which items are paid
+        let cumulativeAmount = 0;
+        const itemsWithStatus = planItems.map((item) => {
+          cumulativeAmount += item.amount;
+          return {
+            ...item,
+            isPaid: item.amount > 0 && totalPaidAmount >= cumulativeAmount,
+          };
+        });
 
         const isFullyPaid = totalPaidAmount >= totalPrice && totalPaidAmount > 0;
 
