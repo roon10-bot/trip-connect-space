@@ -250,6 +250,10 @@ export const TripBookingDetailsDialog = ({
   }, [paymentOptions, selectedPayments, useCustomAmount, parsedCustomAmount]);
 
   const togglePayment = (paymentId: string) => {
+    // Don't allow toggling paid items
+    const option = paymentOptions.find(o => o.id === paymentId);
+    if (option && !option.isAvailable) return;
+    
     setUseCustomAmount(false);
     setSelectedPayments((prev) => {
       const next = new Set(prev);
