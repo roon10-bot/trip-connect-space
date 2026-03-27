@@ -117,6 +117,8 @@ serve(async (req) => {
         birth_date: t.birth_date,
         phone: t.phone,
         departure_location: t.departure_location,
+        discount_code_id: t.discount_code_id || null,
+        discount_amount: t.discount_amount || 0,
       }));
 
       const { error: travelersError } = await supabase
@@ -127,6 +129,27 @@ serve(async (req) => {
         logStep("Error inserting travelers", { error: travelersError.message });
       } else {
         logStep("Travelers inserted", { count: travelerRows.length });
+      }
+
+      // 3b. Record discount code usage per traveler email
+      const discountUses = travelersInfo
+        .filter((t: any) => t.discount_code_id && t.email)
+        .map((t: any) => ({
+          discount_code_id: t.discount_code_id,
+          email: t.email.toLowerCase().trim(),
+          trip_booking_id: bookingId,
+        }));
+
+      if (discountUses.length > 0) {
+        const { error: usesError } = await supabase
+          .from("discount_code_uses")
+          .upsert(discountUses, { onConflict: "discount_code_id,email", ignoreDuplicates: true });
+
+        if (usesError) {
+          logStep("Error recording discount uses", { error: usesError.message });
+        } else {
+          logStep("Discount uses recorded", { count: discountUses.length });
+        }
       }
     }
 

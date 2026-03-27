@@ -41,6 +41,7 @@ export const DiscountCodesList = () => {
   const [maxUses, setMaxUses] = useState<string>("");
   const [validFrom, setValidFrom] = useState("");
   const [validUntil, setValidUntil] = useState("");
+  const [allowedEmail, setAllowedEmail] = useState("");
 
   const resetForm = () => {
     setCode("");
@@ -49,6 +50,7 @@ export const DiscountCodesList = () => {
     setMaxUses("");
     setValidFrom("");
     setValidUntil("");
+    setAllowedEmail("");
   };
 
   const { data: codes, isLoading } = useQuery({
@@ -76,6 +78,7 @@ export const DiscountCodesList = () => {
         max_uses: maxUses ? parseInt(maxUses) : null,
         valid_from: validFrom || null,
         valid_until: validUntil || null,
+        allowed_email: allowedEmail.trim().toLowerCase() || null,
         created_by: user!.id,
       });
       if (error) throw error;
@@ -191,6 +194,20 @@ export const DiscountCodesList = () => {
                 />
               </div>
 
+              <div>
+                <Label>Personlig kod – knuten till e-post</Label>
+                <Input
+                  type="email"
+                  value={allowedEmail}
+                  onChange={(e) => setAllowedEmail(e.target.value)}
+                  placeholder="Lämna tomt för öppen kod"
+                  className="mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {allowedEmail ? "Personlig kod – kan bara användas av denna e-post" : "Öppen kod – kan användas av alla (1 gång per e-post)"}
+                </p>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Giltig från</Label>
@@ -228,6 +245,7 @@ export const DiscountCodesList = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Kod</TableHead>
+                  <TableHead>Typ</TableHead>
                   <TableHead>Rabatt</TableHead>
                   <TableHead>Giltighet</TableHead>
                   <TableHead className="text-center">Användningar</TableHead>
@@ -250,6 +268,16 @@ export const DiscountCodesList = () => {
                           <Copy className="w-3 h-3" />
                         </Button>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {(dc as any).allowed_email ? (
+                        <div>
+                          <Badge variant="outline" className="text-xs">Personlig</Badge>
+                          <p className="text-xs text-muted-foreground mt-0.5">{(dc as any).allowed_email}</p>
+                        </div>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs">Öppen</Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       {dc.discount_percent
