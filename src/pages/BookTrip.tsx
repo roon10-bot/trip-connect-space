@@ -411,18 +411,6 @@ const BookTrip = () => {
     );
   }
 
-  if (bookingComplete) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 pt-28 pb-16">
-          <BookingSuccess />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -459,26 +447,7 @@ const BookTrip = () => {
         <div className="grid lg:grid-cols-3 gap-8 mt-8">
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
-              {needsAccountStep && currentStep === 1 && !showEmailVerification && (
-                <BookingStepAccount
-                  key="step-account"
-                  onNext={handleAccountCreation}
-                  isLoading={isCreatingAccount}
-                />
-              )}
-
-              {showEmailVerification && currentStep === 1 && (
-                <BookingEmailVerification
-                  key="step-email-verify"
-                  email={accountEmail}
-                  onContinue={() => {
-                    setShowEmailVerification(false);
-                    setCurrentStep(2);
-                  }}
-                />
-              )}
-              
-              {bookingStep === 1 && (
+              {currentStep === 1 && (
                 <BookingStep1
                   key="step1"
                   travelers={travelers}
@@ -488,7 +457,7 @@ const BookTrip = () => {
                 />
               )}
               
-              {bookingStep === 2 && (
+              {currentStep === 2 && (
                 <BookingStep2
                   key="step2"
                   travelersInfo={travelersInfo}
@@ -499,7 +468,7 @@ const BookTrip = () => {
                 />
               )}
               
-              {bookingStep === 3 && (
+              {currentStep === 3 && (
                 <BookingStep3
                   key="step3"
                   trip={trip}
@@ -513,7 +482,7 @@ const BookTrip = () => {
                 />
               )}
 
-              {bookingStep === 4 && (
+              {currentStep === 4 && (
                 <BookingStep4Payment
                   key="step4"
                   bookingFee={Math.ceil(calculateTotalPrice() * 0.40)}
@@ -523,7 +492,8 @@ const BookTrip = () => {
                   onPay={handlePayBookingFee}
                   isProcessing={isSubmitting}
                   swishResult={swishResult}
-                  onBookingConfirmed={() => setBookingComplete(true)}
+                  primaryEmail={travelersInfo[0]?.email}
+                />
                 />
               )}
             </AnimatePresence>
