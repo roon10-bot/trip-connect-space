@@ -8,6 +8,7 @@ import { AccommodationInfoDialog } from "@/components/AccommodationInfoDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { BookingPaymentPlan } from "@/components/booking/BookingPaymentPlan";
 import type { FlightOffer } from "@/hooks/useFlightSearch";
+import type { TravelerInfo } from "@/pages/BookTrip";
 
 interface Trip {
   id: string;
@@ -33,11 +34,7 @@ interface Trip {
 interface BookingTripSummaryProps {
   trip: Trip;
   travelers: number;
-  appliedDiscount: {
-    code: string;
-    percent: number | null;
-    amount: number | null;
-  } | null;
+  travelersInfo: TravelerInfo[];
   totalPrice: number;
   formatTripType: (type: string) => string;
   flightOffer?: FlightOffer | null;
@@ -48,14 +45,13 @@ interface BookingTripSummaryProps {
 export const BookingTripSummary = ({
   trip,
   travelers,
-  appliedDiscount,
+  travelersInfo,
   totalPrice,
   formatTripType,
   flightOffer,
   flightLoading,
   dynamicFlightPricePerPerson,
 }: BookingTripSummaryProps) => {
-  // Calculate price per person using dynamic flight price when available
   const isSplitVeckan = trip.trip_type === "splitveckan";
   let pricePerPerson: number;
   
@@ -65,7 +61,6 @@ export const BookingTripSummary = ({
     if (isSplitVeckan && travelers > 0) {
       pricePerPerson = calculateSplitPricePerPerson(accommodation, dynamicFlightPricePerPerson, extras, travelers);
     } else {
-      // Non-split trips with dynamic flight: 20% on accommodation only, extras + flight at cost
       pricePerPerson = Math.ceil((accommodation * 1.20) + dynamicFlightPricePerPerson + extras);
     }
     if (pricePerPerson <= 0) pricePerPerson = trip.price;
@@ -76,7 +71,8 @@ export const BookingTripSummary = ({
   }
   
   const baseTotal = pricePerPerson * travelers;
-  const discountAmount = baseTotal - totalPrice;
+  const totalDiscount = travelersInfo.reduce((sum, t) => sum + (t.discount?.calculatedAmount || 0), 0);
+  const travelersWithDiscount = travelersInfo.filter((t) => t.discount);
   const pricesLoading = flightLoading;
 
   return (
@@ -194,14 +190,31 @@ export const BookingTripSummary = ({
             )}
           </div>
 
-          {/* Discount */}
-          {appliedDiscount && discountAmount > 0 && (
-            <div className="flex justify-between text-sm text-primary">
-              <span className="flex items-center gap-1">
-                <Tag className="w-4 h-4" />
-                Rabatt ({appliedDiscount.code})
-              </span>
-              <span>-{discountAmount.toLocaleString("sv-SE")} kr</span>
+          {/* Per-traveler Discounts */}
+          {travelersWithDiscount.length > 0 && (
+            <div className="space-y-1">
+              {travelersWithDiscount.length <= 3 ? (
+                travelersWithDiscount.map((t, i) => {
+                  const travelerIndex = travelersInfo.indexOf(t);
+                  return (
+                    <div key={i} className="flex justify-between text-sm text-primary">
+                      <span className="flex items-center gap-1">
+                        <Tag className="w-3 h-3" />
+                        Resenär {travelerIndex + 1} ({t.discount!.code})
+                      </span>
+                      <span>-{t.discount!.calculatedAmount.toLocaleString("sv-SE")} kr</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="flex justify-between text-sm text-primary">
+                  <span className="flex items-center gap-1">
+                    <Tag className="w-3 h-3" />
+                    Rabatter ({travelersWithDiscount.length} st)
+                  </span>
+                  <span>-{totalDiscount.toLocaleString("sv-SE")} kr</span>
+                </div>
+              )}
             </div>
           )}
 
