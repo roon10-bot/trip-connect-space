@@ -97,9 +97,24 @@ serve(async (req) => {
     if (trip.is_fullbooked) throw new Error("Trip is fully booked");
     logStep("Trip loaded", { name: trip.name, departure_location: trip.departure_location });
 
-    // Calculate booking fee (40% of total price)
-    const bookingFeeAmount = Math.ceil(total_price * 0.40);
-    logStep("Booking fee calculated", { bookingFeeAmount, totalPrice: total_price });
+    // Calculate booking fee based on days until departure
+    const departureDate = new Date(trip.departure_date);
+    const now = new Date();
+    const daysUntilDeparture = Math.floor(
+      (departureDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    let bookingFeePercent: number;
+    if (daysUntilDeparture > 120) {
+      bookingFeePercent = 0.40; // 40%
+    } else if (daysUntilDeparture >= 61) {
+      bookingFeePercent = 0.50; // 50%
+    } else {
+      bookingFeePercent = 1.00; // 100%
+    }
+
+    const bookingFeeAmount = Math.ceil(total_price * bookingFeePercent);
+    logStep("Booking fee calculated", { bookingFeeAmount, totalPrice: total_price, daysUntilDeparture, bookingFeePercent });
 
     // Fetch fresh Duffel flight offer
     const DUFFEL_API_KEY = Deno.env.get("DUFFEL_API_KEY");
