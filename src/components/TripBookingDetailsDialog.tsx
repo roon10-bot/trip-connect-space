@@ -197,7 +197,7 @@ export const TripBookingDetailsDialog = ({
     return types[type] || type;
   };
 
-  // Build payment options from trip data with calculated amounts
+  // Build payment options from trip data with calculated amounts, marking paid items
   const paymentOptions: PaymentOption[] = useMemo(() => {
     if (!booking?.trips) return [];
     
@@ -205,18 +205,24 @@ export const TripBookingDetailsDialog = ({
     const totalPrice = effectiveTotal;
     
     const planItems = resolvePaymentPlan(trip, totalPrice, booking.created_at);
-    
-    return planItems.map((item) => ({
-      id: item.type === "first_payment" ? "first" 
-        : item.type === "second_payment" ? "second" 
-        : item.type === "final_payment" ? "final" 
-        : "full",
-      label: item.label,
-      amount: item.amount,
-      date: item.date || null,
-      isAvailable: true,
-    }));
-  }, [booking?.trips, booking?.total_price, booking?.created_at, effectiveTotal]);
+
+    // Use cumulative logic to determine which items are already paid
+    let cumulativeAmount = 0;
+    return planItems.map((item) => {
+      cumulativeAmount += item.amount;
+      const isPaid = item.amount > 0 && totalPaid >= cumulativeAmount;
+      return {
+        id: item.type === "first_payment" ? "first" 
+          : item.type === "second_payment" ? "second" 
+          : item.type === "final_payment" ? "final" 
+          : "full",
+        label: item.label,
+        amount: item.amount,
+        date: item.date || null,
+        isAvailable: !isPaid,
+      };
+    });
+  }, [booking?.trips, booking?.total_price, booking?.created_at, effectiveTotal, totalPaid]);
 
   // Calculate selected amount
   const remainingBalance = useMemo(() => {
@@ -225,8 +231,9 @@ export const TripBookingDetailsDialog = ({
 
   // Minimum custom amount = first unpaid payment option amount
   const minCustomAmount = useMemo(() => {
-    if (paymentOptions.length === 0) return 1;
-    return paymentOptions[0]?.amount || 1;
+    const firstUnpaid = paymentOptions.find(opt => opt.isAvailable);
+    if (!firstUnpaid) return 1;
+    return firstUnpaid.amount || 1;
   }, [paymentOptions]);
 
   const parsedCustomAmount = useMemo(() => {
@@ -243,6 +250,10 @@ export const TripBookingDetailsDialog = ({
   }, [paymentOptions, selectedPayments, useCustomAmount, parsedCustomAmount]);
 
   const togglePayment = (paymentId: string) => {
+    // Don't allow toggling paid items
+    const option = paymentOptions.find(o => o.id === paymentId);
+    if (option && !option.isAvailable) return;
+    
     setUseCustomAmount(false);
     setSelectedPayments((prev) => {
       const next = new Set(prev);
@@ -257,7 +268,7 @@ export const TripBookingDetailsDialog = ({
 
   const selectAllPayments = () => {
     setUseCustomAmount(false);
-    setSelectedPayments(new Set(paymentOptions.map((opt) => opt.id)));
+    setSelectedPayments(new Set(paymentOptions.filter(opt => opt.isAvailable).map((opt) => opt.id)));
   };
 
   const handleCustomAmountToggle = () => {
@@ -799,35 +810,44 @@ export const TripBookingDetailsDialog = ({
                         </p>
                         
                         <div className="space-y-3">
-                          {paymentOptions.map((option) => (
+                          {paymentOptions.map((option) => {
+                            const isPaidItem = !option.isAvailable;
+                            return (
                             <label
                               key={option.id}
-                              className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                                selectedPayments.has(option.id)
-                                  ? "border-ocean bg-ocean/5"
-                                  : "border-border hover:border-ocean/50"
+                              className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                                isPaidItem
+                                  ? "border-palm/30 bg-palm/5 cursor-default"
+                                  : selectedPayments.has(option.id)
+                                  ? "border-ocean bg-ocean/5 cursor-pointer"
+                                  : "border-border hover:border-ocean/50 cursor-pointer"
                               }`}
                             >
                               <div className="flex items-center gap-3">
-                                <Checkbox
-                                  checked={selectedPayments.has(option.id)}
-                                  onCheckedChange={() => togglePayment(option.id)}
-                                  className="data-[state=checked]:bg-ocean data-[state=checked]:border-ocean"
-                                />
+                                {isPaidItem ? (
+                                  <CheckCircle className="w-5 h-5 text-palm shrink-0" />
+                                ) : (
+                                  <Checkbox
+                                    checked={selectedPayments.has(option.id)}
+                                    onCheckedChange={() => togglePayment(option.id)}
+                                    className="data-[state=checked]:bg-ocean data-[state=checked]:border-ocean"
+                                  />
+                                )}
                                 <div>
-                                  <p className="font-medium">{option.label}</p>
+                                  <p className={`font-medium ${isPaidItem ? "text-palm" : ""}`}>{option.label}</p>
                                   {option.date && (
-                                    <p className="text-sm text-muted-foreground">
-                                      Förfaller: {format(new Date(option.date), "d MMMM yyyy", { locale: sv })}
+                                    <p className={`text-sm ${isPaidItem ? "text-palm/70" : "text-muted-foreground"}`}>
+                                      {isPaidItem ? "Betald" : `Förfaller: ${format(new Date(option.date), "d MMMM yyyy", { locale: sv })}`}
                                     </p>
                                   )}
                                 </div>
                               </div>
-                              <span className="font-semibold text-lg">
+                              <span className={`font-semibold text-lg ${isPaidItem ? "text-palm" : ""}`}>
                                 {option.amount.toLocaleString("sv-SE")} kr
                               </span>
                             </label>
-                          ))}
+                            );
+                          })}
                         </div>
 
                         {/* Custom Amount Option */}
