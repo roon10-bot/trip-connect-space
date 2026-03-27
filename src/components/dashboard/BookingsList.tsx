@@ -181,11 +181,10 @@ export const BookingsList = ({
       if (!map[p.trip_booking_id]) map[p.trip_booking_id] = new Set();
       map[p.trip_booking_id].add(p.payment_type);
     });
-    // Normalize: "booking_fee" equals "first_payment" / "full_payment"
+    // Normalize: "booking_fee" equals "first_payment"
     Object.values(map).forEach((types) => {
       if (types.has("booking_fee")) {
         types.add("first_payment");
-        types.add("full_payment");
       }
     });
     return map;
