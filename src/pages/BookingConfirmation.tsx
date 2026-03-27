@@ -51,7 +51,7 @@ const BookingConfirmation = () => {
       if (!pendingBookingId) return null;
       const { data } = await supabase
         .from("pending_trip_bookings")
-        .select("status, booking_data, trip_id, total_price, booking_fee_amount, discount_amount")
+        .select("status, booking_data, trip_id, total_price, booking_fee_amount, discount_amount, booking_id")
         .eq("id", pendingBookingId)
         .maybeSingle();
       return data;
