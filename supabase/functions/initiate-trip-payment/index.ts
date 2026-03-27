@@ -258,7 +258,7 @@ serve(async (req) => {
       formData.append("config[callback_fail]", `${callbackBase}?type=fail`);
       formData.append("config[callback_redirect]", `${callbackBase}?type=redirect`);
       formData.append("config[callback_notification]", `${Deno.env.get("SUPABASE_URL")}/functions/v1/altapay-notification`);
-      formData.append("customer_info[email]", userEmail);
+      formData.append("customer_info[email]", primaryEmail);
       formData.append("orderLines[0][description]", `Bokningsavgift: ${trip.name}`);
       formData.append("orderLines[0][itemId]", pendingBookingId.slice(0, 8));
       formData.append("orderLines[0][quantity]", "1");
@@ -268,7 +268,7 @@ serve(async (req) => {
       // Transaction info for webhook
       formData.append("transaction_info[pending_booking_id]", pendingBookingId);
       formData.append("transaction_info[booking_type]", "pending_trip");
-      formData.append("transaction_info[user_id]", userId);
+      formData.append("transaction_info[user_id]", userId || "guest");
       formData.append("transaction_info[payment_type]", "booking_fee");
 
       logStep("Calling AltaPay createPaymentRequest", { shopOrderId, amount: bookingFeeAmount, terminal: terminalName });
