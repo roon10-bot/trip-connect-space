@@ -55,7 +55,7 @@ const Admin = () => {
   }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
   const handleTripCreated = () => {
-    setCurrentView("trips");
+    handleViewChange("trips");
   };
 
   const handleSignOut = async () => {
@@ -165,7 +165,7 @@ const Admin = () => {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar currentView={currentView} onViewChange={setCurrentView} />
+        <AdminSidebar currentView={currentView} onViewChange={handleViewChange} />
         
         <main className="flex-1 min-w-0 p-10 overflow-auto">
           <motion.div
