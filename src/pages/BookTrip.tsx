@@ -238,17 +238,21 @@ const BookTrip = () => {
   };
 
   const applyDiscountCode = async () => {
-    if (!discountCode.trim()) {
+    const normalizedCode = discountCode.trim().toUpperCase();
+
+    if (!normalizedCode) {
       toast.error(t("bookTrip.enterDiscount"));
       return;
     }
 
+    setDiscountCode(normalizedCode);
+
     const { data, error } = await supabase
       .from("discount_codes")
       .select("*")
-      .eq("code", discountCode.toUpperCase())
+      .ilike("code", normalizedCode)
       .eq("is_active", true)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       toast.error(t("bookTrip.invalidDiscount"));
