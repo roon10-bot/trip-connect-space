@@ -13,6 +13,7 @@ import { Footer } from "@/components/Footer";
 import { TripBookingDetailsDialog } from "@/components/TripBookingDetailsDialog";
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { PaymentHistory } from "@/components/dashboard/PaymentHistory";
+import { PaymentOverview } from "@/components/dashboard/PaymentOverview";
 import { MyDocuments } from "@/components/dashboard/MyDocuments";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
