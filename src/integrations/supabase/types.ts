@@ -848,6 +848,7 @@ export type Database = {
         Row: {
           booking_data: Json
           booking_fee_amount: number
+          booking_id: string | null
           created_at: string
           discount_amount: number | null
           discount_code: string | null
@@ -866,6 +867,7 @@ export type Database = {
         Insert: {
           booking_data: Json
           booking_fee_amount: number
+          booking_id?: string | null
           created_at?: string
           discount_amount?: number | null
           discount_code?: string | null
@@ -884,6 +886,7 @@ export type Database = {
         Update: {
           booking_data?: Json
           booking_fee_amount?: number
+          booking_id?: string | null
           created_at?: string
           discount_amount?: number | null
           discount_code?: string | null
@@ -900,6 +903,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pending_trip_bookings_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "trip_bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pending_trip_bookings_trip_id_fkey"
             columns: ["trip_id"]
