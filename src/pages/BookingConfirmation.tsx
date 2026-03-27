@@ -152,9 +152,13 @@ const BookingConfirmation = () => {
       }
 
       if (data.user) {
-        // Link booking to the new account via edge function
-        // (RLS prevents direct client update, finalize already ran with service role)
-        // The user can see the booking once they verify email and log in
+        // Link the trip booking to the new account if we have a booking_id
+        if (bookingDetails.tripBookingId) {
+          await supabase
+            .from("trip_bookings")
+            .update({ user_id: data.user.id })
+            .eq("id", bookingDetails.tripBookingId);
+        }
         setAccountCreated(true);
         toast.success("Konto skapat! Kolla din e-post för verifiering.");
       }
