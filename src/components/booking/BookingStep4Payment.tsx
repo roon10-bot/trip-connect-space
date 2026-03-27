@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, CreditCard, Loader2, Shield, CheckCircle, Smartphone } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -45,7 +46,7 @@ export const BookingStep4Payment = ({
   const { containerRef, token: turnstileToken, error: turnstileError } = useTurnstile();
   const [selectedMethod, setSelectedMethod] = useState<"card" | "swish" | null>(null);
   const isMobile = useIsMobile();
-
+  const navigate = useNavigate();
   // Swish polling state
   const [swishPollStatus, setSwishPollStatus] = useState<"polling" | "paid" | "error" | null>(null);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
