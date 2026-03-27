@@ -80,6 +80,7 @@ const BookTrip = () => {
     paymentRequestToken: string;
     swishPaymentId: string;
   } | null>(null);
+  const [userProfileLoaded, setUserProfileLoaded] = useState(false);
 
   // Pre-fill first traveler with logged-in user's data
   useEffect(() => {
