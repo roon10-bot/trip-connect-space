@@ -60,7 +60,7 @@ export const BookingStep4Payment = ({
     };
   }, []);
 
-  // Start polling when swishResult arrives
+  // Start realtime subscription + polling fallback when swishResult arrives
   useEffect(() => {
     if (!swishResult) return;
 
@@ -84,10 +84,53 @@ export const BookingStep4Payment = ({
       return;
     }
 
-    // Desktop/mobile web: start polling
+    // Desktop/mobile web: realtime + polling
     setSwishPollStatus("polling");
-    
+    let resolved = false;
+
+    const handleCompleted = () => {
+      if (resolved) return;
+      resolved = true;
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      setSwishPollStatus("paid");
+      toast.success("Betalningen genomförd! Din bokning bekräftas...");
+      const confirmUrl = `/booking/confirmation?pending_booking_id=${swishResult.pendingBookingId}${primaryEmail ? `&email=${encodeURIComponent(primaryEmail)}` : ""}`;
+      console.log("[Swish] Confirmed, redirecting to:", confirmUrl);
+      setTimeout(() => navigate(confirmUrl), 2000);
+    };
+
+    const handleFailed = () => {
+      if (resolved) return;
+      resolved = true;
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      setSwishPollStatus("error");
+      toast.error("Betalningen misslyckades. Försök igen.");
+    };
+
+    // 1. Realtime subscription
+    const channel = supabase
+      .channel(`pending-booking-${swishResult.pendingBookingId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "pending_trip_bookings",
+          filter: `id=eq.${swishResult.pendingBookingId}`,
+        },
+        (payload) => {
+          console.log("[Swish Realtime]", payload.new);
+          if (payload.new.status === "completed") handleCompleted();
+          else if (payload.new.status === "failed" || payload.new.status === "payment_failed") handleFailed();
+        }
+      )
+      .subscribe((status) => {
+        console.log("[Swish Realtime] Channel status:", status);
+      });
+
+    // 2. Polling fallback every 2 seconds
     pollIntervalRef.current = setInterval(async () => {
+      if (resolved) return;
       try {
         const { data, error } = await supabase
           .from("pending_trip_bookings")
@@ -95,34 +138,25 @@ export const BookingStep4Payment = ({
           .eq("id", swishResult.pendingBookingId)
           .maybeSingle();
 
-        console.log("[Swish Poll]", { status: data?.status, error: error?.message, id: swishResult.pendingBookingId });
+        console.log("[Swish Poll]", { status: data?.status, error: error?.message });
 
         if (error) {
-          console.warn("[Swish Poll] RLS or query error:", error.message);
+          console.warn("[Swish Poll] Query error:", error.message);
           return;
         }
 
-        if (data?.status === "completed") {
-          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-          setSwishPollStatus("paid");
-          toast.success("Betalningen genomförd! Din bokning bekräftas...");
-          const confirmUrl = `/booking/confirmation?pending_booking_id=${swishResult.pendingBookingId}${primaryEmail ? `&email=${encodeURIComponent(primaryEmail)}` : ""}`;
-          console.log("[Swish Poll] Redirecting to:", confirmUrl);
-          setTimeout(() => navigate(confirmUrl), 2000);
-        } else if (data?.status === "failed" || data?.status === "payment_failed") {
-          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-          setSwishPollStatus("error");
-          toast.error("Betalningen misslyckades. Försök igen.");
-        }
+        if (data?.status === "completed") handleCompleted();
+        else if (data?.status === "failed" || data?.status === "payment_failed") handleFailed();
       } catch (e) {
         console.warn("[Swish Poll] Exception:", e);
       }
-    }, 3000);
+    }, 2000);
 
     // Timeout after 5 minutes
     const timeout = setTimeout(() => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
+      if (!resolved) {
+        resolved = true;
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
         pollIntervalRef.current = null;
         setSwishPollStatus("error");
         toast.error("Tidsgränsen gick ut. Kontrollera Swish-appen och försök igen.");
@@ -132,8 +166,9 @@ export const BookingStep4Payment = ({
     return () => {
       clearTimeout(timeout);
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      supabase.removeChannel(channel);
     };
-  }, [swishResult, onBookingConfirmed]);
+  }, [swishResult, onBookingConfirmed, navigate, primaryEmail]);
 
   const handlePay = () => {
     if (!selectedMethod || !turnstileToken) return;
