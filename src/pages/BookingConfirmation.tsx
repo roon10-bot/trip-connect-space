@@ -102,6 +102,7 @@ const BookingConfirmation = () => {
 
     setBookingDetails({
       bookingId: pendingBookingId || "",
+      tripBookingId: (pendingData as any)?.booking_id || null,
       tripName: tripData.name,
       tripType: formatTripType(tripData.trip_type),
       departureDate: tripData.departure_date,
