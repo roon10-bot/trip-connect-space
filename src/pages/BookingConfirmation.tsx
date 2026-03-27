@@ -18,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 
 interface BookingDetails {
   bookingId: string;
+  tripBookingId: string | null;
   tripName: string;
   tripType: string;
   departureDate: string;
@@ -51,7 +52,7 @@ const BookingConfirmation = () => {
       if (!pendingBookingId) return null;
       const { data } = await supabase
         .from("pending_trip_bookings")
-        .select("status, booking_data, trip_id, total_price, booking_fee_amount, discount_amount")
+        .select("status, booking_data, trip_id, total_price, booking_fee_amount, discount_amount, booking_id")
         .eq("id", pendingBookingId)
         .maybeSingle();
       return data;
@@ -101,6 +102,7 @@ const BookingConfirmation = () => {
 
     setBookingDetails({
       bookingId: pendingBookingId || "",
+      tripBookingId: (pendingData as any)?.booking_id || null,
       tripName: tripData.name,
       tripType: formatTripType(tripData.trip_type),
       departureDate: tripData.departure_date,
@@ -150,9 +152,13 @@ const BookingConfirmation = () => {
       }
 
       if (data.user) {
-        // Link booking to the new account via edge function
-        // (RLS prevents direct client update, finalize already ran with service role)
-        // The user can see the booking once they verify email and log in
+        // Link the trip booking to the new account if we have a booking_id
+        if (bookingDetails.tripBookingId) {
+          await supabase
+            .from("trip_bookings")
+            .update({ user_id: data.user.id })
+            .eq("id", bookingDetails.tripBookingId);
+        }
         setAccountCreated(true);
         toast.success("Konto skapat! Kolla din e-post för verifiering.");
       }

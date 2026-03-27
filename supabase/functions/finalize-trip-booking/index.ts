@@ -300,10 +300,10 @@ serve(async (req) => {
       }
     }
 
-    // 8. Mark pending booking as completed
+    // 8. Mark pending booking as completed and store actual booking_id
     await supabase
       .from("pending_trip_bookings")
-      .update({ status: "completed" })
+      .update({ status: "completed", booking_id: bookingId })
       .eq("id", pending_booking_id);
 
     // 9. Send booking confirmation + invite travelers
