@@ -53,13 +53,20 @@ export const BookingStep2 = ({
     try {
       const { data, error } = await supabase
         .from("discount_codes")
-        .select("id, code, discount_percent, discount_amount, is_active, max_uses, current_uses, valid_from, valid_until")
+        .select("id, code, discount_percent, discount_amount, is_active, max_uses, current_uses, valid_from, valid_until, allowed_email")
         .ilike("code", code)
         .eq("is_active", true)
         .maybeSingle();
 
       if (error || !data) {
         setDiscountErrors((prev) => ({ ...prev, [index]: "Ogiltig rabattkod" }));
+        return;
+      }
+
+      // Check if personal code matches traveler email
+      const travelerEmail = travelersInfo[index].email?.toLowerCase().trim();
+      if (data.allowed_email && data.allowed_email.toLowerCase() !== travelerEmail) {
+        setDiscountErrors((prev) => ({ ...prev, [index]: "Denna kod är knuten till en annan e-postadress" }));
         return;
       }
 
@@ -75,6 +82,30 @@ export const BookingStep2 = ({
       }
       if (data.valid_until && new Date(data.valid_until) < now) {
         setDiscountErrors((prev) => ({ ...prev, [index]: "Rabattkoden har gått ut" }));
+        return;
+      }
+
+      // Check if this email has already used this code (per-email usage tracking)
+      if (travelerEmail) {
+        const { data: existingUse } = await supabase
+          .from("discount_code_uses")
+          .select("id")
+          .eq("discount_code_id", data.id)
+          .eq("email", travelerEmail)
+          .maybeSingle();
+
+        if (existingUse) {
+          setDiscountErrors((prev) => ({ ...prev, [index]: "Redan använd med denna e-postadress" }));
+          return;
+        }
+      }
+
+      // Check if another traveler in the same booking already uses this code with the same email
+      const duplicateInBooking = travelersInfo.some(
+        (t, i) => i !== index && t.discount?.codeId === data.id && t.email?.toLowerCase().trim() === travelerEmail
+      );
+      if (duplicateInBooking) {
+        setDiscountErrors((prev) => ({ ...prev, [index]: "Denna kod används redan av en annan resenär med samma e-post" }));
         return;
       }
 
