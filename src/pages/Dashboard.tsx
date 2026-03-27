@@ -182,7 +182,10 @@ const Dashboard = () => {
         {/* Payment History & Documents */}
         {user?.id && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-            <PaymentHistory userId={user.id} />
+            <PaymentOverview userId={user.id} onPayClick={(booking) => {
+              setSelectedTripBooking(booking);
+              setTripDetailsOpen(true);
+            }} />
             <MyDocuments userId={user.id} />
           </div>
         )}
