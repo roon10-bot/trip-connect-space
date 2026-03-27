@@ -185,6 +185,11 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
         (p) => p.trip_booking_id === booking.id && p.status === "completed"
       );
       const paidTypes = new Set(bookingPayments.map((p) => p.payment_type));
+      // "booking_fee" is equivalent to "first_payment" / "full_payment"
+      if (paidTypes.has("booking_fee")) {
+        paidTypes.add("first_payment");
+        paidTypes.add("full_payment");
+      }
       
       const planItems = resolvePaymentPlan(booking.trips, totalPrice, booking.created_at);
       
