@@ -264,7 +264,7 @@ export const TripBookingDetailsDialog = ({
 
   const selectAllPayments = () => {
     setUseCustomAmount(false);
-    setSelectedPayments(new Set(paymentOptions.map((opt) => opt.id)));
+    setSelectedPayments(new Set(paymentOptions.filter(opt => opt.isAvailable).map((opt) => opt.id)));
   };
 
   const handleCustomAmountToggle = () => {
