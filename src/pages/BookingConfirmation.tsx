@@ -55,10 +55,12 @@ const BookingConfirmation = () => {
         .select("status, booking_data, trip_id, total_price, booking_fee_amount, discount_amount, booking_id")
         .eq("id", pendingBookingId)
         .maybeSingle();
+      console.log("[Confirmation] Poll result:", data?.status);
       return data;
     },
-    enabled: !!pendingBookingId && isPolling,
+    enabled: !!pendingBookingId,
     refetchInterval: isPolling ? 2000 : false,
+    staleTime: 0,
   });
 
   // Load trip details once we have pending data
