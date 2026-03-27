@@ -57,6 +57,9 @@ const Auth = () => {
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
   const [emailJustVerified, setEmailJustVerified] = useState(isEmailConfirmationFlow);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
   
   const [newPassword, setNewPassword] = useState("");
   const { signIn, signUp, signOut, user } = useAuth();
@@ -189,6 +192,27 @@ const Auth = () => {
           setVerificationEmail(data.email);
           setShowEmailVerification(true);
         }
+      }
+    } catch {
+      toast.error(t("auth.unexpectedError"));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+      if (error) {
+        toast.error(error.message);
+      } else {
+        setForgotSent(true);
+        toast.success(t("auth.forgotPasswordSent") || "Återställningslänk skickad!");
       }
     } catch {
       toast.error(t("auth.unexpectedError"));
@@ -454,7 +478,62 @@ const Auth = () => {
             </div>
           )}
 
-          {showEmailVerification ? (
+          {showForgotPassword ? (
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="space-y-4">
+                <div className="text-center">
+                  <h2 className="text-2xl font-serif font-bold text-foreground">
+                    {t("auth.forgotPasswordTitle") || "Återställ lösenord"}
+                  </h2>
+                  <p className="mt-2 text-muted-foreground">
+                    {t("auth.forgotPasswordDesc") || "Ange din e-postadress så skickar vi en återställningslänk."}
+                  </p>
+                </div>
+
+                {forgotSent ? (
+                  <div className="rounded-lg bg-muted/60 p-4 text-center space-y-3">
+                    <CheckCircle className="h-8 w-8 text-primary mx-auto" />
+                    <p className="text-sm text-foreground font-medium">
+                      {t("auth.forgotPasswordSentDesc") || "Om kontot finns skickas en återställningslänk till din e-post."}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("auth.checkSpamTip")}
+                    </p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="forgotEmail">{t("auth.email")}</Label>
+                      <Input
+                        id="forgotEmail"
+                        type="email"
+                        placeholder={t("auth.emailPlaceholder")}
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        className="h-12"
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full h-12 bg-gradient-ocean hover:opacity-90 text-lg font-semibold"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (t("auth.sendResetLink") || "Skicka återställningslänk")}
+                    </Button>
+                  </form>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="w-full text-center text-primary hover:underline font-medium text-sm"
+                >
+                  {t("auth.backToLogin") || "Tillbaka till inloggning"}
+                </button>
+              </div>
+            </div>
+          ) : showEmailVerification ? (
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
               <div className="text-center space-y-4">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
@@ -597,6 +676,15 @@ const Auth = () => {
                   </div>
                   {errors.password && (
                     <p className="text-sm text-destructive">{errors.password.message}</p>
+                  )}
+                  {isLogin && (
+                    <button
+                      type="button"
+                      onClick={() => { setShowForgotPassword(true); setForgotSent(false); setForgotEmail(""); }}
+                      className="text-sm text-primary hover:underline mt-1"
+                    >
+                      {t("auth.forgotPassword") || "Glömt lösenord?"}
+                    </button>
                   )}
                 </div>
 
