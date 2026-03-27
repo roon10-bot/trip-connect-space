@@ -284,23 +284,30 @@ export const TripBookingDetailsDialog = ({
         return;
       }
 
+      setIsProcessingPayment(true);
+
       const isKlarna = paymentMethod === "stripe_klarna";
       const isSwish = paymentMethod === "altapay_swish";
+      const isCard = paymentMethod === "altapay_card";
 
-      let functionName: string;
-      let body: Record<string, unknown>;
+      // Determine payment_type from selected payment options
+      const selectedIds = Array.from(selectedPayments);
+      const paymentTypeMap: Record<string, string> = {
+        first: "first_payment",
+        second: "second_payment",
+        final: "final_payment",
+      };
+      const resolvedPaymentType = !useCustomAmount && selectedIds.length === 1
+        ? paymentTypeMap[selectedIds[0]] || "installment"
+        : useCustomAmount
+          ? "custom_payment"
+          : "combined_payment";
 
-      if (isKlarna) {
-        functionName = "create-booking-payment";
-        body = {
-          bookingId: booking.id,
-          amount: selectedAmount,
-          bookingType: "trip",
-          paymentMethodType: "klarna",
-        };
-      } else if (isSwish) {
+      // Build Swish phone if needed
+      let formattedPhone: string | undefined;
+      if (isSwish) {
         const rawPhone = (booking.phone || "").replace(/[\s\-()]/g, "");
-        const formattedPhone = rawPhone.startsWith("0")
+        formattedPhone = rawPhone.startsWith("0")
           ? `46${rawPhone.substring(1)}`
           : rawPhone.startsWith("46")
             ? rawPhone
@@ -311,67 +318,52 @@ export const TripBookingDetailsDialog = ({
           setIsProcessingPayment(false);
           return;
         }
-
-        const isNativeApp = Capacitor.isNativePlatform();
-        const isDesktopSwish = !isMobile && !isNativeApp;
-        functionName = "create-swish-payment";
-        body = {
-          bookingId: booking.id,
-          amount: selectedAmount,
-          bookingType: "trip",
-          payerPhone: isNativeApp ? formattedPhone : undefined,
-          isDesktop: isDesktopSwish,
-          isNativeApp,
-        };
-      } else {
-        // Determine payment_type from selected payment options
-        const selectedIds = Array.from(selectedPayments);
-        const paymentTypeMap: Record<string, string> = {
-          first: "first_payment",
-          second: "second_payment",
-          final: "final_payment",
-        };
-        // If exactly one payment option selected, use its type; otherwise use generic
-        const resolvedPaymentType = !useCustomAmount && selectedIds.length === 1
-          ? paymentTypeMap[selectedIds[0]] || "altapay_payment"
-          : useCustomAmount
-            ? "custom_payment"
-            : "combined_payment";
-
-        functionName = "create-altapay-payment";
-        body = {
-          bookingId: booking.id,
-          amount: selectedAmount,
-          bookingType: "trip",
-          terminalType: "card",
-          paymentType: resolvedPaymentType,
-        };
       }
 
-      const { data, error } = await supabase.functions.invoke(functionName, { body });
+      const isNativeApp = Capacitor.isNativePlatform();
+      const isDesktop = !isMobile && !isNativeApp;
+
+      // Unified call to create-booking-payment
+      const { data, error } = await supabase.functions.invoke("create-booking-payment", {
+        body: {
+          booking_id: booking.id,
+          amount: selectedAmount,
+          payment_method: isCard ? "card" : isSwish ? "swish" : "klarna",
+          bookingType: "trip",
+          payment_type: resolvedPaymentType,
+          // Swish-specific params
+          payer_phone: isSwish && isNativeApp ? formattedPhone : undefined,
+          is_desktop: isSwish ? isDesktop : undefined,
+          is_native_app: isSwish ? isNativeApp : undefined,
+        },
+      });
 
       if (error) throw error;
 
-      const appSwitchToken = data?.paymentRequestToken || data?.swishPaymentId;
+      // Handle response based on payment method
+      if (isSwish && data?.success) {
+        const appSwitchToken = data.payment_request_token || data.swish_payment_id;
+        const swishPaymentId = data.swish_payment_id || appSwitchToken;
 
-      if (isSwish && data?.success && appSwitchToken) {
+        if (!appSwitchToken) {
+          toast.success("Öppna Swish-appen på din telefon för att slutföra betalningen.");
+          setIsProcessingPayment(false);
+          return;
+        }
+
         const callbackUrl = encodeURIComponent(window.location.origin + "/dashboard?payment=success");
         const swishUrl = `swish://paymentrequest?token=${appSwitchToken}&callbackurl=${callbackUrl}`;
-        const swishPaymentId = data.swishPaymentId || appSwitchToken;
-
-        const isDesktop = !isMobile && !Capacitor.isNativePlatform();
-        const isNativePlatform = Capacitor.isNativePlatform();
 
         if (isDesktop) {
-          // Desktop: show QR code with Swish D-prefix format (D + PaymentRequestToken)
+          // Desktop: show QR code with Swish D-prefix format
           const qrContent = `D${appSwitchToken}`;
           setSwishQrData({ url: qrContent, paymentId: swishPaymentId });
-        } else if (!isNativePlatform) {
-          // Mobile web: show "Open Swish" button + poll (don't navigate away)
+        } else if (!isNativeApp) {
+          // Mobile web: show "Open Swish" button + poll
           setSwishQrData({ url: swishUrl, paymentId: swishPaymentId });
         }
 
-        if (!isNativePlatform) {
+        if (!isNativeApp) {
           // Start polling for both desktop QR and mobile web
           setSwishPollStatus("polling");
 
@@ -423,10 +415,11 @@ export const TripBookingDetailsDialog = ({
 
         // Native fallback
         window.location.assign(swishUrl);
-      } else if (isSwish && data?.success) {
-        toast.success("Öppna Swish-appen på din telefon för att slutföra betalningen.");
+      } else if (data?.payment_url) {
+        // AltaPay card - redirect to payment gateway
+        window.location.href = data.payment_url;
       } else if (data?.url) {
-        // AltaPay/Stripe - redirect to payment page (full page redirect works better with 3DS2)
+        // Klarna/Stripe - redirect to checkout
         window.location.href = data.url;
       } else {
         throw new Error("Ingen betalnings-URL mottogs");

@@ -21,16 +21,13 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const supabaseClient = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false },
+    });
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-
+    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
 
@@ -42,21 +39,134 @@ serve(async (req) => {
     const user = userData.user;
     if (!user?.email)
       throw new Error("User not authenticated or email not available");
-    logStep("User authenticated");
+    logStep("User authenticated", { userId: user.id });
 
-    const { bookingId, amount, bookingType, paymentMethodType } = await req.json();
-    if (!bookingId || !amount) {
-      throw new Error("Missing bookingId or amount");
+    const body = await req.json();
+
+    // Support both new and legacy parameter names
+    const effectiveBookingId = body.booking_id || body.bookingId;
+    const effectiveAmount = body.amount;
+    const effectiveMethod = body.payment_method ||
+      (body.paymentMethodType === "klarna" ? "klarna" : "card");
+    const bookingType = body.bookingType || "trip";
+    const paymentType = body.payment_type || body.paymentType || "installment";
+
+    if (!effectiveBookingId || !effectiveAmount) {
+      throw new Error("Missing booking_id or amount");
     }
-    logStep("Request parsed", { bookingType, paymentMethodType });
 
+    logStep("Request parsed", {
+      bookingId: effectiveBookingId,
+      amount: effectiveAmount,
+      method: effectiveMethod,
+      bookingType,
+    });
+
+    // ====== CARD (AltaPay) ======
+    if (effectiveMethod === "card") {
+      logStep("Routing to create-altapay-payment");
+
+      const proxyRes = await fetch(
+        `${supabaseUrl}/functions/v1/create-altapay-payment`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+          },
+          body: JSON.stringify({
+            bookingId: effectiveBookingId,
+            amount: effectiveAmount,
+            bookingType,
+            terminalType: "card",
+            paymentType,
+          }),
+        }
+      );
+
+      const proxyData = await proxyRes.json();
+      if (!proxyRes.ok) {
+        throw new Error(proxyData.error || "AltaPay payment creation failed");
+      }
+
+      logStep("AltaPay proxy success", { hasUrl: !!proxyData.url });
+
+      return new Response(
+        JSON.stringify({
+          payment_url: proxyData.url,
+          amount: effectiveAmount,
+          installment_number: body.installment_number,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
+    // ====== SWISH (Direct) ======
+    if (effectiveMethod === "swish") {
+      logStep("Routing to create-swish-payment");
+
+      const proxyRes = await fetch(
+        `${supabaseUrl}/functions/v1/create-swish-payment`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+          },
+          body: JSON.stringify({
+            bookingId: effectiveBookingId,
+            amount: effectiveAmount,
+            bookingType,
+            payerPhone: body.payer_phone || body.payerPhone,
+            isDesktop: body.is_desktop ?? body.isDesktop,
+            isNativeApp: body.is_native_app ?? body.isNativeApp,
+          }),
+        }
+      );
+
+      const proxyData = await proxyRes.json();
+      if (!proxyRes.ok) {
+        throw new Error(proxyData.error || "Swish payment creation failed");
+      }
+
+      logStep("Swish proxy success", {
+        hasToken: !!proxyData.paymentRequestToken,
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          payment_request_token: proxyData.paymentRequestToken,
+          swish_payment_id: proxyData.swishPaymentId,
+          amount: effectiveAmount,
+          installment_number: body.installment_number,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
+    // ====== KLARNA (Stripe) ======
+    logStep("Processing Klarna/Stripe payment");
+
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+
+    // Verify booking access
     let bookingData: { id: string; name: string; description: string };
 
     if (bookingType === "trip") {
       const { data: tripBooking, error: tripError } = await supabaseClient
         .from("trip_bookings")
         .select("*, trips(name, trip_type)")
-        .eq("id", bookingId)
+        .eq("id", effectiveBookingId)
         .maybeSingle();
 
       if (tripError || !tripBooking) {
@@ -68,39 +178,37 @@ serve(async (req) => {
         const { data: traveler } = await supabaseClient
           .from("trip_booking_travelers")
           .select("id")
-          .eq("trip_booking_id", bookingId)
+          .eq("trip_booking_id", effectiveBookingId)
           .eq("email", user.email)
           .maybeSingle();
-        
+
         if (!traveler) {
           throw new Error("Access denied: you are not part of this booking");
         }
       }
-      
+
       bookingData = {
         id: tripBooking.id,
         name: tripBooking.trips?.name || "Resa",
         description: `Bokningsnummer: ${tripBooking.id.slice(0, 8).toUpperCase()} | ${tripBooking.trips?.trip_type || ""}`,
       };
-      logStep("Trip booking verified", { isBooker });
     } else {
       const { data: booking, error: bookingError } = await supabaseClient
         .from("bookings")
         .select("*, destinations(name, country)")
-        .eq("id", bookingId)
+        .eq("id", effectiveBookingId)
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (bookingError || !booking) {
         throw new Error("Booking not found or access denied");
       }
-      
+
       bookingData = {
         id: booking.id,
         name: booking.destinations?.name || "Destination",
         description: `Bokningsnummer: ${booking.id.slice(0, 8).toUpperCase()} | ${booking.destinations?.country || ""}`,
       };
-      logStep("Booking verified");
     }
 
     const stripe = new Stripe(stripeKey, {
@@ -115,12 +223,9 @@ serve(async (req) => {
     let customerId: string | undefined;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
-      logStep("Existing Stripe customer found");
-    } else {
-      logStep("No existing customer, will create one");
     }
 
-    const origin = req.headers.get("origin") || "https://localhost:3000";
+    const origin = req.headers.get("origin") || "https://studentresor.com";
 
     const sessionParams: any = {
       customer: customerId,
@@ -133,28 +238,25 @@ serve(async (req) => {
               name: `Resa: ${bookingData.name}`,
               description: bookingData.description,
             },
-            unit_amount: Math.round(Number(amount) * 100),
+            unit_amount: Math.round(Number(effectiveAmount) * 100),
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-      success_url: `${origin}/dashboard?payment=success&booking=${bookingId}`,
-      cancel_url: `${origin}/dashboard?payment=cancelled&booking=${bookingId}`,
+      success_url: `${origin}/dashboard?payment=success&booking=${effectiveBookingId}`,
+      cancel_url: `${origin}/dashboard?payment=cancelled&booking=${effectiveBookingId}`,
       metadata: {
-        booking_id: bookingId,
-        booking_type: bookingType || "destination",
+        booking_id: effectiveBookingId,
+        booking_type: bookingType,
         user_id: user.id,
       },
+      payment_method_types: ["klarna"],
     };
-
-    if (paymentMethodType === "klarna") {
-      sessionParams.payment_method_types = ["klarna"];
-    }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
-    logStep("Checkout session created");
+    logStep("Stripe session created");
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
