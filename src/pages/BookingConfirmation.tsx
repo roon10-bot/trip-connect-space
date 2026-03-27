@@ -116,8 +116,8 @@ const BookingConfirmation = () => {
   const handleCreateAccount = async () => {
     if (!bookingDetails?.email) return;
 
-    if (password.length < 6) {
-      toast.error("Lösenordet måste vara minst 6 tecken");
+    if (password.length < 8) {
+      toast.error("Lösenordet måste vara minst 8 tecken");
       return;
     }
     if (password !== confirmPassword) {
@@ -350,7 +350,7 @@ const BookingConfirmation = () => {
                               type={showPassword ? "text" : "password"}
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
-                              placeholder="Minst 6 tecken"
+                              placeholder="Minst 8 tecken"
                             />
                             <button
                               type="button"
