@@ -360,7 +360,7 @@ const BookTrip = () => {
           trip_id: trip.id,
           travelers,
           total_price: totalPrice,
-          discount_code: appliedDiscount?.code || null,
+          discount_code: null,
           discount_amount: discountAmount > 0 ? discountAmount : 0,
           travelers_info: travelersInfo.map((t) => ({
             first_name: t.firstName,
@@ -369,6 +369,8 @@ const BookTrip = () => {
             birth_date: format(t.birthDate!, "yyyy-MM-dd"),
             phone: t.phone,
             departure_location: t.departureLocation,
+            discount_code_id: t.discount?.codeId || null,
+            discount_amount: t.discount?.calculatedAmount || 0,
           })),
           payment_method: method,
           turnstile_token: turnstileToken,
@@ -537,11 +539,6 @@ const BookTrip = () => {
                   travelers={travelers}
                   setTravelers={setTravelers}
                   maxPersons={trip.max_persons ?? 10}
-                  discountCode={discountCode}
-                  setDiscountCode={setDiscountCode}
-                  appliedDiscount={appliedDiscount}
-                  applyDiscountCode={applyDiscountCode}
-                  removeDiscount={removeDiscount}
                   onNext={handleNextStep}
                 />
               )}
@@ -551,6 +548,7 @@ const BookTrip = () => {
                   key="step2"
                   travelersInfo={travelersInfo}
                   setTravelersInfo={setTravelersInfo}
+                  pricePerPerson={getPricePerPerson()}
                   onNext={handleNextStep}
                   onPrev={handlePrevStep}
                 />
@@ -562,7 +560,6 @@ const BookTrip = () => {
                   trip={trip}
                   travelers={travelers}
                   travelersInfo={travelersInfo}
-                  appliedDiscount={appliedDiscount}
                   totalPrice={calculateTotalPrice()}
                   formatTripType={formatTripType}
                   onPrev={handlePrevStep}
@@ -591,7 +588,7 @@ const BookTrip = () => {
             <BookingTripSummary
               trip={trip}
               travelers={travelers}
-              appliedDiscount={appliedDiscount}
+              travelersInfo={travelersInfo}
               totalPrice={calculateTotalPrice()}
               formatTripType={formatTripType}
               flightOffer={cheapestFlight}
