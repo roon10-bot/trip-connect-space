@@ -12,7 +12,7 @@ import { Footer } from "@/components/Footer";
 
 import { TripBookingDetailsDialog } from "@/components/TripBookingDetailsDialog";
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
-import { PaymentHistory } from "@/components/dashboard/PaymentHistory";
+import { PaymentOverview } from "@/components/dashboard/PaymentOverview";
 import { MyDocuments } from "@/components/dashboard/MyDocuments";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -179,10 +179,19 @@ const Dashboard = () => {
           />
         )}
 
-        {/* Payment History & Documents */}
+        {/* Payment Overview */}
         {user?.id && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-            <PaymentHistory userId={user.id} />
+          <div className="mb-12">
+            <PaymentOverview userId={user.id} onPayClick={(booking: any) => {
+              setSelectedTripBooking(booking);
+              setTripDetailsOpen(true);
+            }} />
+          </div>
+        )}
+
+        {/* Documents */}
+        {user?.id && (
+          <div className="mb-12">
             <MyDocuments userId={user.id} />
           </div>
         )}
