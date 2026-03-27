@@ -231,8 +231,9 @@ export const TripBookingDetailsDialog = ({
 
   // Minimum custom amount = first unpaid payment option amount
   const minCustomAmount = useMemo(() => {
-    if (paymentOptions.length === 0) return 1;
-    return paymentOptions[0]?.amount || 1;
+    const firstUnpaid = paymentOptions.find(opt => opt.isAvailable);
+    if (!firstUnpaid) return 1;
+    return firstUnpaid.amount || 1;
   }, [paymentOptions]);
 
   const parsedCustomAmount = useMemo(() => {
