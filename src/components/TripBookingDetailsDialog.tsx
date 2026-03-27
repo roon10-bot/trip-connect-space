@@ -784,6 +784,14 @@ export const TripBookingDetailsDialog = ({
                           {effectiveTotal.toLocaleString("sv-SE")} kr
                         </span>
                       </div>
+                      {remainingBalance > 0 && remainingBalance < effectiveTotal && (
+                        <div className="flex justify-between items-center py-2 px-3 text-sm">
+                          <span className="text-muted-foreground">Kvar att betala</span>
+                          <span className="font-semibold text-sunset">
+                            {remainingBalance.toLocaleString("sv-SE")} kr
+                          </span>
+                        </div>
+                      )}
                       {!isBooker && (
                         <p className="text-xs text-muted-foreground mt-1">
                           Totalt för bokningen: {Number(booking.total_price).toLocaleString("sv-SE")} kr ({booking.travelers} resenärer)
