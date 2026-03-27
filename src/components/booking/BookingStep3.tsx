@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { ArrowLeft, ArrowRight, User, Mail, Phone, MapPin, Calendar, Plane } from "lucide-react";
+import { ArrowLeft, ArrowRight, User, Mail, Phone, MapPin, Calendar, Plane, Tag } from "lucide-react";
 import { getSplitPricePerPerson } from "@/lib/paymentCalculations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,11 +23,6 @@ interface BookingStep3Props {
   trip: Trip;
   travelers: number;
   travelersInfo: TravelerInfo[];
-  appliedDiscount: {
-    code: string;
-    percent: number | null;
-    amount: number | null;
-  } | null;
   totalPrice: number;
   formatTripType: (type: string) => string;
   onPrev: () => void;
@@ -39,7 +34,6 @@ export const BookingStep3 = ({
   trip,
   travelers,
   travelersInfo,
-  appliedDiscount,
   totalPrice,
   formatTripType,
   onPrev,
@@ -51,7 +45,8 @@ export const BookingStep3 = ({
     ? (getSplitPricePerPerson(trip, travelers) || trip.price)
     : trip.price;
   const baseTotal = pricePerPerson * travelers;
-  const discountAmount = baseTotal - totalPrice;
+  const totalDiscount = travelersInfo.reduce((sum, t) => sum + (t.discount?.calculatedAmount || 0), 0);
+  const travelersWithDiscount = travelersInfo.filter((t) => t.discount);
 
   return (
     <motion.div
@@ -110,6 +105,14 @@ export const BookingStep3 = ({
                 </div>
               </div>
             </div>
+            {traveler.discount && (
+              <div className="flex items-center gap-2 p-2 bg-primary/10 rounded-md mt-2">
+                <Tag className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">
+                  {traveler.discount.code} (-{traveler.discount.calculatedAmount.toLocaleString("sv-SE")} kr)
+                </span>
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}
@@ -141,13 +144,30 @@ export const BookingStep3 = ({
               <span>{baseTotal.toLocaleString("sv-SE")} kr</span>
             </div>
             
-            {appliedDiscount && discountAmount > 0 && (
-              <div className="flex justify-between text-primary">
-                <span>
-                  Rabatt ({appliedDiscount.code})
-                  {appliedDiscount.percent && ` -${appliedDiscount.percent}%`}
-                </span>
-                <span>-{discountAmount.toLocaleString("sv-SE")} kr</span>
+            {travelersWithDiscount.length > 0 && (
+              <div className="space-y-1">
+                {travelersWithDiscount.length <= 3 ? (
+                  travelersWithDiscount.map((t, i) => {
+                    const travelerIndex = travelersInfo.indexOf(t);
+                    return (
+                      <div key={i} className="flex justify-between text-sm text-primary">
+                        <span className="flex items-center gap-1">
+                          <Tag className="w-3 h-3" />
+                          Resenär {travelerIndex + 1} ({t.discount!.code})
+                        </span>
+                        <span>-{t.discount!.calculatedAmount.toLocaleString("sv-SE")} kr</span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="flex justify-between text-sm text-primary">
+                    <span className="flex items-center gap-1">
+                      <Tag className="w-3 h-3" />
+                      Rabatter ({travelersWithDiscount.length} st)
+                    </span>
+                    <span>-{totalDiscount.toLocaleString("sv-SE")} kr</span>
+                  </div>
+                )}
               </div>
             )}
             

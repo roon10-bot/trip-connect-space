@@ -2,27 +2,22 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { CalendarIcon, ArrowLeft, ArrowRight, UserRound } from "lucide-react";
+import { CalendarIcon, ArrowLeft, ArrowRight, UserRound, Tag, Check, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import type { TravelerInfo } from "@/pages/BookTrip";
 import { useAuth } from "@/hooks/useAuth";
-
-const DEPARTURE_LOCATIONS = [
-  "Arlanda (ARN)",
-  "Landvetter (GOT)",
-  "Kastrup (CPH)",
-];
+import { supabase } from "@/integrations/supabase/client";
 
 interface BookingStep2Props {
   travelersInfo: TravelerInfo[];
   setTravelersInfo: (info: TravelerInfo[]) => void;
+  pricePerPerson: number;
   onNext: () => void;
   onPrev: () => void;
 }
@@ -30,19 +25,90 @@ interface BookingStep2Props {
 export const BookingStep2 = ({
   travelersInfo,
   setTravelersInfo,
+  pricePerPerson,
   onNext,
   onPrev,
 }: BookingStep2Props) => {
   const { user } = useAuth();
   const isPrimaryLoggedIn = !!user;
   const [openDatePickers, setOpenDatePickers] = useState<Record<number, boolean>>({});
+  const [discountInputs, setDiscountInputs] = useState<Record<number, string>>({});
+  const [discountLoading, setDiscountLoading] = useState<Record<number, boolean>>({});
+  const [discountErrors, setDiscountErrors] = useState<Record<number, string>>({});
 
   const updateField = (index: number, field: keyof TravelerInfo, value: string | Date | undefined) => {
-    // Prevent editing email for primary traveler when logged in
     if (index === 0 && field === "email" && isPrimaryLoggedIn) return;
     const updated = [...travelersInfo];
     updated[index] = { ...updated[index], [field]: value };
     setTravelersInfo(updated);
+  };
+
+  const applyDiscount = async (index: number) => {
+    const code = (discountInputs[index] || "").trim().toUpperCase();
+    if (!code) return;
+
+    setDiscountLoading((prev) => ({ ...prev, [index]: true }));
+    setDiscountErrors((prev) => ({ ...prev, [index]: "" }));
+
+    try {
+      const { data, error } = await supabase
+        .from("discount_codes")
+        .select("id, code, discount_percent, discount_amount, is_active, max_uses, current_uses, valid_from, valid_until")
+        .ilike("code", code)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (error || !data) {
+        setDiscountErrors((prev) => ({ ...prev, [index]: "Ogiltig rabattkod" }));
+        return;
+      }
+
+      if (data.max_uses && data.current_uses >= data.max_uses) {
+        setDiscountErrors((prev) => ({ ...prev, [index]: "Rabattkoden har förbrukats" }));
+        return;
+      }
+
+      const now = new Date();
+      if (data.valid_from && new Date(data.valid_from) > now) {
+        setDiscountErrors((prev) => ({ ...prev, [index]: "Rabattkoden är inte aktiv ännu" }));
+        return;
+      }
+      if (data.valid_until && new Date(data.valid_until) < now) {
+        setDiscountErrors((prev) => ({ ...prev, [index]: "Rabattkoden har gått ut" }));
+        return;
+      }
+
+      // Calculate discount amount
+      let calculatedAmount = 0;
+      if (data.discount_percent) {
+        calculatedAmount = Math.round(pricePerPerson * (data.discount_percent / 100));
+      } else if (data.discount_amount) {
+        calculatedAmount = Math.min(Number(data.discount_amount), pricePerPerson);
+      }
+
+      const updated = [...travelersInfo];
+      updated[index] = {
+        ...updated[index],
+        discount: {
+          codeId: data.id,
+          code: data.code,
+          percent: data.discount_percent,
+          amount: data.discount_amount ? Number(data.discount_amount) : null,
+          calculatedAmount,
+        },
+      };
+      setTravelersInfo(updated);
+      setDiscountInputs((prev) => ({ ...prev, [index]: "" }));
+    } finally {
+      setDiscountLoading((prev) => ({ ...prev, [index]: false }));
+    }
+  };
+
+  const removeDiscount = (index: number) => {
+    const updated = [...travelersInfo];
+    updated[index] = { ...updated[index], discount: null };
+    setTravelersInfo(updated);
+    setDiscountErrors((prev) => ({ ...prev, [index]: "" }));
   };
 
   return (
@@ -179,6 +245,65 @@ export const BookingStep2 = ({
                 className="bg-muted cursor-not-allowed"
               />
               <p className="text-xs text-muted-foreground">Avgångsorten är bestämd av resan</p>
+            </div>
+
+            {/* Discount Code */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                <Tag className="w-4 h-4" />
+                Rabattkod <span className="text-xs text-muted-foreground">(valfritt)</span>
+              </Label>
+              {traveler.discount ? (
+                <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg">
+                  <Check className="w-4 h-4 text-primary" />
+                  <span className="font-medium text-primary text-sm">
+                    {traveler.discount.code}
+                    {traveler.discount.percent && ` (-${traveler.discount.percent}%)`}
+                    {traveler.discount.amount && ` (-${traveler.discount.amount} kr)`}
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-auto mr-2">
+                    -{traveler.discount.calculatedAmount.toLocaleString("sv-SE")} kr
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeDiscount(index)}
+                    className="h-7 w-7"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Ange rabattkod"
+                      value={discountInputs[index] || ""}
+                      onChange={(e) =>
+                        setDiscountInputs((prev) => ({ ...prev, [index]: e.target.value }))
+                      }
+                      onKeyDown={(e) => e.key === "Enter" && applyDiscount(index)}
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={() => applyDiscount(index)}
+                      variant="secondary"
+                      disabled={discountLoading[index]}
+                      size="sm"
+                      className="px-4"
+                    >
+                      {discountLoading[index] ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Tillämpa"
+                      )}
+                    </Button>
+                  </div>
+                  {discountErrors[index] && (
+                    <p className="text-xs text-destructive">{discountErrors[index]}</p>
+                  )}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
