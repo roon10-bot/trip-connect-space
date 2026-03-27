@@ -182,8 +182,10 @@ const Dashboard = () => {
         {/* Payment Overview */}
         {user?.id && (
           <div className="mb-12">
-            <PaymentOverview userId={user.id} onPayClick={(booking: any) => {
-              setSelectedTripBooking(booking);
+        <PaymentOverview userId={user.id} onPayClick={(partialBooking: any) => {
+              // Find the full booking from tripBookings to ensure all fields are present
+              const fullBooking = tripBookings?.find(b => b.id === partialBooking.id) || partialBooking;
+              setSelectedTripBooking(fullBooking);
               setTripDetailsOpen(true);
             }} />
           </div>
