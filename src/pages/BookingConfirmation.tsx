@@ -18,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 
 interface BookingDetails {
   bookingId: string;
+  tripBookingId: string | null;
   tripName: string;
   tripType: string;
   departureDate: string;
