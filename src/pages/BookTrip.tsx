@@ -26,6 +26,14 @@ import { BookingStep4Payment } from "@/components/booking/BookingStep4Payment";
 import { BookingTripSummary } from "@/components/booking/BookingTripSummary";
 import { BookingSuccess } from "@/components/booking/BookingSuccess";
 
+export interface TravelerDiscount {
+  codeId: string;
+  code: string;
+  percent: number | null;
+  amount: number | null;
+  calculatedAmount: number;
+}
+
 export interface TravelerInfo {
   firstName: string;
   lastName: string;
@@ -33,6 +41,7 @@ export interface TravelerInfo {
   birthDate: Date | undefined;
   phone: string;
   departureLocation: string;
+  discount?: TravelerDiscount | null;
 }
 
 const createEmptyTraveler = (departureLocation = ""): TravelerInfo => ({
@@ -42,6 +51,7 @@ const createEmptyTraveler = (departureLocation = ""): TravelerInfo => ({
   birthDate: undefined,
   phone: "",
   departureLocation,
+  discount: null,
 });
 
 const BookTrip = () => {
@@ -74,12 +84,7 @@ const BookTrip = () => {
   // Logical booking step (1-3) independent of account step offset
   const bookingStep = needsAccountStep ? currentStep - 1 : currentStep;
   const [travelers, setTravelers] = useState(routerState?.guests || 1);
-  const [discountCode, setDiscountCode] = useState("");
-  const [appliedDiscount, setAppliedDiscount] = useState<{
-    code: string;
-    percent: number | null;
-    amount: number | null;
-  } | null>(null);
+  // Per-traveler discount codes (global discount removed)
   const [travelersInfo, setTravelersInfo] = useState<TravelerInfo[]>(
     Array.from({ length: routerState?.guests || 1 }, () => createEmptyTraveler())
   );
@@ -221,71 +226,19 @@ const BookTrip = () => {
     return pricePerPerson;
   };
 
+  const getTotalDiscount = () => {
+    return travelersInfo.reduce((sum, t) => sum + (t.discount?.calculatedAmount || 0), 0);
+  };
+
   const calculateTotalPrice = () => {
     if (!trip) return 0;
     const pricePerPerson = getPricePerPerson();
     const baseTotal = pricePerPerson * travelers;
-
-    if (appliedDiscount) {
-      if (appliedDiscount.percent) {
-        return baseTotal - (baseTotal * appliedDiscount.percent / 100);
-      }
-      if (appliedDiscount.amount) {
-        return Math.max(0, baseTotal - appliedDiscount.amount);
-      }
-    }
-    return baseTotal;
+    const totalDiscount = getTotalDiscount();
+    return Math.max(0, baseTotal - totalDiscount);
   };
 
-  const applyDiscountCode = async () => {
-    const normalizedCode = discountCode.trim().toUpperCase();
-
-    if (!normalizedCode) {
-      toast.error(t("bookTrip.enterDiscount"));
-      return;
-    }
-
-    setDiscountCode(normalizedCode);
-
-    const { data, error } = await supabase
-      .from("discount_codes")
-      .select("*")
-      .ilike("code", normalizedCode)
-      .eq("is_active", true)
-      .maybeSingle();
-
-    if (error || !data) {
-      toast.error(t("bookTrip.invalidDiscount"));
-      return;
-    }
-
-    if (data.max_uses && data.current_uses >= data.max_uses) {
-      toast.error(t("bookTrip.discountMaxUsed"));
-      return;
-    }
-
-    const now = new Date();
-    if (data.valid_from && new Date(data.valid_from) > now) {
-      toast.error(t("bookTrip.discountNotActive"));
-      return;
-    }
-    if (data.valid_until && new Date(data.valid_until) < now) {
-      toast.error(t("bookTrip.discountExpired"));
-      return;
-    }
-
-    setAppliedDiscount({
-      code: data.code,
-      percent: data.discount_percent,
-      amount: data.discount_amount,
-    });
-    toast.success(t("bookTrip.discountApplied"));
-  };
-
-  const removeDiscount = () => {
-    setAppliedDiscount(null);
-    setDiscountCode("");
-  };
+  // Per-traveler discount validation is handled in BookingStep2
 
   const validateStep2 = () => {
     for (let i = 0; i < travelersInfo.length; i++) {
