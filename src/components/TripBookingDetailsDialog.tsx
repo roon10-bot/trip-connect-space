@@ -197,7 +197,7 @@ export const TripBookingDetailsDialog = ({
     return types[type] || type;
   };
 
-  // Build payment options from trip data with calculated amounts
+  // Build payment options from trip data with calculated amounts, marking paid items
   const paymentOptions: PaymentOption[] = useMemo(() => {
     if (!booking?.trips) return [];
     
@@ -205,18 +205,24 @@ export const TripBookingDetailsDialog = ({
     const totalPrice = effectiveTotal;
     
     const planItems = resolvePaymentPlan(trip, totalPrice, booking.created_at);
-    
-    return planItems.map((item) => ({
-      id: item.type === "first_payment" ? "first" 
-        : item.type === "second_payment" ? "second" 
-        : item.type === "final_payment" ? "final" 
-        : "full",
-      label: item.label,
-      amount: item.amount,
-      date: item.date || null,
-      isAvailable: true,
-    }));
-  }, [booking?.trips, booking?.total_price, booking?.created_at, effectiveTotal]);
+
+    // Use cumulative logic to determine which items are already paid
+    let cumulativeAmount = 0;
+    return planItems.map((item) => {
+      cumulativeAmount += item.amount;
+      const isPaid = item.amount > 0 && totalPaid >= cumulativeAmount;
+      return {
+        id: item.type === "first_payment" ? "first" 
+          : item.type === "second_payment" ? "second" 
+          : item.type === "final_payment" ? "final" 
+          : "full",
+        label: item.label,
+        amount: item.amount,
+        date: item.date || null,
+        isAvailable: !isPaid,
+      };
+    });
+  }, [booking?.trips, booking?.total_price, booking?.created_at, effectiveTotal, totalPaid]);
 
   // Calculate selected amount
   const remainingBalance = useMemo(() => {
