@@ -89,17 +89,25 @@ export const BookingStep4Payment = ({
     
     pollIntervalRef.current = setInterval(async () => {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("pending_trip_bookings")
           .select("status")
           .eq("id", swishResult.pendingBookingId)
           .maybeSingle();
+
+        console.log("[Swish Poll]", { status: data?.status, error: error?.message, id: swishResult.pendingBookingId });
+
+        if (error) {
+          console.warn("[Swish Poll] RLS or query error:", error.message);
+          return;
+        }
 
         if (data?.status === "completed") {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           setSwishPollStatus("paid");
           toast.success("Betalningen genomförd! Din bokning bekräftas...");
           const confirmUrl = `/booking/confirmation?pending_booking_id=${swishResult.pendingBookingId}${primaryEmail ? `&email=${encodeURIComponent(primaryEmail)}` : ""}`;
+          console.log("[Swish Poll] Redirecting to:", confirmUrl);
           setTimeout(() => navigate(confirmUrl), 2000);
         } else if (data?.status === "failed" || data?.status === "payment_failed") {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
@@ -107,7 +115,7 @@ export const BookingStep4Payment = ({
           toast.error("Betalningen misslyckades. Försök igen.");
         }
       } catch (e) {
-        console.warn("Poll error", e);
+        console.warn("[Swish Poll] Exception:", e);
       }
     }, 3000);
 
