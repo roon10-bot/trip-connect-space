@@ -223,6 +223,7 @@ const Auth = () => {
 
   const handleHostSubmit = async (
     email: string,
+    password: string,
     fullName: string,
     partnerData: PartnerProfileData
   ) => {
