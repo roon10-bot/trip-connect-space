@@ -282,12 +282,6 @@ const BookTrip = () => {
   const handlePayBookingFee = async (method: "card" | "swish", turnstileToken: string) => {
     if (!trip || travelersInfo.length === 0 || !turnstileToken) return;
 
-    if (!user?.id) {
-      toast.error(t("bookTrip.paymentRequiresLogin"));
-      navigate(`/auth?redirect=${encodeURIComponent(`${location.pathname}${location.search}`)}`);
-      return;
-    }
-
     const primaryTraveler = travelersInfo[0];
     if (!primaryTraveler.birthDate) return;
 

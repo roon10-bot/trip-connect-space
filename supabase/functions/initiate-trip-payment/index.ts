@@ -28,22 +28,20 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Authenticate user
+    // Authenticate user (optional - guest checkout supported)
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer "))
-      throw new Error("No authorization header provided");
+    let userId: string | null = null;
+    let userEmail: string | null = null;
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } =
-      await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-
-    const user = userData.user;
-    if (!user?.id || !user?.email)
-      throw new Error("User not authenticated or email not available");
-    const userId = user.id;
-    const userEmail = user.email;
-    logStep("User authenticated", { userId, email: userEmail });
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.replace("Bearer ", "");
+      const { data: userData } = await supabaseClient.auth.getUser(token);
+      if (userData?.user?.id) {
+        userId = userData.user.id;
+        userEmail = userData.user.email || null;
+        logStep("User authenticated", { userId, email: userEmail });
+      }
+    }
 
     // Parse request
     const {
@@ -60,6 +58,10 @@ serve(async (req) => {
       is_desktop,
       is_native_app,
     } = await req.json();
+
+    // Use primary traveler email if no authenticated user
+    const primaryEmail = travelers_info?.[0]?.email || userEmail || "";
+    if (!primaryEmail) throw new Error("No email available for booking");
 
     if (!trip_id || !travelers || !travelers_info || !total_price || !payment_method) {
       throw new Error("Missing required fields");
