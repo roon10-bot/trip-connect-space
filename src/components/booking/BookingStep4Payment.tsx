@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, CreditCard, Loader2, Shield, CheckCircle, Smartphone } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -27,6 +28,8 @@ interface BookingStep4PaymentProps {
   } | null;
   // Called when booking is confirmed (swish payment completed)
   onBookingConfirmed?: () => void;
+  // Primary traveler email for redirect
+  primaryEmail?: string;
 }
 
 export const BookingStep4Payment = ({
@@ -38,11 +41,12 @@ export const BookingStep4Payment = ({
   isProcessing,
   swishResult,
   onBookingConfirmed,
+  primaryEmail,
 }: BookingStep4PaymentProps) => {
   const { containerRef, token: turnstileToken, error: turnstileError } = useTurnstile();
   const [selectedMethod, setSelectedMethod] = useState<"card" | "swish" | null>(null);
   const isMobile = useIsMobile();
-
+  const navigate = useNavigate();
   // Swish polling state
   const [swishPollStatus, setSwishPollStatus] = useState<"polling" | "paid" | "error" | null>(null);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -95,7 +99,8 @@ export const BookingStep4Payment = ({
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           setSwishPollStatus("paid");
           toast.success("Betalningen genomförd! Din bokning bekräftas...");
-          setTimeout(() => onBookingConfirmed?.(), 2000);
+          const confirmUrl = `/booking/confirmation?pending_booking_id=${swishResult.pendingBookingId}${primaryEmail ? `&email=${encodeURIComponent(primaryEmail)}` : ""}`;
+          setTimeout(() => navigate(confirmUrl), 2000);
         } else if (data?.status === "failed" || data?.status === "payment_failed") {
           if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           setSwishPollStatus("error");

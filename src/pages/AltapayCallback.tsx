@@ -70,13 +70,15 @@ const AltapayCallback = () => {
     return () => clearTimeout(maxTimer);
   }, [isSuccess, isFail, navigate, pendingBookingId, t]);
 
-  // Once confirmed, redirect after brief delay
+  // Once confirmed, redirect to booking confirmation page
   useEffect(() => {
     if (bookingConfirmed) {
-      const timer = setTimeout(() => navigate("/dashboard"), 2500);
+      const email = (pendingBooking as any)?.booking_data?.travelers_info?.[0]?.email || "";
+      const confirmUrl = `/booking/confirmation?pending_booking_id=${pendingBookingId}${email ? `&email=${encodeURIComponent(email)}` : ""}`;
+      const timer = setTimeout(() => navigate(confirmUrl), 1500);
       return () => clearTimeout(timer);
     }
-  }, [bookingConfirmed, navigate]);
+  }, [bookingConfirmed, navigate, pendingBookingId, pendingBooking]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

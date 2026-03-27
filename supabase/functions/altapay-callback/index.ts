@@ -42,13 +42,14 @@ serve(async (req) => {
   let targetPath: string;
   switch (callbackType) {
     case "ok":
-      targetPath = "/altapay/ok";
+    case "redirect":
+      targetPath = "/booking/confirmation";
       break;
     case "fail":
       targetPath = "/altapay/fail";
       break;
     default:
-      targetPath = "/altapay/redirect";
+      targetPath = "/booking/confirmation";
       break;
   }
 

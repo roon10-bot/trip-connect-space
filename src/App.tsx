@@ -28,6 +28,7 @@ const Segelveckan = lazy(() => import("./pages/Segelveckan"));
 const Studentveckan = lazy(() => import("./pages/Studentveckan"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AltapayCallback = lazy(() => import("./pages/AltapayCallback"));
+const BookingConfirmation = lazy(() => import("./pages/BookingConfirmation"));
 const Partner = lazy(() => import("./pages/Partner"));
 const ChatAssistant = lazy(() => import("./components/ChatAssistant").then(m => ({ default: m.ChatAssistant })));
 
@@ -92,6 +93,7 @@ const App = () => (
                   <Route path="/studentveckan" element={<Studentveckan />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/partner" element={<Partner />} />
+                  <Route path="/booking/confirmation" element={<BookingConfirmation />} />
                   <Route path="/altapay/ok" element={<AltapayCallback />} />
                   <Route path="/altapay/fail" element={<AltapayCallback />} />
                   <Route path="/altapay/redirect" element={<AltapayCallback />} />

@@ -17,14 +17,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { BookingStepIndicator } from "@/components/booking/BookingStepIndicator";
-import { BookingStepAccount, AccountFormData } from "@/components/booking/BookingStepAccount";
-import { BookingEmailVerification } from "@/components/booking/BookingEmailVerification";
 import { BookingStep1 } from "@/components/booking/BookingStep1";
 import { BookingStep2 } from "@/components/booking/BookingStep2";
 import { BookingStep3 } from "@/components/booking/BookingStep3";
 import { BookingStep4Payment } from "@/components/booking/BookingStep4Payment";
 import { BookingTripSummary } from "@/components/booking/BookingTripSummary";
-import { BookingSuccess } from "@/components/booking/BookingSuccess";
 
 export interface TravelerDiscount {
   codeId: string;
@@ -59,7 +56,7 @@ const BookTrip = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading: authLoading, signUp } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   
   // Receive flight data from search results via router state
   const routerState = location.state as {
@@ -68,37 +65,22 @@ const BookTrip = () => {
     flightOffer?: FlightOffer | null;
   } | null;
   
-  const [startedWithoutAccount, setStartedWithoutAccount] = useState<boolean | null>(null);
-  
-  useEffect(() => {
-    if (!authLoading && startedWithoutAccount === null) {
-      setStartedWithoutAccount(!user);
-    }
-  }, [authLoading, user, startedWithoutAccount]);
-  
-  const needsAccountStep = startedWithoutAccount === true;
-  const totalSteps = needsAccountStep ? 5 : 4;
+  // No account step needed - always 4 steps
+  const totalSteps = 4;
   
   const [currentStep, setCurrentStep] = useState(1);
-
-  // Logical booking step (1-3) independent of account step offset
-  const bookingStep = needsAccountStep ? currentStep - 1 : currentStep;
   const [travelers, setTravelers] = useState(routerState?.guests || 1);
   // Per-traveler discount codes (global discount removed)
   const [travelersInfo, setTravelersInfo] = useState<TravelerInfo[]>(
     Array.from({ length: routerState?.guests || 1 }, () => createEmptyTraveler())
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
-  const [bookingComplete, setBookingComplete] = useState(false);
-  const [showEmailVerification, setShowEmailVerification] = useState(false);
-  const [accountEmail, setAccountEmail] = useState("");
-  const [userProfileLoaded, setUserProfileLoaded] = useState(false);
   const [swishResult, setSwishResult] = useState<{
     pendingBookingId: string;
     paymentRequestToken: string;
     swishPaymentId: string;
   } | null>(null);
+  const [userProfileLoaded, setUserProfileLoaded] = useState(false);
 
   // Pre-fill first traveler with logged-in user's data
   useEffect(() => {
@@ -273,57 +255,20 @@ const BookTrip = () => {
     return true;
   };
 
-  const handleAccountCreation = async (data: AccountFormData) => {
-    setIsCreatingAccount(true);
-    try {
-      const fullName = `${data.firstName} ${data.lastName}`;
-      const { error } = await signUp(data.email, data.password, fullName);
-      
-      if (error) {
-        if (error.message.includes("already registered")) {
-          toast.error(t("bookTrip.emailAlreadyRegistered"));
-        } else {
-          toast.error(error.message);
-        }
-        return;
-      }
-      
-      // Pre-fill first traveler with account data
-      setTravelersInfo((prev) => {
-        const updated = [...prev];
-        updated[0] = {
-          ...updated[0],
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-        };
-        return updated;
-      });
-      
-      setAccountEmail(data.email);
-      setShowEmailVerification(true);
-    } catch (error) {
-      toast.error(t("bookTrip.somethingWentWrong"));
-    } finally {
-      setIsCreatingAccount(false);
-    }
-  };
-
   const handleNextStep = () => {
-    if (bookingStep === 2 && !validateStep2()) {
+    if (currentStep === 2 && !validateStep2()) {
       return;
     }
     setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
   const handlePrevStep = () => {
-    const minStep = needsAccountStep ? 2 : 1;
-    setCurrentStep((prev) => Math.max(prev - 1, minStep));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
   const mapPaymentError = (message: string) => {
     if (message.includes("No authorization header provided") || message.includes("User not authenticated")) {
-      return t("bookTrip.paymentRequiresLogin");
+      return "Du behöver vara inloggad för att betala. Har du redan ett konto? Logga in först.";
     }
     if (message.includes("Turnstile verification failed")) {
       return "Säkerhetsverifieringen misslyckades. Ladda om sidan och försök igen.";
@@ -336,12 +281,6 @@ const BookTrip = () => {
 
   const handlePayBookingFee = async (method: "card" | "swish", turnstileToken: string) => {
     if (!trip || travelersInfo.length === 0 || !turnstileToken) return;
-
-    if (!user?.id) {
-      toast.error(t("bookTrip.paymentRequiresLogin"));
-      navigate(`/auth?redirect=${encodeURIComponent(`${location.pathname}${location.search}`)}`);
-      return;
-    }
 
     const primaryTraveler = travelersInfo[0];
     if (!primaryTraveler.birthDate) return;
@@ -466,18 +405,6 @@ const BookTrip = () => {
     );
   }
 
-  if (bookingComplete) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 pt-28 pb-16">
-          <BookingSuccess />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -514,26 +441,7 @@ const BookTrip = () => {
         <div className="grid lg:grid-cols-3 gap-8 mt-8">
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
-              {needsAccountStep && currentStep === 1 && !showEmailVerification && (
-                <BookingStepAccount
-                  key="step-account"
-                  onNext={handleAccountCreation}
-                  isLoading={isCreatingAccount}
-                />
-              )}
-
-              {showEmailVerification && currentStep === 1 && (
-                <BookingEmailVerification
-                  key="step-email-verify"
-                  email={accountEmail}
-                  onContinue={() => {
-                    setShowEmailVerification(false);
-                    setCurrentStep(2);
-                  }}
-                />
-              )}
-              
-              {bookingStep === 1 && (
+              {currentStep === 1 && (
                 <BookingStep1
                   key="step1"
                   travelers={travelers}
@@ -543,7 +451,7 @@ const BookTrip = () => {
                 />
               )}
               
-              {bookingStep === 2 && (
+              {currentStep === 2 && (
                 <BookingStep2
                   key="step2"
                   travelersInfo={travelersInfo}
@@ -554,7 +462,7 @@ const BookTrip = () => {
                 />
               )}
               
-              {bookingStep === 3 && (
+              {currentStep === 3 && (
                 <BookingStep3
                   key="step3"
                   trip={trip}
@@ -568,7 +476,7 @@ const BookTrip = () => {
                 />
               )}
 
-              {bookingStep === 4 && (
+              {currentStep === 4 && (
                 <BookingStep4Payment
                   key="step4"
                   bookingFee={Math.ceil(calculateTotalPrice() * 0.40)}
@@ -578,7 +486,7 @@ const BookTrip = () => {
                   onPay={handlePayBookingFee}
                   isProcessing={isSubmitting}
                   swishResult={swishResult}
-                  onBookingConfirmed={() => setBookingComplete(true)}
+                  primaryEmail={travelersInfo[0]?.email}
                 />
               )}
             </AnimatePresence>

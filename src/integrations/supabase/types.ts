@@ -861,7 +861,7 @@ export type Database = {
           status: string
           total_price: number
           trip_id: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           booking_data: Json
@@ -879,7 +879,7 @@ export type Database = {
           status?: string
           total_price: number
           trip_id: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           booking_data?: Json
@@ -897,7 +897,7 @@ export type Database = {
           status?: string
           total_price?: number
           trip_id?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1540,18 +1540,18 @@ export type Database = {
       cleanup_rate_limit_log: { Args: never; Returns: undefined }
       create_trip_booking_atomic: {
         Args: {
-          p_birth_date: string
-          p_departure_location: string
+          p_birth_date?: string
+          p_departure_location?: string
           p_discount_amount?: number
           p_discount_code?: string
-          p_email: string
-          p_first_name: string
-          p_last_name: string
-          p_phone: string
-          p_total_price: number
-          p_travelers: number
+          p_email?: string
+          p_first_name?: string
+          p_last_name?: string
+          p_phone?: string
+          p_total_price?: number
+          p_travelers?: number
           p_trip_id: string
-          p_user_id: string
+          p_user_id?: string
         }
         Returns: string
       }
