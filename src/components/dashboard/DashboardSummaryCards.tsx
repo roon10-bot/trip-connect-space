@@ -76,6 +76,10 @@ export const DashboardSummaryCards = ({
         .filter((p) => p.trip_booking_id === activeBooking.id)
         .map((p) => p.payment_type)
     );
+    if (paidTypes.has("booking_fee")) {
+      paidTypes.add("first_payment");
+      paidTypes.add("full_payment");
+    }
 
     const planItems = resolvePaymentPlan(trip, totalPrice, activeBooking.created_at);
 
@@ -117,6 +121,10 @@ export const DashboardSummaryCards = ({
         .filter((p) => p.trip_booking_id === activeBooking.id)
         .map((p) => p.payment_type)
     );
+    if (paidTypes.has("booking_fee")) {
+      paidTypes.add("first_payment");
+      paidTypes.add("full_payment");
+    }
     const planItems = resolvePaymentPlan(trip, totalPrice, activeBooking.created_at);
     const totalSteps = planItems.length;
     const completedSteps = planItems.filter((p) => paidTypes.has(p.type)).length;
