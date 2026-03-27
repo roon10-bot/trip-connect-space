@@ -188,7 +188,6 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
       // "booking_fee" is equivalent to "first_payment" / "full_payment"
       if (paidTypes.has("booking_fee")) {
         paidTypes.add("first_payment");
-        paidTypes.add("full_payment");
       }
       
       const planItems = resolvePaymentPlan(booking.trips, totalPrice, booking.created_at);
