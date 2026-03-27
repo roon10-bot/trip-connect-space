@@ -622,6 +622,15 @@ const Auth = () => {
                   {errors.password && (
                     <p className="text-sm text-destructive">{errors.password.message}</p>
                   )}
+                  {isLogin && (
+                    <button
+                      type="button"
+                      onClick={() => { setShowForgotPassword(true); setForgotSent(false); setForgotEmail(""); }}
+                      className="text-sm text-primary hover:underline mt-1"
+                    >
+                      {t("auth.forgotPassword") || "Glömt lösenord?"}
+                    </button>
+                  )}
                 </div>
 
                 <Button
