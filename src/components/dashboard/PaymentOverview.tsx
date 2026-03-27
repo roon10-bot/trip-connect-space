@@ -21,6 +21,7 @@ import { calculatePaymentAmount, resolvePaymentPlan, type PaymentValueType } fro
 
 interface PaymentOverviewProps {
   userId: string;
+  onPayClick?: (booking: any) => void;
 }
 
 interface TripBookingWithTrip {
@@ -53,7 +54,7 @@ interface Payment {
   created_at: string;
 }
 
-export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
+export const PaymentOverview = ({ userId, onPayClick }: PaymentOverviewProps) => {
   // Fetch all trip bookings - RLS handles access for both bookers and travelers
   const { data: tripBookings, isLoading: bookingsLoading } = useQuery({
     queryKey: ["trip-bookings-payment-overview", userId],
@@ -165,50 +166,47 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
     return grouped;
   }, [tripBookings, payments]);
 
-  // Get upcoming payments (payment plan dates that haven't been paid)
-  const upcomingPayments = useMemo(() => {
+  // Build full payment plan per booking with paid/unpaid status
+  const bookingPlans = useMemo(() => {
     if (!tripBookings || !payments) return [];
-    
-    const upcoming: Array<{
-      bookingId: string;
-      tripName: string;
-      paymentType: string;
-      amount: number;
-      dueDate: string;
-    }> = [];
-    
-    tripBookings.forEach((booking) => {
-      if (!booking.trips) return;
-      
-      const totalPrice = getPersonShare(booking);
-      const bookingPayments = payments.filter(
-        (p) => p.trip_booking_id === booking.id && p.status === "completed"
-      );
-      const paidTypes = new Set(bookingPayments.map((p) => p.payment_type));
-      // "booking_fee" is equivalent to "first_payment" / "full_payment"
-      if (paidTypes.has("booking_fee")) {
-        paidTypes.add("first_payment");
-      }
-      
-      const planItems = resolvePaymentPlan(booking.trips, totalPrice, booking.created_at);
-      
-      planItems.forEach((pp) => {
-        if (pp.amount > 0 && pp.date && !paidTypes.has(pp.type)) {
-          upcoming.push({
-            bookingId: booking.id,
-            tripName: booking.trips?.name || "Okänd resa",
-            paymentType: pp.label,
-            amount: pp.amount,
-            dueDate: pp.date,
-          });
+
+    return tripBookings
+      .filter((b) => b.status !== "cancelled" && b.trips)
+      .map((booking) => {
+        const totalPrice = getPersonShare(booking);
+        const bookingPayments = payments.filter(
+          (p) => p.trip_booking_id === booking.id && p.status === "completed"
+        );
+        const paidTypes = new Set(bookingPayments.map((p) => p.payment_type));
+        if (paidTypes.has("booking_fee")) {
+          paidTypes.add("first_payment");
         }
+        const totalPaidAmount = bookingPayments.reduce((s, p) => s + Number(p.amount), 0);
+
+        const planItems = resolvePaymentPlan(booking.trips!, totalPrice, booking.created_at);
+
+        // Determine plan type label
+        let planTypeLabel = "";
+        if (planItems.length === 3) planTypeLabel = "40 / 30 / 30";
+        else if (planItems.length === 2) planTypeLabel = "50 / 50";
+        else if (planItems.length === 1) planTypeLabel = "100%";
+
+        const itemsWithStatus = planItems.map((item) => ({
+          ...item,
+          isPaid: paidTypes.has(item.type),
+        }));
+
+        const isFullyPaid = totalPaidAmount >= totalPrice && totalPaidAmount > 0;
+
+        return {
+          booking,
+          tripName: booking.trips!.name,
+          planTypeLabel,
+          items: itemsWithStatus,
+          isFullyPaid,
+        };
       });
-    });
-    
-    return upcoming.sort(
-      (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-    );
-  }, [tripBookings, payments]);
+  }, [tripBookings, payments, userId]);
 
   const isLoading = bookingsLoading || paymentsLoading;
 
@@ -337,8 +335,8 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
         </motion.div>
       </div>
 
-      {/* Upcoming Payments */}
-      {upcomingPayments.length > 0 && (
+      {/* Payment Plan per Booking */}
+      {bookingPlans.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -348,57 +346,88 @@ export const PaymentOverview = ({ userId }: PaymentOverviewProps) => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CalendarClock className="w-5 h-5 text-sunset" />
-                Kommande betalningar
+                Betalningsplan
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {upcomingPayments.slice(0, 5).map((payment, index) => {
-                  const dueDate = new Date(payment.dueDate);
-                  const isOverdue = dueDate < new Date();
-                  const isDueSoon =
-                    !isOverdue &&
-                    dueDate < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+            <CardContent className="space-y-6">
+              {bookingPlans.map(({ booking, tripName, planTypeLabel, items, isFullyPaid: fullyPaid }) => (
+                <div key={booking.id} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium">{tripName}</p>
+                    {planTypeLabel && (
+                      <Badge variant="outline" className="text-xs font-mono">
+                        {planTypeLabel}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {items.map((item, idx) => {
+                      const dueDate = item.date ? new Date(item.date) : null;
+                      const isOverdue = dueDate && !item.isPaid && dueDate < new Date();
+                      const isDueSoon = dueDate && !item.isPaid && !isOverdue &&
+                        dueDate < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-                  return (
-                    <div
-                      key={`${payment.bookingId}-${payment.paymentType}-${index}`}
-                      className={`flex items-center justify-between p-4 rounded-lg border ${
-                        isOverdue
-                          ? "border-destructive/50 bg-destructive/5"
-                          : isDueSoon
-                          ? "border-sunset/50 bg-sunset/5"
-                          : "border-border"
-                      }`}
-                    >
-                      <div>
-                        <p className="font-medium">{payment.tripName}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {payment.paymentType}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold">
-                          {payment.amount.toLocaleString("sv-SE")} kr
-                        </p>
-                        <p
-                          className={`text-sm ${
-                            isOverdue
-                              ? "text-destructive font-medium"
+                      return (
+                        <div
+                          key={idx}
+                          className={`flex items-center justify-between p-3 rounded-lg border ${
+                            item.isPaid
+                              ? "border-palm/30 bg-palm/5"
+                              : isOverdue
+                              ? "border-destructive/50 bg-destructive/5"
                               : isDueSoon
-                              ? "text-sunset font-medium"
-                              : "text-muted-foreground"
+                              ? "border-sunset/50 bg-sunset/5"
+                              : "border-border"
                           }`}
                         >
-                          {isOverdue
-                            ? "Förfallen"
-                            : format(dueDate, "d MMM yyyy", { locale: sv })}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                          <div className="flex items-center gap-3">
+                            {item.isPaid ? (
+                              <CheckCircle className="w-5 h-5 text-palm shrink-0" />
+                            ) : (
+                              <Clock className="w-5 h-5 text-muted-foreground shrink-0" />
+                            )}
+                            <div>
+                              <p className={`font-medium text-sm ${item.isPaid ? "text-palm" : ""}`}>
+                                {item.label}
+                              </p>
+                              {dueDate && (
+                                <p className={`text-xs ${
+                                  item.isPaid
+                                    ? "text-palm/70"
+                                    : isOverdue
+                                    ? "text-destructive font-medium"
+                                    : "text-muted-foreground"
+                                }`}>
+                                  {item.isPaid
+                                    ? `Betald`
+                                    : isOverdue
+                                    ? "Förfallen"
+                                    : `Förfaller ${format(dueDate, "d MMM yyyy", { locale: sv })}`}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`font-semibold text-sm ${item.isPaid ? "text-palm" : ""}`}>
+                              {item.amount.toLocaleString("sv-SE")} kr
+                            </span>
+                            {!item.isPaid && !fullyPaid && onPayClick && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs border-ocean text-ocean hover:bg-ocean/10"
+                                onClick={() => onPayClick(booking)}
+                              >
+                                Betala nu
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         </motion.div>
