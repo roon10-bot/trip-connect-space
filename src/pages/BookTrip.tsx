@@ -17,14 +17,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { BookingStepIndicator } from "@/components/booking/BookingStepIndicator";
-import { BookingStepAccount, AccountFormData } from "@/components/booking/BookingStepAccount";
-import { BookingEmailVerification } from "@/components/booking/BookingEmailVerification";
 import { BookingStep1 } from "@/components/booking/BookingStep1";
 import { BookingStep2 } from "@/components/booking/BookingStep2";
 import { BookingStep3 } from "@/components/booking/BookingStep3";
 import { BookingStep4Payment } from "@/components/booking/BookingStep4Payment";
 import { BookingTripSummary } from "@/components/booking/BookingTripSummary";
-import { BookingSuccess } from "@/components/booking/BookingSuccess";
 
 export interface TravelerDiscount {
   codeId: string;
@@ -59,7 +56,7 @@ const BookTrip = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading: authLoading, signUp } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   
   // Receive flight data from search results via router state
   const routerState = location.state as {
@@ -68,32 +65,16 @@ const BookTrip = () => {
     flightOffer?: FlightOffer | null;
   } | null;
   
-  const [startedWithoutAccount, setStartedWithoutAccount] = useState<boolean | null>(null);
-  
-  useEffect(() => {
-    if (!authLoading && startedWithoutAccount === null) {
-      setStartedWithoutAccount(!user);
-    }
-  }, [authLoading, user, startedWithoutAccount]);
-  
-  const needsAccountStep = startedWithoutAccount === true;
-  const totalSteps = needsAccountStep ? 5 : 4;
+  // No account step needed - always 4 steps
+  const totalSteps = 4;
   
   const [currentStep, setCurrentStep] = useState(1);
-
-  // Logical booking step (1-3) independent of account step offset
-  const bookingStep = needsAccountStep ? currentStep - 1 : currentStep;
   const [travelers, setTravelers] = useState(routerState?.guests || 1);
   // Per-traveler discount codes (global discount removed)
   const [travelersInfo, setTravelersInfo] = useState<TravelerInfo[]>(
     Array.from({ length: routerState?.guests || 1 }, () => createEmptyTraveler())
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
-  const [bookingComplete, setBookingComplete] = useState(false);
-  const [showEmailVerification, setShowEmailVerification] = useState(false);
-  const [accountEmail, setAccountEmail] = useState("");
-  const [userProfileLoaded, setUserProfileLoaded] = useState(false);
   const [swishResult, setSwishResult] = useState<{
     pendingBookingId: string;
     paymentRequestToken: string;
