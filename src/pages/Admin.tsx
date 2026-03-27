@@ -29,7 +29,17 @@ const Admin = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin, isLoading: adminLoading } = useAdmin();
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<AdminView>("dashboard");
+  const getInitialView = (): AdminView => {
+    const hash = window.location.hash.replace("#", "");
+    const validViews: AdminView[] = ["dashboard", "trips", "create-trip", "discount-codes", "bookings", "transactions", "customers", "meeting-slots", "accounts", "email-templates", "documents", "trip-templates", "partners", "partner-listings", "sales-report", "test-checklist"];
+    return validViews.includes(hash as AdminView) ? (hash as AdminView) : "dashboard";
+  };
+  const [currentView, setCurrentView] = useState<AdminView>(getInitialView);
+
+  const handleViewChange = (view: AdminView) => {
+    setCurrentView(view);
+    window.location.hash = view;
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -45,7 +55,7 @@ const Admin = () => {
   }, [user, isAdmin, authLoading, adminLoading, navigate]);
 
   const handleTripCreated = () => {
-    setCurrentView("trips");
+    handleViewChange("trips");
   };
 
   const handleSignOut = async () => {
@@ -155,7 +165,7 @@ const Admin = () => {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar currentView={currentView} onViewChange={setCurrentView} />
+        <AdminSidebar currentView={currentView} onViewChange={handleViewChange} />
         
         <main className="flex-1 min-w-0 p-10 overflow-auto">
           <motion.div
