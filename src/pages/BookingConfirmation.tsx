@@ -146,13 +146,12 @@ const BookingConfirmation = () => {
       if (error) {
         if (
           error.message.includes("already registered") ||
-          error.message.includes("already been registered") ||
-          (error as any).status === 429 ||
-          error.message.toLowerCase().includes("rate limit")
+          error.message.includes("already been registered")
         ) {
-          // Rate limit often means account was already created in a prior attempt
           setExistingAccount(true);
-          toast.info("Det kan redan finnas ett konto. Prova att logga in eller återställ lösenordet.");
+          toast.error("Det finns redan ett konto med den här e-postadressen.");
+        } else if ((error as any).status === 429 || error.message.toLowerCase().includes("rate limit")) {
+          toast.error("För många försök. Vänta några minuter och försök igen.");
         } else {
           toast.error(error.message);
         }
