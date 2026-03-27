@@ -255,57 +255,20 @@ const BookTrip = () => {
     return true;
   };
 
-  const handleAccountCreation = async (data: AccountFormData) => {
-    setIsCreatingAccount(true);
-    try {
-      const fullName = `${data.firstName} ${data.lastName}`;
-      const { error } = await signUp(data.email, data.password, fullName);
-      
-      if (error) {
-        if (error.message.includes("already registered")) {
-          toast.error(t("bookTrip.emailAlreadyRegistered"));
-        } else {
-          toast.error(error.message);
-        }
-        return;
-      }
-      
-      // Pre-fill first traveler with account data
-      setTravelersInfo((prev) => {
-        const updated = [...prev];
-        updated[0] = {
-          ...updated[0],
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-        };
-        return updated;
-      });
-      
-      setAccountEmail(data.email);
-      setShowEmailVerification(true);
-    } catch (error) {
-      toast.error(t("bookTrip.somethingWentWrong"));
-    } finally {
-      setIsCreatingAccount(false);
-    }
-  };
-
   const handleNextStep = () => {
-    if (bookingStep === 2 && !validateStep2()) {
+    if (currentStep === 2 && !validateStep2()) {
       return;
     }
     setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
   const handlePrevStep = () => {
-    const minStep = needsAccountStep ? 2 : 1;
-    setCurrentStep((prev) => Math.max(prev - 1, minStep));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
   const mapPaymentError = (message: string) => {
     if (message.includes("No authorization header provided") || message.includes("User not authenticated")) {
-      return t("bookTrip.paymentRequiresLogin");
+      return "Du behöver vara inloggad för att betala. Har du redan ett konto? Logga in först.";
     }
     if (message.includes("Turnstile verification failed")) {
       return "Säkerhetsverifieringen misslyckades. Ladda om sidan och försök igen.";
