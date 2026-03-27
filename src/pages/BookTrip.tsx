@@ -494,7 +494,6 @@ const BookTrip = () => {
                   swishResult={swishResult}
                   primaryEmail={travelersInfo[0]?.email}
                 />
-                />
               )}
             </AnimatePresence>
           </div>
