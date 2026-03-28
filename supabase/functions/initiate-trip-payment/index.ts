@@ -334,8 +334,15 @@ serve(async (req) => {
         status: 200,
       });
     } else if (payment_method === "swish") {
+      // Check test mode from database
+      const { data: testModeSetting } = await supabaseClient
+        .from("app_settings")
+        .select("value")
+        .eq("key", "SWISH_TEST_MODE")
+        .maybeSingle();
+      const isSwishTest = testModeSetting?.value === "true";
+
       // Swish payment — use test secrets when test mode is active
-      const isSwishTest = Deno.env.get("SWISH_TEST_MODE") === "true";
       const rawCert = isSwishTest
         ? (Deno.env.get("SWISH_TEST_CERT") || Deno.env.get("SWISH_CLIENT_CERT"))
         : Deno.env.get("SWISH_CLIENT_CERT");
