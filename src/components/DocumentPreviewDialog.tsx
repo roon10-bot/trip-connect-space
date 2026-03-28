@@ -76,9 +76,9 @@ export const DocumentPreviewDialog = ({
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden min-h-0">
-          {loading || !signedUrl ? (
+          {!signedUrl ? (
             <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+              <FileText className="w-8 h-8 text-muted-foreground animate-pulse" />
             </div>
           ) : isPdf(fileType) ? (
             <iframe
