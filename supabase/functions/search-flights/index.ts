@@ -14,10 +14,27 @@ serve(async (req: Request) => {
   }
 
   try {
-    const DUFFEL_API_KEY = Deno.env.get("DUFFEL_API_KEY");
+    // Check Duffel test mode from app_settings
+    const { createClient } = await import("npm:@supabase/supabase-js@2.57.2");
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+    const { data: testModeSetting } = await supabaseClient
+      .from("app_settings")
+      .select("value")
+      .eq("key", "DUFFEL_TEST_MODE")
+      .maybeSingle();
+    const isDuffelTestMode = testModeSetting?.value === "true";
+
+    const DUFFEL_API_KEY = isDuffelTestMode
+      ? Deno.env.get("DUFFEL_TEST_API_KEY")
+      : Deno.env.get("DUFFEL_API_KEY");
     if (!DUFFEL_API_KEY) {
-      throw new Error("DUFFEL_API_KEY is not configured");
+      throw new Error(isDuffelTestMode ? "DUFFEL_TEST_API_KEY is not configured" : "DUFFEL_API_KEY is not configured");
     }
+    console.log(`[search-flights] Using Duffel ${isDuffelTestMode ? "TEST" : "PRODUCTION"} mode`);
 
     const { origin, destination, departure_date, return_date, passengers } = await req.json();
 

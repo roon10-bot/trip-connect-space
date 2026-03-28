@@ -116,8 +116,17 @@ serve(async (req) => {
     const bookingFeeAmount = Math.ceil(total_price * bookingFeePercent);
     logStep("Booking fee calculated", { bookingFeeAmount, totalPrice: total_price, daysUntilDeparture, bookingFeePercent });
 
-    // Fetch fresh Duffel flight offer
-    const DUFFEL_API_KEY = Deno.env.get("DUFFEL_API_KEY");
+    // Check Duffel test mode
+    const { data: duffelTestSetting } = await supabaseClient
+      .from("app_settings")
+      .select("value")
+      .eq("key", "DUFFEL_TEST_MODE")
+      .maybeSingle();
+    const isDuffelTestMode = duffelTestSetting?.value === "true";
+    const DUFFEL_API_KEY = isDuffelTestMode
+      ? Deno.env.get("DUFFEL_TEST_API_KEY")
+      : Deno.env.get("DUFFEL_API_KEY");
+    logStep("Duffel mode", { testMode: isDuffelTestMode });
     let duffelOfferId: string | null = null;
     let duffelOfferData: any = null;
     let flightPriceSek = 0;
