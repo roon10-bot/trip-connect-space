@@ -49,6 +49,7 @@ import {
   Upload,
   Send,
   Download,
+  Eye,
   Trash2,
   Save,
   Mail,
@@ -65,6 +66,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ManualPaymentDialog } from "./ManualPaymentDialog";
+import { DocumentPreviewDialog } from "@/components/DocumentPreviewDialog";
 
 interface AdminBookingDetailDialogProps {
   booking: any;
@@ -90,6 +92,7 @@ export const AdminBookingDetailDialog = ({
   const [editSubject, setEditSubject] = useState("");
   const [editBody, setEditBody] = useState("");
   const [manualPaymentOpen, setManualPaymentOpen] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState<{ fileName: string; fileUrl: string; fileType?: string | null } | null>(null);
 
   // Editable fields
   const [editData, setEditData] = useState({
@@ -398,6 +401,7 @@ export const AdminBookingDetailDialog = ({
   const percentage = totalPrice > 0 ? Math.round((paidAmount / totalPrice) * 100) : 0;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (v) resetEditData(); }}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
@@ -630,15 +634,9 @@ export const AdminBookingDetailDialog = ({
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={async () => {
-                              const { data } = await supabase.storage
-                                .from("booking-attachments")
-                                .createSignedUrl(doc.file_url, 3600);
-                              if (data?.signedUrl) window.open(data.signedUrl, "_blank");
-                              else toast.error("Kunde inte öppna filen");
-                            }}
+                            onClick={() => setPreviewDoc({ fileName: doc.file_name, fileUrl: doc.file_url, fileType: doc.file_type })}
                           >
-                            <Download className="w-4 h-4" />
+                            <Eye className="w-4 h-4" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -823,5 +821,16 @@ export const AdminBookingDetailDialog = ({
         </Tabs>
       </DialogContent>
     </Dialog>
+
+    {previewDoc && (
+      <DocumentPreviewDialog
+        open={!!previewDoc}
+        onOpenChange={(open) => { if (!open) setPreviewDoc(null); }}
+        fileName={previewDoc.fileName}
+        fileUrl={previewDoc.fileUrl}
+        fileType={previewDoc.fileType}
+      />
+    )}
+    </>
   );
 };
