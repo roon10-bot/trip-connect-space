@@ -33,7 +33,7 @@ export const DocumentPreviewDialog = ({
   fileType,
 }: DocumentPreviewDialogProps) => {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  
 
   useEffect(() => {
     if (!open) {
