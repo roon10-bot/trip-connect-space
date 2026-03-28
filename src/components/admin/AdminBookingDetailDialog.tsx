@@ -66,6 +66,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ManualPaymentDialog } from "./ManualPaymentDialog";
+import { DocumentPreviewDialog } from "@/components/DocumentPreviewDialog";
 
 interface AdminBookingDetailDialogProps {
   booking: any;
@@ -819,5 +820,16 @@ export const AdminBookingDetailDialog = ({
         </Tabs>
       </DialogContent>
     </Dialog>
+
+    {previewDoc && (
+      <DocumentPreviewDialog
+        open={!!previewDoc}
+        onOpenChange={(open) => { if (!open) setPreviewDoc(null); }}
+        fileName={previewDoc.fileName}
+        fileUrl={previewDoc.fileUrl}
+        fileType={previewDoc.fileType}
+      />
+    )}
+    </>
   );
 };
