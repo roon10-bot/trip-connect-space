@@ -34,19 +34,14 @@ export const MyDocuments = ({ userId }: MyDocumentsProps) => {
     return <File className="w-4 h-4 text-ocean" />;
   };
 
-  const handleDownload = async (fileUrl: string) => {
+  const handleDownload = (fileUrl: string) => {
     let url = fileUrl;
     if (!fileUrl.startsWith("http")) {
-      const { data, error } = await supabase.storage
+      const { data } = supabase.storage
         .from("booking-attachments")
-        .createSignedUrl(fileUrl, 3600);
-      if (error || !data?.signedUrl) {
-        toast.error("Kunde inte öppna filen");
-        return;
-      }
-      url = data.signedUrl;
+        .getPublicUrl(fileUrl);
+      url = data?.publicUrl || fileUrl;
     }
-    // Use anchor element for better mobile compatibility
     const a = document.createElement("a");
     a.href = url;
     a.target = "_blank";

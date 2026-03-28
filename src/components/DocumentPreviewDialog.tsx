@@ -8,7 +8,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 interface DocumentPreviewDialogProps {
@@ -33,7 +33,7 @@ export const DocumentPreviewDialog = ({
   fileType,
 }: DocumentPreviewDialogProps) => {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  
 
   useEffect(() => {
     if (!open) {
@@ -44,19 +44,15 @@ export const DocumentPreviewDialog = ({
       setSignedUrl(fileUrl);
       return;
     }
-    setLoading(true);
-    supabase.storage
+    const { data } = supabase.storage
       .from("booking-attachments")
-      .createSignedUrl(fileUrl, 3600)
-      .then(({ data, error }) => {
-        setLoading(false);
-        if (error || !data?.signedUrl) {
-          toast.error("Kunde inte öppna filen");
-          onOpenChange(false);
-          return;
-        }
-        setSignedUrl(data.signedUrl);
-      });
+      .getPublicUrl(fileUrl);
+    if (data?.publicUrl) {
+      setSignedUrl(data.publicUrl);
+    } else {
+      toast.error("Kunde inte öppna filen");
+      onOpenChange(false);
+    }
   }, [open, fileUrl]);
 
   const handleDownload = () => {
@@ -80,9 +76,9 @@ export const DocumentPreviewDialog = ({
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden min-h-0">
-          {loading || !signedUrl ? (
+          {!signedUrl ? (
             <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+              <FileText className="w-8 h-8 text-muted-foreground animate-pulse" />
             </div>
           ) : isPdf(fileType) ? (
             <iframe
