@@ -334,7 +334,8 @@ export const AdminBookingDetailDialog = ({
     try {
       // Refresh session to ensure valid JWT for RLS
       await supabase.auth.refreshSession();
-      const filePath = `${booking.id}/${Date.now()}_${file.name}`;
+      const safeName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "_");
+      const filePath = `${booking.id}/${Date.now()}_${safeName}`;
       const { error: uploadError } = await supabase.storage
         .from("booking-attachments")
         .upload(filePath, file);
