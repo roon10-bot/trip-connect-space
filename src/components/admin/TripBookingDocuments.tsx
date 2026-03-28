@@ -71,7 +71,8 @@ export const TripBookingDocuments = () => {
 
     setUploading(true);
     try {
-      const filePath = `${selectedBookingId}/${Date.now()}_${file.name}`;
+      const safeName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "_");
+      const filePath = `${selectedBookingId}/${Date.now()}_${safeName}`;
       const { error: uploadError } = await supabase.storage
         .from("booking-attachments")
         .upload(filePath, file);
