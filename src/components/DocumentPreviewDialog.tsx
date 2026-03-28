@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -35,32 +35,29 @@ export const DocumentPreviewDialog = ({
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const resolveUrl = async () => {
+  useEffect(() => {
+    if (!open) {
+      setSignedUrl(null);
+      return;
+    }
     if (fileUrl.startsWith("http")) {
       setSignedUrl(fileUrl);
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.storage
+    supabase.storage
       .from("booking-attachments")
-      .createSignedUrl(fileUrl, 3600);
-    setLoading(false);
-    if (error || !data?.signedUrl) {
-      toast.error("Kunde inte öppna filen");
-      onOpenChange(false);
-      return;
-    }
-    setSignedUrl(data.signedUrl);
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    if (open) {
-      resolveUrl();
-    } else {
-      setSignedUrl(null);
-    }
-    onOpenChange(open);
-  };
+      .createSignedUrl(fileUrl, 3600)
+      .then(({ data, error }) => {
+        setLoading(false);
+        if (error || !data?.signedUrl) {
+          toast.error("Kunde inte öppna filen");
+          onOpenChange(false);
+          return;
+        }
+        setSignedUrl(data.signedUrl);
+      });
+  }, [open, fileUrl]);
 
   const handleDownload = () => {
     if (!signedUrl) return;
@@ -76,7 +73,7 @@ export const DocumentPreviewDialog = ({
   const canPreview = isPdf(fileType) || isPreviewableImage(fileType);
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="truncate pr-8">{fileName}</DialogTitle>
