@@ -401,6 +401,7 @@ export const AdminBookingDetailDialog = ({
   const percentage = totalPrice > 0 ? Math.round((paidAmount / totalPrice) * 100) : 0;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (v) resetEditData(); }}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
