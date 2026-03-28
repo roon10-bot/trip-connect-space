@@ -20,6 +20,7 @@ import { AdminPartnersList } from "@/components/admin/AdminPartnersList";
 import { AdminListingsList } from "@/components/admin/AdminListingsList";
 import { AdminSalesReport } from "@/components/admin/AdminSalesReport";
 import { AdminTestChecklist } from "@/components/admin/AdminTestChecklist";
+import { AdminSwishSettings } from "@/components/admin/AdminSwishSettings";
 import { Shield, LogOut, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,7 @@ const Admin = () => {
   const navigate = useNavigate();
   const getInitialView = (): AdminView => {
     const hash = window.location.hash.replace("#", "");
-    const validViews: AdminView[] = ["dashboard", "trips", "create-trip", "discount-codes", "bookings", "transactions", "customers", "meeting-slots", "accounts", "email-templates", "documents", "trip-templates", "partners", "partner-listings", "sales-report", "test-checklist"];
+    const validViews: AdminView[] = ["dashboard", "trips", "create-trip", "discount-codes", "bookings", "transactions", "customers", "meeting-slots", "accounts", "email-templates", "documents", "trip-templates", "partners", "partner-listings", "sales-report", "test-checklist", "settings"];
     return validViews.includes(hash as AdminView) ? (hash as AdminView) : "dashboard";
   };
   const [currentView, setCurrentView] = useState<AdminView>(getInitialView);
@@ -109,6 +110,8 @@ const Admin = () => {
         return <AdminSalesReport />;
       case "test-checklist":
         return <AdminTestChecklist />;
+      case "settings":
+        return <AdminSwishSettings />;
       default:
         return <AdminDashboard isAdmin={isAdmin} userId={user?.id} />;
     }
@@ -131,6 +134,7 @@ const Admin = () => {
     "partner-listings": "Godkänn boenden från värdar",
     "sales-report": "Generera och exportera försäljningsrapporter",
     "test-checklist": "Bocka av testfall innan produktionslansering",
+    "settings": "Swish-miljö och systeminställningar",
   };
 
   return (

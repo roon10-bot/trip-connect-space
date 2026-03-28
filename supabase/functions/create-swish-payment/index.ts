@@ -196,7 +196,11 @@ serve(async (req) => {
     });
 
     // Swish v2 API: PUT with UUID in URL
-    const swishApiUrl = `https://cpc.getswish.net/swish-cpcapi/api/v2/paymentrequests/${instructionUUID}`;
+    // Use test environment (MSS) when SWISH_TEST_MODE is enabled
+    const isTestMode = Deno.env.get("SWISH_TEST_MODE") === "true";
+    const swishHost = isTestMode ? "mss.cpc.getswish.net" : "cpc.getswish.net";
+    const swishApiUrl = `https://${swishHost}/swish-cpcapi/api/v2/paymentrequests/${instructionUUID}`;
+    logStep("Swish environment", { isTestMode, host: swishHost });
 
     logStep("Calling Swish API", { url: swishApiUrl, method: "PUT" });
 

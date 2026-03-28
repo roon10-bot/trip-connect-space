@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.initiate-trip-payment]
 verify_jwt = false
+
+[functions.swish-test-mode]
+verify_jwt = false
