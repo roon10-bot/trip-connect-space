@@ -44,19 +44,15 @@ export const DocumentPreviewDialog = ({
       setSignedUrl(fileUrl);
       return;
     }
-    setLoading(true);
-    supabase.storage
+    const { data } = supabase.storage
       .from("booking-attachments")
-      .createSignedUrl(fileUrl, 3600)
-      .then(({ data, error }) => {
-        setLoading(false);
-        if (error || !data?.signedUrl) {
-          toast.error("Kunde inte öppna filen");
-          onOpenChange(false);
-          return;
-        }
-        setSignedUrl(data.signedUrl);
-      });
+      .getPublicUrl(fileUrl);
+    if (data?.publicUrl) {
+      setSignedUrl(data.publicUrl);
+    } else {
+      toast.error("Kunde inte öppna filen");
+      onOpenChange(false);
+    }
   }, [open, fileUrl]);
 
   const handleDownload = () => {
