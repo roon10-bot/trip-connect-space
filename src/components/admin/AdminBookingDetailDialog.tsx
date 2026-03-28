@@ -49,6 +49,7 @@ import {
   Upload,
   Send,
   Download,
+  Eye,
   Trash2,
   Save,
   Mail,
@@ -90,6 +91,7 @@ export const AdminBookingDetailDialog = ({
   const [editSubject, setEditSubject] = useState("");
   const [editBody, setEditBody] = useState("");
   const [manualPaymentOpen, setManualPaymentOpen] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState<{ fileName: string; fileUrl: string; fileType?: string | null } | null>(null);
 
   // Editable fields
   const [editData, setEditData] = useState({
@@ -630,15 +632,9 @@ export const AdminBookingDetailDialog = ({
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={async () => {
-                              const { data } = await supabase.storage
-                                .from("booking-attachments")
-                                .createSignedUrl(doc.file_url, 3600);
-                              if (data?.signedUrl) window.open(data.signedUrl, "_blank");
-                              else toast.error("Kunde inte öppna filen");
-                            }}
+                            onClick={() => setPreviewDoc({ fileName: doc.file_name, fileUrl: doc.file_url, fileType: doc.file_type })}
                           >
-                            <Download className="w-4 h-4" />
+                            <Eye className="w-4 h-4" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
