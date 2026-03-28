@@ -20,16 +20,24 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Load Swish credentials from secrets
-    const rawCert = Deno.env.get("SWISH_CLIENT_CERT");
-    const rawKey = Deno.env.get("SWISH_CLIENT_KEY");
-    const payeeNumber = Deno.env.get("SWISH_PAYEE_NUMBER");
+    // Load Swish credentials — use test secrets when test mode is active
+    const isTestMode = Deno.env.get("SWISH_TEST_MODE") === "true";
+    const rawCert = isTestMode
+      ? (Deno.env.get("SWISH_TEST_CERT") || Deno.env.get("SWISH_CLIENT_CERT"))
+      : Deno.env.get("SWISH_CLIENT_CERT");
+    const rawKey = isTestMode
+      ? (Deno.env.get("SWISH_TEST_KEY") || Deno.env.get("SWISH_CLIENT_KEY"))
+      : Deno.env.get("SWISH_CLIENT_KEY");
+    const payeeNumber = isTestMode
+      ? (Deno.env.get("SWISH_TEST_PAYEE_NUMBER") || "1234679304")
+      : Deno.env.get("SWISH_PAYEE_NUMBER");
 
     if (!rawCert || !rawKey || !payeeNumber) {
       throw new Error(
-        `Swish config incomplete: cert=${!!rawCert}, key=${!!rawKey}, payee=${!!payeeNumber}`
+        `Swish config incomplete: cert=${!!rawCert}, key=${!!rawKey}, payee=${!!payeeNumber}, testMode=${isTestMode}`
       );
     }
+    logStep("Swish credentials loaded", { isTestMode, usingTestCert: isTestMode && !!Deno.env.get("SWISH_TEST_CERT") });
 
     // Fix PEM formatting - handles multiple PEM blocks (cert chains)
     const fixPem = (pem: string): string => {
