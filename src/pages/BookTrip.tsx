@@ -243,6 +243,16 @@ const BookTrip = () => {
         toast.error(`${t("bookTrip.birthDateRequired")}${label}`);
         return false;
       }
+      if (ti.birthDate > new Date()) {
+        toast.error(`Födelsedatum kan inte vara i framtiden${label}`);
+        return false;
+      }
+      const eighteenYearsAgo = new Date();
+      eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+      if (ti.birthDate > eighteenYearsAgo) {
+        toast.error(`Resenären måste vara minst 18 år${label}`);
+        return false;
+      }
       if (!ti.phone.trim()) {
         toast.error(`${t("bookTrip.phoneRequired")}${label}`);
         return false;
