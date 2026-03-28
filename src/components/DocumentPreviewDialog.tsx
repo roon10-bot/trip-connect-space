@@ -35,32 +35,29 @@ export const DocumentPreviewDialog = ({
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const resolveUrl = async () => {
+  useEffect(() => {
+    if (!open) {
+      setSignedUrl(null);
+      return;
+    }
     if (fileUrl.startsWith("http")) {
       setSignedUrl(fileUrl);
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.storage
+    supabase.storage
       .from("booking-attachments")
-      .createSignedUrl(fileUrl, 3600);
-    setLoading(false);
-    if (error || !data?.signedUrl) {
-      toast.error("Kunde inte öppna filen");
-      onOpenChange(false);
-      return;
-    }
-    setSignedUrl(data.signedUrl);
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    if (open) {
-      resolveUrl();
-    } else {
-      setSignedUrl(null);
-    }
-    onOpenChange(open);
-  };
+      .createSignedUrl(fileUrl, 3600)
+      .then(({ data, error }) => {
+        setLoading(false);
+        if (error || !data?.signedUrl) {
+          toast.error("Kunde inte öppna filen");
+          onOpenChange(false);
+          return;
+        }
+        setSignedUrl(data.signedUrl);
+      });
+  }, [open, fileUrl]);
 
   const handleDownload = () => {
     if (!signedUrl) return;
