@@ -334,14 +334,22 @@ serve(async (req) => {
         status: 200,
       });
     } else if (payment_method === "swish") {
-      // Swish payment
-      const rawCert = Deno.env.get("SWISH_CLIENT_CERT");
-      const rawKey = Deno.env.get("SWISH_CLIENT_KEY");
-      const payeeNumber = Deno.env.get("SWISH_PAYEE_NUMBER");
+      // Swish payment — use test secrets when test mode is active
+      const isSwishTest = Deno.env.get("SWISH_TEST_MODE") === "true";
+      const rawCert = isSwishTest
+        ? (Deno.env.get("SWISH_TEST_CERT") || Deno.env.get("SWISH_CLIENT_CERT"))
+        : Deno.env.get("SWISH_CLIENT_CERT");
+      const rawKey = isSwishTest
+        ? (Deno.env.get("SWISH_TEST_KEY") || Deno.env.get("SWISH_CLIENT_KEY"))
+        : Deno.env.get("SWISH_CLIENT_KEY");
+      const payeeNumber = isSwishTest
+        ? (Deno.env.get("SWISH_TEST_PAYEE_NUMBER") || "1234679304")
+        : Deno.env.get("SWISH_PAYEE_NUMBER");
 
       if (!rawCert || !rawKey || !payeeNumber) {
         throw new Error("Swish configuration incomplete");
       }
+      logStep("Swish config", { isTest: isSwishTest, usingTestCert: isSwishTest && !!Deno.env.get("SWISH_TEST_CERT") });
 
       const fixPem = (pem: string): string => {
         let s = pem.replace(/\\n/g, "\n");
@@ -390,7 +398,9 @@ serve(async (req) => {
         key: clientKey,
       });
 
-      const swishApiUrl = `https://cpc.getswish.net/swish-cpcapi/api/v2/paymentrequests/${instructionUUID}`;
+      const swishHost = isSwishTest ? "mss.cpc.getswish.net" : "cpc.getswish.net";
+      const swishApiUrl = `https://${swishHost}/swish-cpcapi/api/v2/paymentrequests/${instructionUUID}`;
+      logStep("Swish API call", { host: swishHost, isTest: isSwishTest });
 
       const swishResponse = await fetch(swishApiUrl, {
         method: "PUT",
