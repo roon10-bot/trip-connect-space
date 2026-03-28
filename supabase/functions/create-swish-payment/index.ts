@@ -106,12 +106,7 @@ serve(async (req) => {
       keyTypes,
     });
 
-    // Create Supabase client with service role
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
+    // supabaseClient already created above (for test mode check)
 
     // Authenticate user via JWT
     const authHeader = req.headers.get("Authorization");
