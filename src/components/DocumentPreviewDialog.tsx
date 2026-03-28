@@ -73,7 +73,7 @@ export const DocumentPreviewDialog = ({
   const canPreview = isPdf(fileType) || isPreviewableImage(fileType);
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="truncate pr-8">{fileName}</DialogTitle>
