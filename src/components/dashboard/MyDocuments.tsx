@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -5,14 +6,16 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, File } from "lucide-react";
+import { FileText, Download, File, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { DocumentPreviewDialog } from "@/components/DocumentPreviewDialog";
 
 interface MyDocumentsProps {
   userId: string;
 }
 
 export const MyDocuments = ({ userId }: MyDocumentsProps) => {
+  const [previewDoc, setPreviewDoc] = useState<{ fileName: string; fileUrl: string; fileType?: string | null } | null>(null);
   const { data: documents } = useQuery({
     queryKey: ["my-documents", userId],
     queryFn: async () => {
@@ -96,10 +99,10 @@ export const MyDocuments = ({ userId }: MyDocumentsProps) => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDownload(doc.file_url)}
+                        onClick={() => setPreviewDoc({ fileName: doc.file_name, fileUrl: doc.file_url, fileType: doc.file_type })}
                       >
-                        <Download className="w-4 h-4 mr-1" />
-                        Ladda ner
+                        <Eye className="w-4 h-4 mr-1" />
+                        Visa
                       </Button>
                     </div>
                   </div>
@@ -109,6 +112,16 @@ export const MyDocuments = ({ userId }: MyDocumentsProps) => {
           )}
         </CardContent>
       </Card>
+
+      {previewDoc && (
+        <DocumentPreviewDialog
+          open={!!previewDoc}
+          onOpenChange={(open) => { if (!open) setPreviewDoc(null); }}
+          fileName={previewDoc.fileName}
+          fileUrl={previewDoc.fileUrl}
+          fileType={previewDoc.fileType}
+        />
+      )}
     </motion.div>
   );
 };

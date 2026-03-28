@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { FileText, Upload, Trash2, Download } from "lucide-react";
+import { FileText, Upload, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { DocumentPreviewDialog } from "@/components/DocumentPreviewDialog";
 
 export const TripBookingDocuments = () => {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ export const TripBookingDocuments = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedBookingId, setSelectedBookingId] = useState<string>("");
   const [uploading, setUploading] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState<{ fileName: string; fileUrl: string; fileType?: string | null } | null>(null);
 
   const { data: tripBookings } = useQuery({
     queryKey: ["admin-trip-bookings-for-docs"],
@@ -174,15 +176,9 @@ export const TripBookingDocuments = () => {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={async () => {
-                          const { data } = await supabase.storage
-                            .from("booking-attachments")
-                            .createSignedUrl(doc.file_url, 3600);
-                          if (data?.signedUrl) window.open(data.signedUrl, "_blank");
-                          else toast.error("Kunde inte öppna filen");
-                        }}
+                        onClick={() => setPreviewDoc({ fileName: doc.file_name, fileUrl: doc.file_url, fileType: doc.file_type })}
                       >
-                        <Download className="w-4 h-4" />
+                        <Eye className="w-4 h-4" />
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -221,6 +217,16 @@ export const TripBookingDocuments = () => {
           </div>
         )}
       </CardContent>
+
+      {previewDoc && (
+        <DocumentPreviewDialog
+          open={!!previewDoc}
+          onOpenChange={(open) => { if (!open) setPreviewDoc(null); }}
+          fileName={previewDoc.fileName}
+          fileUrl={previewDoc.fileUrl}
+          fileType={previewDoc.fileType}
+        />
+      )}
     </Card>
   );
 };
