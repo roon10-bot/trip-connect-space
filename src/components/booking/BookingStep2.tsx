@@ -241,13 +241,24 @@ export const BookingStep2 = ({
                         updateField(index, "birthDate", date);
                         setOpenDatePickers((prev) => ({ ...prev, [index]: false }));
                       }}
-                      disabled={(date) => date > new Date()}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(23, 59, 59, 999);
+                        return date > today;
+                      }}
                       initialFocus
                       className="pointer-events-auto"
                       captionLayout="dropdown"
                       fromYear={1940}
                       toYear={new Date().getFullYear()}
                     />
+                    {traveler.birthDate && (() => {
+                      const eighteenYearsAgo = new Date();
+                      eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+                      return traveler.birthDate > eighteenYearsAgo;
+                    })() && (
+                      <p className="text-xs text-destructive px-3 pb-2">Resenären måste vara minst 18 år</p>
+                    )}
                   </PopoverContent>
                 </Popover>
               </div>
