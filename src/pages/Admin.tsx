@@ -21,6 +21,7 @@ import { AdminListingsList } from "@/components/admin/AdminListingsList";
 import { AdminSalesReport } from "@/components/admin/AdminSalesReport";
 import { AdminTestChecklist } from "@/components/admin/AdminTestChecklist";
 import { AdminSwishSettings } from "@/components/admin/AdminSwishSettings";
+import { AdminDuffelSettings } from "@/components/admin/AdminDuffelSettings";
 import { Shield, LogOut, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -111,7 +112,12 @@ const Admin = () => {
       case "test-checklist":
         return <AdminTestChecklist />;
       case "settings":
-        return <AdminSwishSettings />;
+        return (
+          <div className="space-y-8">
+            <AdminSwishSettings />
+            <AdminDuffelSettings />
+          </div>
+        );
       default:
         return <AdminDashboard isAdmin={isAdmin} userId={user?.id} />;
     }

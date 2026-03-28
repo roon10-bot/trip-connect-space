@@ -179,7 +179,16 @@ serve(async (req) => {
 
     // 6. Purchase Duffel flight if we have an offer
     let duffelOrderId: string | null = null;
-    const DUFFEL_API_KEY = Deno.env.get("DUFFEL_API_KEY");
+    const { data: duffelTestSetting } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "DUFFEL_TEST_MODE")
+      .maybeSingle();
+    const isDuffelTestMode = duffelTestSetting?.value === "true";
+    const DUFFEL_API_KEY = isDuffelTestMode
+      ? Deno.env.get("DUFFEL_TEST_API_KEY")
+      : Deno.env.get("DUFFEL_API_KEY");
+    logStep("Duffel mode", { testMode: isDuffelTestMode });
 
     if (pending.duffel_offer_id && DUFFEL_API_KEY) {
       logStep("Purchasing Duffel flight", { offerId: pending.duffel_offer_id });
