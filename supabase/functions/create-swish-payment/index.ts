@@ -20,8 +20,15 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // Check test mode from database
+    const { data: testModeSetting } = await supabaseClient
+      .from("app_settings")
+      .select("value")
+      .eq("key", "SWISH_TEST_MODE")
+      .maybeSingle();
+    const isTestMode = testModeSetting?.value === "true";
+
     // Load Swish credentials — use test secrets when test mode is active
-    const isTestMode = Deno.env.get("SWISH_TEST_MODE") === "true";
     const rawCert = isTestMode
       ? (Deno.env.get("SWISH_TEST_CERT") || Deno.env.get("SWISH_CLIENT_CERT"))
       : Deno.env.get("SWISH_CLIENT_CERT");
@@ -204,8 +211,6 @@ serve(async (req) => {
     });
 
     // Swish v2 API: PUT with UUID in URL
-    // Use test environment (MSS) when SWISH_TEST_MODE is enabled
-    const isTestMode = Deno.env.get("SWISH_TEST_MODE") === "true";
     const swishHost = isTestMode ? "mss.cpc.getswish.net" : "cpc.getswish.net";
     const swishApiUrl = `https://${swishHost}/swish-cpcapi/api/v2/paymentrequests/${instructionUUID}`;
     logStep("Swish environment", { isTestMode, host: swishHost });

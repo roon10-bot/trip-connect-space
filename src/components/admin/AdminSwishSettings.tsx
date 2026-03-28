@@ -3,13 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle, CheckCircle, TestTube, Zap } from "lucide-react";
+import { AlertTriangle, CheckCircle, TestTube, Zap, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const AdminSwishSettings = () => {
-  const [testMode, setTestMode] = useState<boolean | null>(null);
+  const [testMode, setTestMode] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
     fetchTestMode();
@@ -17,40 +18,45 @@ export const AdminSwishSettings = () => {
 
   const fetchTestMode = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "SWISH_TEST_MODE")
+        .maybeSingle();
 
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/swish-test-mode`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data = await res.json();
-      setTestMode(data.test_mode ?? false);
+      if (!error && data) {
+        setTestMode(data.value === "true");
+      }
     } catch {
-      setTestMode(false);
+      // Default to false
     } finally {
       setLoading(false);
     }
   };
 
-  const handleToggle = (checked: boolean) => {
-    // Since we can't change secrets at runtime, show instructions
-    if (checked) {
-      toast.info(
-        "För att aktivera testläge: Sätt SWISH_TEST_MODE till 'true' som secret i Lovable Cloud.",
-        { duration: 8000 }
+  const handleToggle = async (checked: boolean) => {
+    setToggling(true);
+    try {
+      const { error } = await supabase
+        .from("app_settings")
+        .upsert(
+          { key: "SWISH_TEST_MODE", value: checked ? "true" : "false", updated_at: new Date().toISOString() },
+          { onConflict: "key" }
+        );
+
+      if (error) throw error;
+
+      setTestMode(checked);
+      toast.success(
+        checked
+          ? "Testläge aktiverat — Swish-betalningar går nu till testmiljön"
+          : "Produktionsläge aktivt — Swish-betalningar går till skarpa miljön"
       );
-    } else {
-      toast.info(
-        "För att gå tillbaka till produktion: Sätt SWISH_TEST_MODE till 'false' (eller ta bort den) som secret.",
-        { duration: 8000 }
-      );
+    } catch (err) {
+      toast.error("Kunde inte ändra Swish-miljö");
+      console.error(err);
+    } finally {
+      setToggling(false);
     }
   };
 
@@ -72,7 +78,7 @@ export const AdminSwishSettings = () => {
           Swish-miljö
         </CardTitle>
         <CardDescription>
-          Välj mellan Swish testmiljö (MSS) och produktionsmiljö
+          Växla mellan Swish testmiljö (MSS) och produktionsmiljö i realtid
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -106,11 +112,19 @@ export const AdminSwishSettings = () => {
         <div className="flex items-center gap-3 p-4 rounded-lg border">
           <Switch
             id="swish-test-mode"
-            checked={testMode ?? false}
+            checked={testMode}
             onCheckedChange={handleToggle}
+            disabled={toggling}
           />
           <Label htmlFor="swish-test-mode" className="cursor-pointer">
-            Aktivera testläge
+            {toggling ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Byter miljö...
+              </span>
+            ) : (
+              "Aktivera testläge"
+            )}
           </Label>
         </div>
 
@@ -128,8 +142,8 @@ export const AdminSwishSettings = () => {
 
         <div className="text-xs text-muted-foreground space-y-1">
           <p>• Testmiljö använder Swish MSS (Merchant Swish Simulator)</p>
-          <p>• Samma certifikat fungerar i båda miljöer</p>
-          <p>• Ändra genom att uppdatera secret <code className="bg-muted px-1 py-0.5 rounded">SWISH_TEST_MODE</code></p>
+          <p>• Testcertifikat (SWISH_TEST_CERT/KEY) används automatiskt i testläge</p>
+          <p>• Ändringen gäller omedelbart för alla nya betalningar</p>
         </div>
       </CardContent>
     </Card>

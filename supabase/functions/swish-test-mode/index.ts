@@ -21,9 +21,7 @@ serve(async (req) => {
 
     // Verify admin
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      throw new Error("Unauthorized");
-    }
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("Unauthorized");
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !userData?.user) throw new Error("Unauthorized");
@@ -34,39 +32,17 @@ serve(async (req) => {
       .eq("user_id", userData.user.id)
       .eq("role", "admin")
       .maybeSingle();
-
     if (!roleData) throw new Error("Admin access required");
 
-    if (req.method === "GET") {
-      // Return current test mode status
-      const testMode = Deno.env.get("SWISH_TEST_MODE") === "true";
-      return new Response(JSON.stringify({ test_mode: testMode }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Read current setting from DB
+    const { data: setting } = await supabaseClient
+      .from("app_settings")
+      .select("value")
+      .eq("key", "SWISH_TEST_MODE")
+      .maybeSingle();
 
-    if (req.method === "POST") {
-      const { test_mode } = await req.json();
-      
-      // We can't change env vars at runtime, so we use a simple approach:
-      // Store the setting in a known location (a simple table or just return instructions)
-      // Actually, since secrets are the source of truth, we tell the admin what to do
-      // But for a seamless experience, we'll use a settings approach via the database
-      
-      // For now, return the current state and instructions
-      return new Response(JSON.stringify({ 
-        test_mode: Deno.env.get("SWISH_TEST_MODE") === "true",
-        message: test_mode 
-          ? "Testläge aktiverat. Sätt SWISH_TEST_MODE=true som secret."
-          : "Produktionsläge aktivt. Sätt SWISH_TEST_MODE=false som secret."
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+    return new Response(JSON.stringify({ test_mode: setting?.value === "true" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 405,
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
