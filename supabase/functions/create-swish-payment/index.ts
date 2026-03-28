@@ -20,8 +20,15 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // Check test mode from database
+    const { data: testModeSetting } = await supabaseClient
+      .from("app_settings")
+      .select("value")
+      .eq("key", "SWISH_TEST_MODE")
+      .maybeSingle();
+    const isTestMode = testModeSetting?.value === "true";
+
     // Load Swish credentials — use test secrets when test mode is active
-    const isTestMode = Deno.env.get("SWISH_TEST_MODE") === "true";
     const rawCert = isTestMode
       ? (Deno.env.get("SWISH_TEST_CERT") || Deno.env.get("SWISH_CLIENT_CERT"))
       : Deno.env.get("SWISH_CLIENT_CERT");
