@@ -20,6 +20,13 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // Create Supabase client with service role (needed early for test mode check)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false },
+    });
+
     // Check test mode from database
     const { data: testModeSetting } = await supabaseClient
       .from("app_settings")
