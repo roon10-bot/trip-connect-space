@@ -13,11 +13,11 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { user_id, partner_data } = await req.json();
+    const { email, password, full_name, partner_data } = await req.json();
 
-    if (!user_id || !partner_data) {
+    if (!email || !password || !partner_data) {
       return new Response(
-        JSON.stringify({ error: "user_id and partner_data are required" }),
+        JSON.stringify({ error: "email, password and partner_data are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -27,38 +27,40 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Verify the user exists in auth.users
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUser(user_id);
-    if (userError || !userData?.user) {
+    // Create user with admin API — auto-confirm email (no verification mail sent)
+    const { data: userData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name },
+    });
+
+    if (createUserError) {
+      console.error("User creation error:", createUserError);
+      const message = createUserError.message?.includes("already been registered")
+        ? "already_registered"
+        : createUserError.message;
       return new Response(
-        JSON.stringify({ error: "User not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: message }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Check if partner profile already exists
-    const { data: existing } = await supabaseAdmin
-      .from("partner_profiles")
-      .select("id")
-      .eq("user_id", user_id)
-      .maybeSingle();
+    const userId = userData.user.id;
 
-    if (existing) {
-      return new Response(
-        JSON.stringify({ success: true, message: "Profile already exists" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
+    // Create profile (triggers handle_new_user for profiles table)
+    // The trigger on auth.users handles this, but insert partner profile explicitly
     const { error: insertError } = await supabaseAdmin
       .from("partner_profiles")
       .insert({
-        user_id,
+        user_id: userId,
         ...partner_data,
       });
 
     if (insertError) {
       console.error("Partner profile insert error:", insertError);
+      // Clean up the created user if profile insert fails
+      await supabaseAdmin.auth.admin.deleteUser(userId);
       return new Response(
         JSON.stringify({ error: insertError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -66,7 +68,7 @@ serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, user_id: userId }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
