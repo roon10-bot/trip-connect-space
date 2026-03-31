@@ -230,9 +230,11 @@ const Auth = () => {
     setIsLoading(true);
     try {
       // Create user + partner profile via edge function (admin API, auto-confirms email)
+      const currentLocale = (window as any).__i18n_locale || document.documentElement.lang || "sv";
+      const locale = currentLocale.startsWith("en") ? "en" : "sv";
       const { data: profileResult, error: profileError } = await supabase.functions.invoke(
         "create-partner-profile",
-        { body: { email, password, full_name: fullName, partner_data: partnerData } }
+        { body: { email, password, full_name: fullName, partner_data: partnerData, locale } }
       );
 
       if (profileError || (profileResult && !profileResult.success)) {

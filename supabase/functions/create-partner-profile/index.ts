@@ -55,6 +55,7 @@ serve(async (req: Request) => {
       .insert({
         user_id: userId,
         ...partner_data,
+        locale: locale || "sv",
       });
 
     if (insertError) {
