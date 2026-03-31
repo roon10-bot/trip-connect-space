@@ -28,16 +28,30 @@ export const AdminPartnersList = () => {
   });
 
   const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, partner }: { id: string; status: string; partner: any }) => {
       const { error } = await supabase
         .from("partner_profiles")
         .update({ status })
         .eq("id", id);
       if (error) throw error;
+
+      // Send approval/rejection email to the host
+      const firstName = partner.first_name || partner.contact_person || "";
+      const templateKey = status === "approved" ? "partner_application_approved" : "partner_application_rejected";
+      const actionUrl = status === "approved" ? "https://studentresor.com/auth?mode=login" : undefined;
+
+      supabase.functions.invoke("send-transactional-email", {
+        body: {
+          template_key: templateKey,
+          to_email: partner.email,
+          variables: { first_name: firstName },
+          ...(actionUrl ? { action_url: actionUrl } : {}),
+        },
+      }).catch((err) => console.error("Partner status email failed:", err));
     },
     onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ["adminPartners"] });
-      toast.success(status === "approved" ? "Värd godkänd" : "Värd nekad");
+      toast.success(status === "approved" ? "Värd godkänd — mail skickat" : "Värd nekad — mail skickat");
       setSelectedPartner(null);
     },
     onError: () => toast.error("Kunde inte uppdatera status"),

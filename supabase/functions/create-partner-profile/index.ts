@@ -65,6 +65,21 @@ serve(async (req: Request) => {
       );
     }
 
+    // Send "application received" email to the host
+    const firstName = partner_data.first_name || partner_data.contact_person || "";
+    try {
+      await supabaseAdmin.functions.invoke("send-transactional-email", {
+        body: {
+          template_key: "partner_application_received",
+          to_email: partner_data.email,
+          variables: { first_name: firstName },
+          action_url: "https://studentresor.com",
+        },
+      });
+    } catch (emailErr) {
+      console.error("Failed to send application received email:", emailErr);
+    }
+
     return new Response(
       JSON.stringify({ success: true }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
