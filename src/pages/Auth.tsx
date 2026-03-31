@@ -254,13 +254,13 @@ const Auth = () => {
         return;
       }
 
-      toast.success(t("auth.accountCreated"));
+      // Show email verification screen instead of navigating
+      setVerificationEmail(email);
+      setShowEmailVerification(true);
 
       supabase.functions.invoke("admin-notifications", {
         body: { type: "partner_registered", data: partnerData },
       }).catch((err) => console.error("Admin notification failed:", err));
-
-      navigate("/partner");
     } catch {
       toast.error(t("auth.unexpectedError"));
     } finally {
