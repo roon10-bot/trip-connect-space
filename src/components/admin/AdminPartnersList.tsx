@@ -216,7 +216,7 @@ export const AdminPartnersList = () => {
                   <Button
                     variant="destructive"
                     className="flex-1"
-                    onClick={() => updateStatus.mutate({ id: selectedPartner.id, status: "rejected" })}
+                    onClick={() => updateStatus.mutate({ id: selectedPartner.id, status: "rejected", partner: selectedPartner })}
                     disabled={updateStatus.isPending}
                   >
                     <XCircle className="w-4 h-4 mr-2" /> Neka
