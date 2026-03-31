@@ -208,7 +208,7 @@ export const AdminPartnersList = () => {
                 <div className="flex gap-3 pt-2">
                   <Button
                     className="flex-1"
-                    onClick={() => updateStatus.mutate({ id: selectedPartner.id, status: "approved" })}
+                    onClick={() => updateStatus.mutate({ id: selectedPartner.id, status: "approved", partner: selectedPartner })}
                     disabled={updateStatus.isPending}
                   >
                     <CheckCircle2 className="w-4 h-4 mr-2" /> Godkänn
