@@ -548,8 +548,8 @@ const Auth = () => {
                       <div className="flex items-start gap-3">
                         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">1</div>
                         <div>
-                          <p className="text-sm font-medium text-foreground">Verifiera din e-post</p>
-                          <p className="text-xs text-muted-foreground">Vi har skickat ett verifieringsmail till <span className="font-medium">{verificationEmail}</span></p>
+                          <p className="text-sm font-medium text-foreground">Ansökan skickad</p>
+                          <p className="text-xs text-muted-foreground">Ditt konto är skapat med e-postadressen <span className="font-medium">{verificationEmail}</span></p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
@@ -563,12 +563,10 @@ const Auth = () => {
                         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">3</div>
                         <div>
                           <p className="text-sm font-medium text-foreground">Godkännande & åtkomst</p>
-                          <p className="text-xs text-muted-foreground">När din ansökan godkänns får du ett mail med tillgång till värdportalen.</p>
+                          <p className="text-xs text-muted-foreground">När din ansökan godkänns får du ett välkomstmail och kan logga in på värdportalen.</p>
                         </div>
                       </div>
                     </div>
-
-                    <p className="text-xs text-muted-foreground">{t("auth.checkSpamTip")}</p>
                   </>
                 ) : (
                   <>
