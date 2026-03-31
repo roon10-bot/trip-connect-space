@@ -539,24 +539,66 @@ const Auth = () => {
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                   <Mail className="h-7 w-7 text-primary" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-serif font-bold text-foreground">
-                    {t("auth.verifyEmailTitle")}
-                  </h2>
-                  <p className="mt-2 text-muted-foreground">
-                    {t("auth.verifyEmailDesc")}
-                  </p>
-                </div>
 
-                <div className="rounded-lg bg-muted/60 p-4 text-left">
-                  <p className="text-sm font-medium text-foreground flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                    {t("auth.verificationSentTo")}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground break-all">{verificationEmail}</p>
-                </div>
+                {accountType === "host" ? (
+                  <>
+                    <div>
+                      <h2 className="text-2xl font-serif font-bold text-foreground">
+                        Tack för din ansökan!
+                      </h2>
+                      <p className="mt-2 text-muted-foreground">
+                        Vi har mottagit din ansökan om att bli värd hos Studentresor.
+                      </p>
+                    </div>
 
-                <p className="text-xs text-muted-foreground">{t("auth.checkSpamTip")}</p>
+                    <div className="rounded-lg bg-muted/60 p-4 text-left space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">1</div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Verifiera din e-post</p>
+                          <p className="text-xs text-muted-foreground">Vi har skickat ett verifieringsmail till <span className="font-medium">{verificationEmail}</span></p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">2</div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Granskning av ansökan</p>
+                          <p className="text-xs text-muted-foreground">Vårt team granskar din ansökan och återkommer inom 24 timmar.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">3</div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Godkännande & åtkomst</p>
+                          <p className="text-xs text-muted-foreground">När din ansökan godkänns får du ett mail med tillgång till värdportalen.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">{t("auth.checkSpamTip")}</p>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <h2 className="text-2xl font-serif font-bold text-foreground">
+                        {t("auth.verifyEmailTitle")}
+                      </h2>
+                      <p className="mt-2 text-muted-foreground">
+                        {t("auth.verifyEmailDesc")}
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg bg-muted/60 p-4 text-left">
+                      <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-primary" />
+                        {t("auth.verificationSentTo")}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground break-all">{verificationEmail}</p>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">{t("auth.checkSpamTip")}</p>
+                  </>
+                )}
 
                 <Button
                   type="button"
