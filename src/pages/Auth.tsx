@@ -229,35 +229,28 @@ const Auth = () => {
   ) => {
     setIsLoading(true);
     try {
-      const { data: authData, error: authError } = await signUp(email, password, fullName);
-      if (authError) {
-        toast.error(authError.message.includes("already registered") ? t("auth.emailRegistered") : authError.message);
-        return;
-      }
-      
-      const userId = authData?.user?.id;
-      if (!userId) {
-        toast.error(t("auth.unexpectedError"));
-        return;
-      }
-
-      // Insert partner profile via edge function (service role) since
-      // the user has no session yet before email verification
+      // Create user + partner profile via edge function (admin API, auto-confirms email)
       const { data: profileResult, error: profileError } = await supabase.functions.invoke(
         "create-partner-profile",
-        { body: { user_id: userId, partner_data: partnerData } }
+        { body: { email, password, full_name: fullName, partner_data: partnerData } }
       );
 
       if (profileError || (profileResult && !profileResult.success)) {
-        console.error("Partner profile insert error:", profileError || profileResult);
-        toast.error(t("auth.unexpectedError"));
+        const errMsg = profileResult?.error || profileError?.message || "";
+        if (errMsg === "already_registered" || errMsg.includes("already")) {
+          toast.error(t("auth.emailRegistered"));
+        } else {
+          console.error("Partner profile error:", profileError || profileResult);
+          toast.error(t("auth.unexpectedError"));
+        }
         return;
       }
 
-      // Show email verification screen instead of navigating
+      // Show confirmation page (no verification email needed)
       setVerificationEmail(email);
       setShowEmailVerification(true);
 
+      // Notify admin about new partner application
       supabase.functions.invoke("admin-notifications", {
         body: { type: "partner_registered", data: partnerData },
       }).catch((err) => console.error("Admin notification failed:", err));
