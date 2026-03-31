@@ -40,7 +40,7 @@ type AuthFormData = SignupFormData | LoginFormData;
 type AccountType = "traveler" | "host";
 
 const Auth = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const initialHash = typeof window !== "undefined" ? window.location.hash : "";
   const isEmailConfirmationFlow =
