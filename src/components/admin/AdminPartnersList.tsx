@@ -28,16 +28,30 @@ export const AdminPartnersList = () => {
   });
 
   const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, partner }: { id: string; status: string; partner: any }) => {
       const { error } = await supabase
         .from("partner_profiles")
         .update({ status })
         .eq("id", id);
       if (error) throw error;
+
+      // Send approval/rejection email to the host
+      const firstName = partner.first_name || partner.contact_person || "";
+      const templateKey = status === "approved" ? "partner_application_approved" : "partner_application_rejected";
+      const actionUrl = status === "approved" ? "https://studentresor.com/auth?mode=login" : undefined;
+
+      supabase.functions.invoke("send-transactional-email", {
+        body: {
+          template_key: templateKey,
+          to_email: partner.email,
+          variables: { first_name: firstName },
+          ...(actionUrl ? { action_url: actionUrl } : {}),
+        },
+      }).catch((err) => console.error("Partner status email failed:", err));
     },
     onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ["adminPartners"] });
-      toast.success(status === "approved" ? "Värd godkänd" : "Värd nekad");
+      toast.success(status === "approved" ? "Värd godkänd — mail skickat" : "Värd nekad — mail skickat");
       setSelectedPartner(null);
     },
     onError: () => toast.error("Kunde inte uppdatera status"),
@@ -102,7 +116,7 @@ export const AdminPartnersList = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => updateStatus.mutate({ id: p.id, status: "approved" })}
+                        onClick={() => updateStatus.mutate({ id: p.id, status: "approved", partner: p })}
                         disabled={updateStatus.isPending}
                       >
                         <CheckCircle2 className="w-4 h-4 text-green-600" />
@@ -110,7 +124,7 @@ export const AdminPartnersList = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => updateStatus.mutate({ id: p.id, status: "rejected" })}
+                        onClick={() => updateStatus.mutate({ id: p.id, status: "rejected", partner: p })}
                         disabled={updateStatus.isPending}
                       >
                         <XCircle className="w-4 h-4 text-red-600" />
@@ -194,7 +208,7 @@ export const AdminPartnersList = () => {
                 <div className="flex gap-3 pt-2">
                   <Button
                     className="flex-1"
-                    onClick={() => updateStatus.mutate({ id: selectedPartner.id, status: "approved" })}
+                    onClick={() => updateStatus.mutate({ id: selectedPartner.id, status: "approved", partner: selectedPartner })}
                     disabled={updateStatus.isPending}
                   >
                     <CheckCircle2 className="w-4 h-4 mr-2" /> Godkänn
@@ -202,7 +216,7 @@ export const AdminPartnersList = () => {
                   <Button
                     variant="destructive"
                     className="flex-1"
-                    onClick={() => updateStatus.mutate({ id: selectedPartner.id, status: "rejected" })}
+                    onClick={() => updateStatus.mutate({ id: selectedPartner.id, status: "rejected", partner: selectedPartner })}
                     disabled={updateStatus.isPending}
                   >
                     <XCircle className="w-4 h-4 mr-2" /> Neka
