@@ -124,7 +124,7 @@ export const AdminPartnersList = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => updateStatus.mutate({ id: p.id, status: "rejected" })}
+                        onClick={() => updateStatus.mutate({ id: p.id, status: "rejected", partner: p })}
                         disabled={updateStatus.isPending}
                       >
                         <XCircle className="w-4 h-4 text-red-600" />
