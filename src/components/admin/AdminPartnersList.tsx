@@ -116,7 +116,7 @@ export const AdminPartnersList = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => updateStatus.mutate({ id: p.id, status: "approved" })}
+                        onClick={() => updateStatus.mutate({ id: p.id, status: "approved", partner: p })}
                         disabled={updateStatus.isPending}
                       >
                         <CheckCircle2 className="w-4 h-4 text-green-600" />
