@@ -241,15 +241,15 @@ const Auth = () => {
         return;
       }
 
-      // Insert partner profile with status 'pending'
-      // Partner role is assigned automatically by DB trigger when admin approves
-      const { error: profileError } = await supabase.from("partner_profiles").insert({
-        user_id: userId,
-        ...partnerData,
-      });
+      // Insert partner profile via edge function (service role) since
+      // the user has no session yet before email verification
+      const { data: profileResult, error: profileError } = await supabase.functions.invoke(
+        "create-partner-profile",
+        { body: { user_id: userId, partner_data: partnerData } }
+      );
 
-      if (profileError) {
-        console.error("Partner profile insert error:", profileError);
+      if (profileError || (profileResult && !profileResult.success)) {
+        console.error("Partner profile insert error:", profileError || profileResult);
         toast.error(t("auth.unexpectedError"));
         return;
       }
