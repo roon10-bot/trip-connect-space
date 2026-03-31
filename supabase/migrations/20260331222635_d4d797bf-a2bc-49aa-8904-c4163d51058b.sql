@@ -1,0 +1,1 @@
+ALTER TABLE public.partner_profiles ADD COLUMN locale text NOT NULL DEFAULT 'sv';

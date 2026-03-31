@@ -712,6 +712,7 @@ export type Database = {
           iban: string
           id: string
           last_name: string | null
+          locale: string
           organization_number: string | null
           partner_type: string
           personal_id: string | null
@@ -739,6 +740,7 @@ export type Database = {
           iban: string
           id?: string
           last_name?: string | null
+          locale?: string
           organization_number?: string | null
           partner_type: string
           personal_id?: string | null
@@ -766,6 +768,7 @@ export type Database = {
           iban?: string
           id?: string
           last_name?: string | null
+          locale?: string
           organization_number?: string | null
           partner_type?: string
           personal_id?: string | null
