@@ -40,7 +40,7 @@ type AuthFormData = SignupFormData | LoginFormData;
 type AccountType = "traveler" | "host";
 
 const Auth = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const initialHash = typeof window !== "undefined" ? window.location.hash : "";
   const isEmailConfirmationFlow =
@@ -230,9 +230,10 @@ const Auth = () => {
     setIsLoading(true);
     try {
       // Create user + partner profile via edge function (admin API, auto-confirms email)
+      const locale = i18n.language?.startsWith("en") ? "en" : "sv";
       const { data: profileResult, error: profileError } = await supabase.functions.invoke(
         "create-partner-profile",
-        { body: { email, password, full_name: fullName, partner_data: partnerData } }
+        { body: { email, password, full_name: fullName, partner_data: partnerData, locale } }
       );
 
       if (profileError || (profileResult && !profileResult.success)) {

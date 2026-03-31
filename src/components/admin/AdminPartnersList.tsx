@@ -35,9 +35,13 @@ export const AdminPartnersList = () => {
         .eq("id", id);
       if (error) throw error;
 
-      // Send approval/rejection email to the host
+      // Send approval/rejection email to the host in their preferred language
       const firstName = partner.first_name || partner.contact_person || "";
-      const templateKey = status === "approved" ? "partner_application_approved" : "partner_application_rejected";
+      const locale = partner.locale || "sv";
+      const suffix = locale === "en" ? "_en" : "";
+      const templateKey = status === "approved"
+        ? `partner_application_approved${suffix}`
+        : `partner_application_rejected${suffix}`;
       const actionUrl = status === "approved" ? "https://studentresor.com/auth?mode=login" : undefined;
 
       supabase.functions.invoke("send-transactional-email", {

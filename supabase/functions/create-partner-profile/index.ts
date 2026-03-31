@@ -13,7 +13,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { email, password, full_name, partner_data } = await req.json();
+    const { email, password, full_name, partner_data, locale } = await req.json();
 
     if (!email || !password || !partner_data) {
       return new Response(
@@ -55,6 +55,7 @@ serve(async (req: Request) => {
       .insert({
         user_id: userId,
         ...partner_data,
+        locale: locale || "sv",
       });
 
     if (insertError) {
