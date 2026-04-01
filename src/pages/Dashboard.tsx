@@ -96,6 +96,7 @@ const Dashboard = () => {
         .select(`
           *,
           trips (
+            id,
             name,
             trip_type,
             departure_date,
@@ -110,7 +111,13 @@ const Dashboard = () => {
             second_payment_date,
             final_payment_amount,
             final_payment_type,
-            final_payment_date
+            final_payment_date,
+            accommodation_address,
+            accommodation_description,
+            accommodation_facilities,
+            accommodation_rooms,
+            accommodation_size_sqm,
+            image_url
           )
         `)
         .order("created_at", { ascending: false });
