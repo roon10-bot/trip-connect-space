@@ -182,6 +182,22 @@ export const TripBookingDetailsDialog = ({
     enabled: !!booking?.id && open,
   });
 
+  // Fetch trip images for accommodation gallery
+  const tripId = booking?.trips?.id;
+  const { data: tripImages } = useQuery({
+    queryKey: ["trip-images-booking", tripId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trip_images")
+        .select("id, image_url, display_order")
+        .eq("trip_id", tripId!)
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!tripId && open,
+  });
+
   const totalPaid = useMemo(() => {
     if (!completedPayments) return 0;
     return completedPayments.reduce((sum, p) => sum + Number(p.amount), 0);
