@@ -134,6 +134,7 @@ interface TripBookingDetailsDialogProps {
     created_at: string;
     user_id?: string | null;
     trips: {
+      id?: string;
       name: string;
       trip_type: string;
       departure_date: string;
@@ -149,6 +150,12 @@ interface TripBookingDetailsDialogProps {
       final_payment_amount?: number;
       final_payment_type?: PaymentValueType;
       final_payment_date?: string | null;
+      accommodation_address?: string | null;
+      accommodation_description?: string | null;
+      accommodation_facilities?: string[] | null;
+      accommodation_rooms?: number | null;
+      accommodation_size_sqm?: number | null;
+      image_url?: string | null;
     } | null;
   } | null;
   open: boolean;
