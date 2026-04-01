@@ -55,55 +55,6 @@ import {
 import { toast } from "sonner";
 import { calculatePaymentAmount, resolvePaymentPlan, type PaymentValueType } from "@/lib/paymentCalculations";
 import { TripImageCarousel } from "./TripImageCarousel";
-import { QRCodeSVG } from "qrcode.react";
-import { useQuery } from "@tanstack/react-query";
-import { Capacitor } from "@capacitor/core";
-import { AppLauncher } from "@capacitor/app-launcher";
-import { useAuth } from "@/hooks/useAuth";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { format } from "date-fns";
-import { sv } from "date-fns/locale";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  Users,
-  MapPin,
-  Calendar,
-  CreditCard,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  Phone,
-  Mail,
-  Cake,
-  Tag,
-  Wallet,
-  Plane,
-} from "lucide-react";
-import { toast } from "sonner";
-import { calculatePaymentAmount, resolvePaymentPlan, type PaymentValueType } from "@/lib/paymentCalculations";
 
 interface PaymentPlan {
   first_payment_amount: number;
