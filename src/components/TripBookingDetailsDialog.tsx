@@ -47,9 +47,14 @@ import {
   Tag,
   Wallet,
   Plane,
+  Home,
+  BedDouble,
+  Maximize,
+  WifiIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { calculatePaymentAmount, resolvePaymentPlan, type PaymentValueType } from "@/lib/paymentCalculations";
+import { TripImageCarousel } from "./TripImageCarousel";
 
 interface PaymentPlan {
   first_payment_amount: number;
@@ -80,6 +85,7 @@ interface TripBookingDetailsDialogProps {
     created_at: string;
     user_id?: string | null;
     trips: {
+      id?: string;
       name: string;
       trip_type: string;
       departure_date: string;
@@ -95,6 +101,12 @@ interface TripBookingDetailsDialogProps {
       final_payment_amount?: number;
       final_payment_type?: PaymentValueType;
       final_payment_date?: string | null;
+      accommodation_address?: string | null;
+      accommodation_description?: string | null;
+      accommodation_facilities?: string[] | null;
+      accommodation_rooms?: number | null;
+      accommodation_size_sqm?: number | null;
+      image_url?: string | null;
     } | null;
   } | null;
   open: boolean;
@@ -168,6 +180,22 @@ export const TripBookingDetailsDialog = ({
       return data;
     },
     enabled: !!booking?.id && open,
+  });
+
+  // Fetch trip images for accommodation gallery
+  const tripId = booking?.trips?.id;
+  const { data: tripImages } = useQuery({
+    queryKey: ["trip-images-booking", tripId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trip_images")
+        .select("id, image_url, display_order")
+        .eq("trip_id", tripId!)
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!tripId && open,
   });
 
   const totalPaid = useMemo(() => {
