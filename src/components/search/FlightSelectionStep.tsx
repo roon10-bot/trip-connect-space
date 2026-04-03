@@ -253,7 +253,7 @@ export const FlightSelectionStep = ({
 
       {/* Cheapest badge */}
       {offers.length > 0 && (
-        <div className="inline-flex items-center gap-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-medium px-3 py-1.5 rounded-full">
+        <div className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
           <Check className="w-3.5 h-3.5" />
           Billigaste alternativet överst
         </div>
