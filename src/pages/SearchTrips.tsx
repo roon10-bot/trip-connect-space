@@ -410,6 +410,11 @@ const SearchTrips = () => {
                     setSearchStep(2);
                     setSelectedFlight(null);
                   }}
+                  onBackToStart={() => {
+                    setSearchStep(1);
+                    setSelectedTrip(null);
+                    setSelectedFlight(null);
+                  }}
                 />
               )}
             </div>
