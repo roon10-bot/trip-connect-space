@@ -386,6 +386,7 @@ const SearchTrips = () => {
                   tripName={selectedTrip.name}
                   offers={selectedFlightData?.offers || []}
                   isLoading={selectedFlightLoading}
+                  guests={guests}
                   onSelect={(offer) => {
                     setSelectedFlight(offer);
                     setSearchStep(3);
