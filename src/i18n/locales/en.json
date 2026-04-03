@@ -517,6 +517,14 @@
     "rejectedTitle": "Application denied",
     "rejectedDesc": "Unfortunately your application has been denied. Contact us if you have questions.",
     "contactUs": "Contact us",
+    "onboarding": {
+      "title": "Payment Information",
+      "description": "Enter your bank details to receive payouts. You can start creating listings after this step.",
+      "saved": "Payment information saved!",
+      "error": "Could not save. Please try again.",
+      "saving": "Saving...",
+      "submit": "Save and continue"
+    },
     "menuListings": "My listings",
     "menuAvailability": "Availability & Prices",
     "menuBookings": "Bookings",

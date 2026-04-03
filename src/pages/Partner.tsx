@@ -11,6 +11,7 @@ import { PartnerAvailability } from "@/components/partner/PartnerAvailability";
 import { PartnerBookings } from "@/components/partner/PartnerBookings";
 import { PartnerPayouts } from "@/components/partner/PartnerPayouts";
 import { CreateListingWizard } from "@/components/partner/CreateListingWizard";
+import { PartnerPaymentOnboarding } from "@/components/partner/PartnerPaymentOnboarding";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
@@ -76,6 +77,18 @@ const Partner = () => {
   }
 
   if (!isApproved) return null;
+
+  // Show payment onboarding if partner hasn't filled in payment details yet
+  const needsPaymentOnboarding = !partnerProfile.iban || partnerProfile.iban.trim() === "";
+  if (needsPaymentOnboarding) {
+    return (
+      <PartnerPaymentOnboarding
+        partnerId={partnerProfile.id}
+        partnerType={partnerProfile.partner_type}
+        userId={user!.id}
+      />
+    );
+  }
 
   if (showWizard) {
     return (
