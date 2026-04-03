@@ -324,53 +324,97 @@ const SearchTrips = () => {
 
         {/* Breadcrumb + Content */}
         <div className="container mx-auto px-4">
-          <SearchBreadcrumb currentStep={1} />
+          <SearchBreadcrumb currentStep={searchStep} />
 
-          <div className={cn("flex gap-4 items-start relative lg:h-[calc(100dvh-21rem)] lg:overflow-hidden", showMap ? "" : "")}>
-            {/* Results list */}
-            <div className={cn("flex-1 min-w-0 space-y-3 pb-8 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-4", showMap ? "lg:max-w-[60%]" : "")}>
-              <p className="text-sm text-muted-foreground">
-                {filteredTrips.length} resultat hittades
-              </p>
+          <div className={cn("flex gap-4 items-start relative lg:h-[calc(100dvh-21rem)] lg:overflow-hidden", showMap && searchStep === 1 ? "" : "")}>
+            {/* Main content */}
+            <div className={cn("flex-1 min-w-0 space-y-3 pb-8 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-4", showMap && searchStep === 1 ? "lg:max-w-[60%]" : "")}>
+              
+              {/* Step 1: Accommodation selection */}
+              {searchStep === 1 && (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    {filteredTrips.length} resultat hittades
+                  </p>
 
-              {isLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="bg-card rounded-xl p-6 animate-pulse flex gap-4">
-                      <div className="w-56 h-48 bg-muted rounded-lg" />
-                      <div className="flex-1 space-y-3">
-                        <div className="h-5 bg-muted rounded w-2/3" />
-                        <div className="h-4 bg-muted rounded w-1/2" />
-                        <div className="h-4 bg-muted rounded w-3/4" />
-                      </div>
+                  {isLoading ? (
+                    <div className="space-y-3">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="bg-card rounded-xl p-6 animate-pulse flex gap-4">
+                          <div className="w-56 h-48 bg-muted rounded-lg" />
+                          <div className="flex-1 space-y-3">
+                            <div className="h-5 bg-muted rounded w-2/3" />
+                            <div className="h-4 bg-muted rounded w-1/2" />
+                            <div className="h-4 bg-muted rounded w-3/4" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ) : filteredTrips.length === 0 ? (
-                <div className="text-center py-12 bg-card rounded-xl border border-border">
-                  <p className="text-lg text-muted-foreground">{t("search.noResults")}</p>
-                  <p className="text-sm text-muted-foreground mt-2">{t("search.tryOther")}</p>
-                </div>
-              ) : (
-                filteredTrips.map((trip) => (
-                  <AccommodationCard
-                    key={trip.id}
-                    trip={trip}
-                    images={imagesByTrip[trip.id] || []}
-                    cheapestFlightPrice={cheapestFlightPrice}
-                    flightLoading={flightLoading}
-                    guests={guests}
-                    isSelected={hoveredTripId === trip.id}
-                    onHover={setHoveredTripId}
-                    departureIATA={departureIATA}
-                    flightOffer={flightData?.offers?.[0] || null}
-                  />
-                ))
+                  ) : filteredTrips.length === 0 ? (
+                    <div className="text-center py-12 bg-card rounded-xl border border-border">
+                      <p className="text-lg text-muted-foreground">{t("search.noResults")}</p>
+                      <p className="text-sm text-muted-foreground mt-2">{t("search.tryOther")}</p>
+                    </div>
+                  ) : (
+                    filteredTrips.map((trip) => (
+                      <AccommodationCard
+                        key={trip.id}
+                        trip={trip}
+                        images={imagesByTrip[trip.id] || []}
+                        cheapestFlightPrice={cheapestFlightPrice}
+                        flightLoading={previewFlightLoading}
+                        guests={guests}
+                        isSelected={hoveredTripId === trip.id}
+                        onHover={setHoveredTripId}
+                        departureIATA={departureIATA}
+                        flightOffer={previewFlightData?.offers?.[0] || null}
+                        onSelect={(t) => {
+                          setSelectedTrip(t);
+                          setSelectedFlight(null);
+                          setSearchStep(2);
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                      />
+                    ))
+                  )}
+                </>
+              )}
+
+              {/* Step 2: Flight selection */}
+              {searchStep === 2 && selectedTrip && (
+                <FlightSelectionStep
+                  tripName={selectedTrip.name}
+                  offers={selectedFlightData?.offers || []}
+                  isLoading={selectedFlightLoading}
+                  onSelect={(offer) => {
+                    setSelectedFlight(offer);
+                    setSearchStep(3);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  onBack={() => {
+                    setSearchStep(1);
+                    setSelectedTrip(null);
+                    setSelectedFlight(null);
+                  }}
+                />
+              )}
+
+              {/* Step 3: Package summary */}
+              {searchStep === 3 && selectedTrip && selectedFlight && (
+                <PackageSummaryStep
+                  trip={selectedTrip}
+                  flightOffer={selectedFlight}
+                  guests={guests}
+                  onBack={() => {
+                    setSearchStep(2);
+                    setSelectedFlight(null);
+                  }}
+                />
               )}
             </div>
 
-            {/* Map */}
-            {showMap && (
+            {/* Map - only show on step 1 */}
+            {showMap && searchStep === 1 && (
               <div className="hidden lg:block w-[40%] flex-none self-start">
                 <div className="sticky top-24 h-[calc(100dvh-21rem)] rounded-lg overflow-hidden">
                   <Suspense fallback={<div className="w-full h-full bg-muted animate-pulse rounded-lg" />}>
