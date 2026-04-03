@@ -65,6 +65,11 @@ const SearchTrips = () => {
   const [sortBy, setSortBy] = useState("price_asc");
   const [hoveredTripId, setHoveredTripId] = useState<string | null>(null);
 
+  // 3-step flow state
+  const [searchStep, setSearchStep] = useState<1 | 2 | 3>(1);
+  const [selectedTrip, setSelectedTrip] = useState<any>(null);
+  const [selectedFlight, setSelectedFlight] = useState<FlightOffer | null>(null);
+
   const { data: trips, isLoading, refetch } = useQuery({
     queryKey: ["trips", departure, tripType, selectedMonth?.year, selectedMonth?.month, guests],
     queryFn: async () => {
