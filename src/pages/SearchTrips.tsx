@@ -1,6 +1,6 @@
 import { useState, useMemo, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { departureToIATA, useFlightSearch } from "@/hooks/useFlightSearch";
+import { departureToIATA, useFlightSearch, type FlightOffer } from "@/hooks/useFlightSearch";
 import { useSearchParams } from "react-router-dom";
 import { CalendarIcon, Minus, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,8 @@ import { MonthPicker } from "@/components/MonthPicker";
 import { SearchFilterBar } from "@/components/search/SearchFilterBar";
 import { SearchBreadcrumb } from "@/components/search/SearchBreadcrumb";
 import { AccommodationCard } from "@/components/search/AccommodationCard";
+import { FlightSelectionStep } from "@/components/search/FlightSelectionStep";
+import { PackageSummaryStep } from "@/components/search/PackageSummaryStep";
 
 const SearchMap = lazy(() => import("@/components/search/SearchMap").then(m => ({ default: m.SearchMap })));
 
