@@ -187,6 +187,14 @@ export const AccommodationCard = ({
             <Button disabled size="sm" variant="secondary">
               Fullbokat
             </Button>
+          ) : onSelect ? (
+            <Button
+              size="sm"
+              className="bg-sunset hover:bg-sunset/90 text-accent-foreground font-semibold"
+              onClick={() => onSelect(trip)}
+            >
+              Välj boende
+            </Button>
           ) : (
             <Link
               to={`/book/trip/${trip.id}`}
