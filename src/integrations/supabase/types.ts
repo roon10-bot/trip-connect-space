@@ -566,6 +566,8 @@ export type Database = {
           id: string
           image_url: string | null
           image_urls: string[] | null
+          latitude: number | null
+          longitude: number | null
           name: string
           partner_id: string
           property_type: string | null
@@ -589,6 +591,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           image_urls?: string[] | null
+          latitude?: number | null
+          longitude?: number | null
           name: string
           partner_id: string
           property_type?: string | null
@@ -612,6 +616,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           image_urls?: string[] | null
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           partner_id?: string
           property_type?: string | null
@@ -1318,6 +1324,8 @@ export type Database = {
           id: string
           image_url: string | null
           image_urls: string[] | null
+          latitude: number | null
+          longitude: number | null
           max_persons: number | null
           min_persons: number | null
           name: string | null
@@ -1354,6 +1362,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           image_urls?: string[] | null
+          latitude?: number | null
+          longitude?: number | null
           max_persons?: number | null
           min_persons?: number | null
           name?: string | null
@@ -1390,6 +1400,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           image_urls?: string[] | null
+          latitude?: number | null
+          longitude?: number | null
           max_persons?: number | null
           min_persons?: number | null
           name?: string | null
@@ -1431,6 +1443,8 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           is_fullbooked: boolean
+          latitude: number | null
+          longitude: number | null
           max_persons: number | null
           min_persons: number | null
           name: string
@@ -1471,6 +1485,8 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           is_fullbooked?: boolean
+          latitude?: number | null
+          longitude?: number | null
           max_persons?: number | null
           min_persons?: number | null
           name: string
@@ -1511,6 +1527,8 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           is_fullbooked?: boolean
+          latitude?: number | null
+          longitude?: number | null
           max_persons?: number | null
           min_persons?: number | null
           name?: string
