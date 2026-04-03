@@ -49,6 +49,7 @@ interface AccommodationCardProps {
   onHover?: (tripId: string | null) => void;
   departureIATA?: string;
   flightOffer?: any;
+  onSelect?: (trip: Trip) => void;
 }
 
 const getNights = (dep: string, ret: string) => {
