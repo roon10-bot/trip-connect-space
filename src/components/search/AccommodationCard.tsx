@@ -68,6 +68,7 @@ export const AccommodationCard = ({
   onHover,
   departureIATA,
   flightOffer,
+  onSelect,
 }: AccommodationCardProps) => {
   const nights = getNights(trip.departure_date, trip.return_date);
 
