@@ -322,14 +322,14 @@ const SearchTrips = () => {
           />
         </div>
 
-        {/* Breadcrumb + Content */}
-        <div className="container mx-auto px-4">
+        {/* Breadcrumb + Content - edge to edge */}
+        <div className="px-4">
           <SearchBreadcrumb currentStep={searchStep} />
 
-          <div className={cn("flex gap-4 items-start relative lg:h-[calc(100dvh-21rem)] lg:overflow-hidden", showMap && searchStep === 1 ? "" : "")}>
+          <div className={cn("flex items-start relative lg:h-[calc(100dvh-21rem)] lg:overflow-hidden", showMap && searchStep === 1 ? "" : "")}>
             {/* Main content */}
-            <div className={cn("flex-1 min-w-0 space-y-3 pb-8 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-4", showMap && searchStep === 1 ? "lg:max-w-[60%]" : "")}>
-              
+            <div className={cn("flex-1 min-w-0 space-y-3 pb-8 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-4 lg:pl-2", showMap && searchStep === 1 ? "lg:max-w-[55%]" : "max-w-5xl mx-auto")}>
+
               {/* Step 1: Accommodation selection */}
               {searchStep === 1 && (
                 <>
