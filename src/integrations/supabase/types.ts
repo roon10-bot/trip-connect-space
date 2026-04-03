@@ -709,7 +709,7 @@ export type Database = {
           currency: string | null
           email: string
           first_name: string | null
-          iban: string
+          iban: string | null
           id: string
           last_name: string | null
           locale: string
@@ -737,7 +737,7 @@ export type Database = {
           currency?: string | null
           email: string
           first_name?: string | null
-          iban: string
+          iban?: string | null
           id?: string
           last_name?: string | null
           locale?: string
@@ -765,7 +765,7 @@ export type Database = {
           currency?: string | null
           email?: string
           first_name?: string | null
-          iban?: string
+          iban?: string | null
           id?: string
           last_name?: string | null
           locale?: string
