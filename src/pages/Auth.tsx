@@ -274,9 +274,8 @@ const Auth = () => {
       address: data.address,
       city: data.city,
       country: data.country,
-      iban: data.iban,
-      bank_name: data.bankName,
-      bank_address: data.bankAddress || null,
+      iban: "",
+      bank_name: "",
       certifies_rental_rights: true,
       certifies_local_taxes: true,
     });
@@ -293,9 +292,9 @@ const Auth = () => {
       address: data.address,
       city: data.city,
       country: data.country,
-      iban: data.iban,
-      swift: data.swift,
-      currency: data.currency,
+      iban: "",
+      swift: "",
+      currency: "",
       certifies_company_authority: true,
     });
   };

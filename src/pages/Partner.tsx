@@ -78,6 +78,18 @@ const Partner = () => {
 
   if (!isApproved) return null;
 
+  // Show payment onboarding if partner hasn't filled in payment details yet
+  const needsPaymentOnboarding = !partnerProfile.iban || partnerProfile.iban.trim() === "";
+  if (needsPaymentOnboarding) {
+    return (
+      <PartnerPaymentOnboarding
+        partnerId={partnerProfile.id}
+        partnerType={partnerProfile.partner_type}
+        userId={user!.id}
+      />
+    );
+  }
+
   if (showWizard) {
     return (
       <CreateListingWizard
