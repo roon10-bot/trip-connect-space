@@ -11,6 +11,7 @@ import { PartnerAvailability } from "@/components/partner/PartnerAvailability";
 import { PartnerBookings } from "@/components/partner/PartnerBookings";
 import { PartnerPayouts } from "@/components/partner/PartnerPayouts";
 import { CreateListingWizard } from "@/components/partner/CreateListingWizard";
+import { PartnerPaymentOnboarding } from "@/components/partner/PartnerPaymentOnboarding";
 import studentresorLogo from "@/assets/studentresor-logo.svg";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
