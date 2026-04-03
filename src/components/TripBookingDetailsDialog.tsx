@@ -522,7 +522,7 @@ export const TripBookingDetailsDialog = ({
         </DialogHeader>
 
         <Tabs defaultValue={defaultTab} key={defaultTab} className="mt-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="passenger">
               <Users className="w-4 h-4 mr-2" />
               Resenär
@@ -530,6 +530,10 @@ export const TripBookingDetailsDialog = ({
             <TabsTrigger value="trip">
               <MapPin className="w-4 h-4 mr-2" />
               Resa
+            </TabsTrigger>
+            <TabsTrigger value="accommodation">
+              <Home className="w-4 h-4 mr-2" />
+              Boende
             </TabsTrigger>
             <TabsTrigger value="payment">
               <CreditCard className="w-4 h-4 mr-2" />
