@@ -49,6 +49,7 @@ interface AccommodationCardProps {
   onHover?: (tripId: string | null) => void;
   departureIATA?: string;
   flightOffer?: any;
+  onSelect?: (trip: Trip) => void;
 }
 
 const getNights = (dep: string, ret: string) => {
@@ -67,6 +68,7 @@ export const AccommodationCard = ({
   onHover,
   departureIATA,
   flightOffer,
+  onSelect,
 }: AccommodationCardProps) => {
   const nights = getNights(trip.departure_date, trip.return_date);
 
@@ -184,6 +186,14 @@ export const AccommodationCard = ({
           {trip.is_fullbooked ? (
             <Button disabled size="sm" variant="secondary">
               Fullbokat
+            </Button>
+          ) : onSelect ? (
+            <Button
+              size="sm"
+              className="bg-sunset hover:bg-sunset/90 text-accent-foreground font-semibold"
+              onClick={() => onSelect(trip)}
+            >
+              Välj boende
             </Button>
           ) : (
             <Link
