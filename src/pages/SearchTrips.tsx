@@ -119,8 +119,8 @@ const SearchTrips = () => {
 
   const imagesByTrip = useMemo(() => {
     return (allTripImages || []).reduce((acc, img) => {
-      if (!acc[img.trip_id]) acc[img.trip_id] = [];
-      acc[img.trip_id].push(img);
+      acc[img.trip_id] = acc[img.trip_id] || [];
+      acc[img.trip_id]!.push(img);
       return acc;
     }, {} as Record<string, typeof allTripImages>);
   }, [allTripImages]);
