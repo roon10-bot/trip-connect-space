@@ -295,9 +295,9 @@ const SearchTrips = () => {
         <div className="container mx-auto px-4">
           <SearchBreadcrumb currentStep={1} />
 
-          <div className={cn("flex gap-4 items-start relative", showMap ? "" : "")}>
+          <div className={cn("flex gap-4 items-start relative lg:h-[calc(100dvh-21rem)] lg:overflow-hidden", showMap ? "" : "")}>
             {/* Results list */}
-            <div className={cn("flex-1 min-w-0 space-y-3 pb-8", showMap ? "max-w-[60%]" : "")}>
+            <div className={cn("flex-1 min-w-0 space-y-3 pb-8 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-4", showMap ? "lg:max-w-[60%]" : "")}>
               <p className="text-sm text-muted-foreground">
                 {filteredTrips.length} resultat hittades
               </p>
@@ -340,18 +340,20 @@ const SearchTrips = () => {
 
             {/* Map */}
             {showMap && (
-              <div className="w-[40%] hidden lg:block sticky top-24 self-start h-[calc(100vh-8rem)] rounded-lg overflow-hidden">
-                <Suspense fallback={<div className="w-full h-full bg-muted animate-pulse rounded-lg" />}>
-                  <SearchMap
-                    trips={mapTrips}
-                    selectedTripId={hoveredTripId}
-                    onTripSelect={(id) => {
-                      const el = document.getElementById(`trip-${id}`);
-                      el?.scrollIntoView({ behavior: "smooth", block: "center" });
-                      setHoveredTripId(id);
-                    }}
-                  />
-                </Suspense>
+              <div className="hidden lg:block w-[40%] flex-none self-start">
+                <div className="sticky top-24 h-[calc(100dvh-21rem)] rounded-lg overflow-hidden">
+                  <Suspense fallback={<div className="w-full h-full bg-muted animate-pulse rounded-lg" />}>
+                    <SearchMap
+                      trips={mapTrips}
+                      selectedTripId={hoveredTripId}
+                      onTripSelect={(id) => {
+                        const el = document.getElementById(`trip-${id}`);
+                        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                        setHoveredTripId(id);
+                      }}
+                    />
+                  </Suspense>
+                </div>
               </div>
             )}
           </div>
