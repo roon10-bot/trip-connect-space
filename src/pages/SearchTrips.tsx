@@ -295,7 +295,7 @@ const SearchTrips = () => {
         <div className="container mx-auto px-4">
           <SearchBreadcrumb currentStep={1} />
 
-          <div className={cn("flex gap-4", showMap ? "" : "")}>
+          <div className={cn("flex gap-4 items-start relative", showMap ? "" : "")}>
             {/* Results list */}
             <div className={cn("flex-1 min-w-0 space-y-3 pb-8", showMap ? "max-w-[60%]" : "")}>
               <p className="text-sm text-muted-foreground">
