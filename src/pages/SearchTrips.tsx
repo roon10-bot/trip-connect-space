@@ -421,8 +421,8 @@ const SearchTrips = () => {
 
             {/* Map - only show on step 1 */}
             {showMap && searchStep === 1 && (
-              <div className="hidden lg:block w-[40%] flex-none self-start">
-                <div className="sticky top-24 h-[calc(100dvh-21rem)] rounded-lg overflow-hidden">
+              <div className="hidden lg:block w-[45%] flex-none self-start">
+                <div className="sticky top-24 h-[calc(100dvh-21rem)] overflow-hidden">
                   <Suspense fallback={<div className="w-full h-full bg-muted animate-pulse rounded-lg" />}>
                     <SearchMap
                       trips={mapTrips}
