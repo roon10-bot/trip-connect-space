@@ -282,6 +282,32 @@
     background-size: 200% 100%;
   }
 
+  .search-results-scrollbar {
+    scrollbar-gutter: stable both-edges;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--accent) / 0.4) transparent;
+  }
+
+  .search-results-scrollbar::-webkit-scrollbar {
+    width: 0.875rem;
+  }
+
+  .search-results-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .search-results-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.28);
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: padding-box;
+  }
+
+  .search-results-scrollbar:hover::-webkit-scrollbar-thumb,
+  .search-results-scrollbar:focus-visible::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--accent) / 0.45);
+  }
+
   @keyframes shimmer {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }

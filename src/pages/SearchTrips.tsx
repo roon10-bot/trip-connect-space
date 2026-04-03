@@ -18,6 +18,7 @@ import { SearchBreadcrumb } from "@/components/search/SearchBreadcrumb";
 import { AccommodationCard } from "@/components/search/AccommodationCard";
 import { FlightSelectionStep } from "@/components/search/FlightSelectionStep";
 import { PackageSummaryStep } from "@/components/search/PackageSummaryStep";
+import { SearchResultsViewport } from "@/components/search/SearchResultsViewport";
 
 const SearchMap = lazy(() => import("@/components/search/SearchMap").then(m => ({ default: m.SearchMap })));
 
@@ -231,6 +232,8 @@ const SearchTrips = () => {
     [filteredTrips]
   );
 
+  const isDesktopSplitView = searchStep === 1 && showMap;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -323,24 +326,31 @@ const SearchTrips = () => {
         </div>
 
         {/* Breadcrumb + Content - edge to edge */}
-        <div className="px-4">
+        <div className="px-4 lg:px-6 pb-6">
           <SearchBreadcrumb currentStep={searchStep} />
 
-          <div className={cn("flex items-start relative lg:h-[calc(100dvh-21rem)] lg:overflow-hidden", showMap && searchStep === 1 ? "" : "")}>
-            {/* Main content */}
-            <div className={cn("flex-1 min-w-0 space-y-3 pb-8 lg:h-full lg:overflow-y-auto lg:overscroll-contain lg:pr-4 lg:pl-2", showMap && searchStep === 1 ? "lg:max-w-[55%]" : "max-w-5xl mx-auto")}>
-
-              {/* Step 1: Accommodation selection */}
-              {searchStep === 1 && (
-                <>
-                  <p className="text-sm text-muted-foreground">
+          {searchStep === 1 ? (
+            <>
+              <div
+                className={cn(
+                  "mt-4 gap-6",
+                  isDesktopSplitView && "lg:grid lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-start",
+                )}
+              >
+                <SearchResultsViewport
+                  desktopScrollable={isDesktopSplitView}
+                  className={cn("min-w-0", !isDesktopSplitView && "mx-auto w-full max-w-5xl")}
+                  contentClassName="space-y-3"
+                  ariaLabel="Sökresultat för boenden"
+                >
+                  <p className="px-1 text-sm text-muted-foreground">
                     {filteredTrips.length} resultat hittades
                   </p>
 
                   {isLoading ? (
                     <div className="space-y-3">
                       {[1, 2, 3].map(i => (
-                        <div key={i} className="bg-card rounded-xl p-6 animate-pulse flex gap-4">
+                        <div key={i} className="bg-background/80 rounded-2xl border border-border p-6 animate-pulse flex gap-4 shadow-sm">
                           <div className="w-56 h-48 bg-muted rounded-lg" />
                           <div className="flex-1 space-y-3">
                             <div className="h-5 bg-muted rounded w-2/3" />
@@ -351,35 +361,76 @@ const SearchTrips = () => {
                       ))}
                     </div>
                   ) : filteredTrips.length === 0 ? (
-                    <div className="text-center py-12 bg-card rounded-xl border border-border">
+                    <div className="text-center py-12 bg-background/80 rounded-2xl border border-border shadow-sm">
                       <p className="text-lg text-muted-foreground">{t("search.noResults")}</p>
                       <p className="text-sm text-muted-foreground mt-2">{t("search.tryOther")}</p>
                     </div>
                   ) : (
                     filteredTrips.map((trip) => (
-                      <AccommodationCard
-                        key={trip.id}
-                        trip={trip}
-                        images={imagesByTrip[trip.id] || []}
-                        cheapestFlightPrice={cheapestFlightPrice}
-                        flightLoading={previewFlightLoading}
-                        guests={guests}
-                        isSelected={hoveredTripId === trip.id}
-                        onHover={setHoveredTripId}
-                        departureIATA={departureIATA}
-                        flightOffer={previewFlightData?.offers?.[0] || null}
-                        onSelect={(t) => {
-                          setSelectedTrip(t);
-                          setSelectedFlight(null);
-                          setSearchStep(2);
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                      />
+                      <div key={trip.id} id={`trip-${trip.id}`} className="scroll-mt-28">
+                        <AccommodationCard
+                          trip={trip}
+                          images={imagesByTrip[trip.id] || []}
+                          cheapestFlightPrice={cheapestFlightPrice}
+                          flightLoading={previewFlightLoading}
+                          guests={guests}
+                          isSelected={hoveredTripId === trip.id}
+                          onHover={setHoveredTripId}
+                          departureIATA={departureIATA}
+                          flightOffer={previewFlightData?.offers?.[0] || null}
+                          onSelect={(t) => {
+                            setSelectedTrip(t);
+                            setSelectedFlight(null);
+                            setSearchStep(2);
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                        />
+                      </div>
                     ))
                   )}
-                </>
-              )}
+                </SearchResultsViewport>
 
+                {showMap && (
+                  <div className="hidden lg:block">
+                    <div className="sticky top-24 h-[calc(100dvh-21rem)] overflow-hidden rounded-[28px] border border-border/80 bg-card shadow-elegant">
+                      <Suspense fallback={<div className="w-full h-full bg-muted animate-pulse" />}>
+                        <SearchMap
+                          trips={mapTrips}
+                          selectedTripId={hoveredTripId}
+                          className="h-full w-full"
+                          onTripSelect={(id) => {
+                            const el = document.getElementById(`trip-${id}`);
+                            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                            setHoveredTripId(id);
+                          }}
+                        />
+                      </Suspense>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {showMap && (
+                <div className="mt-6 lg:hidden">
+                  <div className="overflow-hidden rounded-[28px] border border-border/80 bg-card shadow-elegant">
+                    <Suspense fallback={<div className="h-[22rem] w-full bg-muted animate-pulse" />}>
+                      <SearchMap
+                        trips={mapTrips}
+                        selectedTripId={hoveredTripId}
+                        className="h-[22rem] w-full"
+                        onTripSelect={(id) => {
+                          const el = document.getElementById(`trip-${id}`);
+                          el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                          setHoveredTripId(id);
+                        }}
+                      />
+                    </Suspense>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="mt-4 max-w-5xl mx-auto space-y-3 pb-8">
               {/* Step 2: Flight selection */}
               {searchStep === 2 && selectedTrip && (
                 <FlightSelectionStep
@@ -418,26 +469,7 @@ const SearchTrips = () => {
                 />
               )}
             </div>
-
-            {/* Map - only show on step 1 */}
-            {showMap && searchStep === 1 && (
-              <div className="hidden lg:block w-[45%] flex-none self-start">
-                <div className="sticky top-24 h-[calc(100dvh-21rem)] overflow-hidden">
-                  <Suspense fallback={<div className="w-full h-full bg-muted animate-pulse rounded-lg" />}>
-                    <SearchMap
-                      trips={mapTrips}
-                      selectedTripId={hoveredTripId}
-                      onTripSelect={(id) => {
-                        const el = document.getElementById(`trip-${id}`);
-                        el?.scrollIntoView({ behavior: "smooth", block: "center" });
-                        setHoveredTripId(id);
-                      }}
-                    />
-                  </Suspense>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </main>
       <Footer />
