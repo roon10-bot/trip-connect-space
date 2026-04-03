@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { cn } from "@/lib/utils";
 
 interface MapTrip {
   id: string;
@@ -14,6 +15,7 @@ interface SearchMapProps {
   trips: MapTrip[];
   selectedTripId?: string | null;
   onTripSelect?: (tripId: string) => void;
+  className?: string;
 }
 
 const createPriceIcon = (price: number, isSelected: boolean) => {
@@ -38,7 +40,7 @@ const createPriceIcon = (price: number, isSelected: boolean) => {
   });
 };
 
-export const SearchMap = ({ trips, selectedTripId, onTripSelect }: SearchMapProps) => {
+export const SearchMap = ({ trips, selectedTripId, onTripSelect, className }: SearchMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -49,7 +51,8 @@ export const SearchMap = ({ trips, selectedTripId, onTripSelect }: SearchMapProp
     if (!mapInstance.current) {
       mapInstance.current = L.map(mapRef.current, {
         zoomControl: true,
-        scrollWheelZoom: true,
+        scrollWheelZoom: false,
+        keyboard: false,
       }).setView([43.5, 16.5], 8); // Default: Croatia/Split area
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -97,6 +100,10 @@ export const SearchMap = ({ trips, selectedTripId, onTripSelect }: SearchMapProp
   }, [trips, selectedTripId, onTripSelect]);
 
   return (
-    <div ref={mapRef} className="w-full h-full rounded-lg" style={{ minHeight: "400px" }} />
+    <div
+      ref={mapRef}
+      className={cn("w-full h-full bg-muted", className)}
+      style={{ minHeight: "400px" }}
+    />
   );
 };
