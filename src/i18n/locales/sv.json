@@ -527,6 +527,14 @@
     "rejectedTitle": "Ansökan nekad",
     "rejectedDesc": "Tyvärr har din ansökan nekats. Kontakta oss om du har frågor.",
     "contactUs": "Kontakta oss",
+    "onboarding": {
+      "title": "Betalningsinformation",
+      "description": "Fyll i dina bankuppgifter för att kunna ta emot utbetalningar. Du kan börja skapa boenden efter detta steg.",
+      "saved": "Betalningsinformation sparad!",
+      "error": "Kunde inte spara. Försök igen.",
+      "saving": "Sparar...",
+      "submit": "Spara och fortsätt"
+    },
     "menuListings": "Mina boenden",
     "menuAvailability": "Tillgänglighet & Priser",
     "menuBookings": "Bokningar",
