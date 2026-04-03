@@ -132,21 +132,45 @@ const SearchTrips = () => {
     }, {} as Record<string, typeof allTripImages>);
   }, [allTripImages]);
 
-  // Flight search
+  // Flight search - uses selected trip in step 2, or first trip for price preview in step 1
   const anyTripUsesDuffel = trips?.some(t => t.use_duffel_flights !== false);
-  const firstTrip = trips?.[0];
+  const previewTrip = trips?.[0];
   const departureIATA = departure !== "all" ? departureToIATA[departure] : undefined;
-  const flightSearchParams = anyTripUsesDuffel && departureIATA && firstTrip ? {
+
+  // For step 1 preview pricing
+  const previewFlightParams = anyTripUsesDuffel && departureIATA && previewTrip ? {
     origin: departureIATA,
     destination: "SPU",
-    departure_date: firstTrip.departure_date,
-    return_date: firstTrip.return_date,
+    departure_date: previewTrip.departure_date,
+    return_date: previewTrip.return_date,
     passengers: guests,
   } : null;
-  const { data: flightData, isLoading: flightLoading } = useFlightSearch(flightSearchParams);
-  const cheapestFlightPrice = flightData?.offers?.[0]
-    ? parseFloat(flightData.offers[0].price_per_passenger_sek)
+  const { data: previewFlightData, isLoading: previewFlightLoading } = useFlightSearch(previewFlightParams);
+  const cheapestFlightPrice = previewFlightData?.offers?.[0]
+    ? parseFloat(previewFlightData.offers[0].price_per_passenger_sek)
     : null;
+
+  // For step 2: search flights for the selected trip
+  const selectedTripIATA = useMemo(() => {
+    if (!selectedTrip?.departure_location) return null;
+    const match = selectedTrip.departure_location.match(/\(([A-Z]{3})\)/);
+    if (match) return match[1];
+    // Try mapping from name
+    const lower = selectedTrip.departure_location.toLowerCase();
+    for (const [key, iata] of Object.entries(departureToIATA)) {
+      if (lower.includes(key)) return iata;
+    }
+    return departureIATA || null;
+  }, [selectedTrip, departureIATA]);
+
+  const selectedTripFlightParams = selectedTrip && selectedTripIATA && selectedTrip.use_duffel_flights !== false ? {
+    origin: selectedTripIATA,
+    destination: "SPU",
+    departure_date: selectedTrip.departure_date,
+    return_date: selectedTrip.return_date,
+    passengers: guests,
+  } : null;
+  const { data: selectedFlightData, isLoading: selectedFlightLoading } = useFlightSearch(selectedTripFlightParams);
 
   // Sort & filter trips
   const filteredTrips = useMemo(() => {
