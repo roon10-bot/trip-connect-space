@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -24,6 +24,45 @@ const formatTripType = (type: string) => {
     studentveckan: "Studentveckan",
   };
   return types[type] || type;
+};
+
+const TripThumbnail = ({ booking }: { booking: any }) => {
+  const imageCandidates = useMemo(() => {
+    const galleryImages = [...(booking.trips?.trip_images ?? [])]
+      .filter((img: any) => Boolean(img?.image_url))
+      .sort((a: any, b: any) => (a.display_order ?? Infinity) - (b.display_order ?? Infinity))
+      .map((img: any) => img.image_url);
+    return Array.from(
+      new Set([...galleryImages, booking.trips?.image_url].filter(Boolean))
+    ) as string[];
+  }, [booking.trips?.image_url, booking.trips?.trip_images]);
+
+  const [imgIdx, setImgIdx] = useState(0);
+  const imageUrl = imageCandidates[imgIdx] ?? null;
+
+  const handleError = useCallback(() => {
+    setImgIdx((i) => (i < imageCandidates.length - 1 ? i + 1 : imageCandidates.length));
+  }, [imageCandidates.length]);
+
+  if (!imageUrl) {
+    return (
+      <div className="p-3 rounded-xl bg-ocean-light shrink-0">
+        <Plane className="w-6 h-6 text-ocean" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0">
+      <img
+        src={imageUrl}
+        alt={booking.trips?.name || ""}
+        className="w-full h-full object-cover"
+        loading="lazy"
+        onError={handleError}
+      />
+    </div>
+  );
 };
 
 export const DashboardSummaryCards = ({
@@ -151,9 +190,7 @@ export const DashboardSummaryCards = ({
           {activeBooking?.trips ? (
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex items-center gap-4 flex-1 min-w-0">
-                <div className="p-3 rounded-xl bg-ocean-light shrink-0">
-                  <Plane className="w-6 h-6 text-ocean" />
-                </div>
+                <TripThumbnail booking={activeBooking} />
                 <div className="min-w-0 flex-1">
                   <p className="text-lg font-bold text-foreground">
                     {activeBooking.trips.name} – {formatTripType(activeBooking.trips.trip_type)}
