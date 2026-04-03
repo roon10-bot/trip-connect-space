@@ -151,9 +151,7 @@ export const DashboardSummaryCards = ({
           {activeBooking?.trips ? (
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex items-center gap-4 flex-1 min-w-0">
-                <div className="p-3 rounded-xl bg-ocean-light shrink-0">
-                  <Plane className="w-6 h-6 text-ocean" />
-                </div>
+                <TripThumbnail booking={activeBooking} />
                 <div className="min-w-0 flex-1">
                   <p className="text-lg font-bold text-foreground">
                     {activeBooking.trips.name} – {formatTripType(activeBooking.trips.trip_type)}
