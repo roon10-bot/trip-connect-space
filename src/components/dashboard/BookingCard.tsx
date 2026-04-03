@@ -16,6 +16,7 @@ interface BookingCardProps {
       trip_type?: string;
       departure_date?: string;
       return_date?: string;
+      image_url?: string | null;
     } | null;
     [key: string]: unknown;
   };
@@ -63,48 +64,69 @@ export const BookingCard = React.memo(function BookingCard({ booking, showStatus
     }
   };
 
+  const imageUrl = booking.trips?.image_url;
+
   return (
     <Card
       className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
       onClick={onClick}
     >
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <h3 className="text-lg font-serif font-semibold text-foreground">
-                {booking.trips?.name}
-              </h3>
-              {showStatus && getStatusBadge(booking.status)}
+      <div className="flex">
+        {/* Trip image thumbnail */}
+        <div className="w-32 sm:w-40 md:w-48 flex-shrink-0 relative overflow-hidden">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={booking.trips?.name || ""}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full bg-muted flex items-center justify-center min-h-[120px]">
+              <MapPin className="w-8 h-8 text-muted-foreground/40" />
             </div>
-            {booking.trips?.trip_type && (
-              <p className="text-sm text-muted-foreground mb-2">
-                {formatTripType(booking.trips.trip_type)}
-              </p>
-            )}
-            <div className="space-y-1 text-sm">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-ocean" />
-                <span>
-                  {booking.trips?.departure_date &&
-                    format(new Date(booking.trips.departure_date), "d MMMM", { locale: sv })}{" "}
-                  –{" "}
-                  {booking.trips?.return_date &&
-                    format(new Date(booking.trips.return_date), "d MMMM yyyy", { locale: sv })}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-ocean" />
-                <span>{booking.departure_location}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-sm text-ocean opacity-0 group-hover:opacity-100 transition-opacity mt-1">
-            <span>{t("dashboard.details")}</span>
-            <ChevronRight className="w-4 h-4" />
-          </div>
+          )}
         </div>
-      </CardContent>
+
+        {/* Content */}
+        <CardContent className="p-5 flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-3 mb-1 flex-wrap">
+                <h3 className="text-lg font-serif font-semibold text-foreground">
+                  {booking.trips?.name}
+                </h3>
+                {showStatus && getStatusBadge(booking.status)}
+              </div>
+              {booking.trips?.trip_type && (
+                <p className="text-sm text-muted-foreground mb-2">
+                  {formatTripType(booking.trips.trip_type)}
+                </p>
+              )}
+              <div className="space-y-1 text-sm">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-ocean" />
+                  <span>
+                    {booking.trips?.departure_date &&
+                      format(new Date(booking.trips.departure_date), "d MMMM", { locale: sv })}{" "}
+                    –{" "}
+                    {booking.trips?.return_date &&
+                      format(new Date(booking.trips.return_date), "d MMMM yyyy", { locale: sv })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-ocean" />
+                  <span>{booking.departure_location}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-sm text-ocean opacity-0 group-hover:opacity-100 transition-opacity mt-1">
+              <span>{t("dashboard.details")}</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
+          </div>
+        </CardContent>
+      </div>
     </Card>
   );
 });
