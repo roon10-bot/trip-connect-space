@@ -53,7 +53,7 @@ const TripThumbnail = ({ booking }: { booking: any }) => {
   }
 
   return (
-    <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0">
+    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 shadow-md">
       <img
         src={imageUrl}
         alt={booking.trips?.name || ""}
