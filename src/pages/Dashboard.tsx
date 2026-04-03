@@ -117,7 +117,12 @@ const Dashboard = () => {
             accommodation_facilities,
             accommodation_rooms,
             accommodation_size_sqm,
-            image_url
+            image_url,
+            trip_images (
+              id,
+              image_url,
+              display_order
+            )
           )
         `)
         .order("created_at", { ascending: false });

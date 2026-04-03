@@ -17,6 +17,11 @@ interface BookingCardProps {
       departure_date?: string;
       return_date?: string;
       image_url?: string | null;
+      trip_images?: {
+        id: string;
+        image_url: string;
+        display_order?: number | null;
+      }[] | null;
     } | null;
     [key: string]: unknown;
   };
@@ -64,7 +69,36 @@ export const BookingCard = React.memo(function BookingCard({ booking, showStatus
     }
   };
 
-  const imageUrl = booking.trips?.image_url;
+  const imageCandidates = React.useMemo(() => {
+    const galleryImages = [...(booking.trips?.trip_images ?? [])]
+      .filter((image): image is { id: string; image_url: string; display_order?: number | null } => Boolean(image?.image_url))
+      .sort((a, b) => (a.display_order ?? Number.MAX_SAFE_INTEGER) - (b.display_order ?? Number.MAX_SAFE_INTEGER))
+      .map((image) => image.image_url);
+
+    return Array.from(
+      new Set(
+        [...galleryImages, booking.trips?.image_url ?? ""].filter((imageUrl): imageUrl is string => Boolean(imageUrl))
+      )
+    );
+  }, [booking.trips?.image_url, booking.trips?.trip_images]);
+
+  const [imageIndex, setImageIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    setImageIndex(0);
+  }, [imageCandidates]);
+
+  const imageUrl = imageCandidates[imageIndex] ?? null;
+
+  const handleImageError = () => {
+    setImageIndex((currentIndex) => {
+      if (currentIndex >= imageCandidates.length - 1) {
+        return imageCandidates.length;
+      }
+
+      return currentIndex + 1;
+    });
+  };
 
   return (
     <Card
@@ -72,7 +106,6 @@ export const BookingCard = React.memo(function BookingCard({ booking, showStatus
       onClick={onClick}
     >
       <div className="flex">
-        {/* Trip image thumbnail */}
         <div className="w-32 sm:w-40 md:w-48 flex-shrink-0 relative overflow-hidden">
           {imageUrl ? (
             <img
@@ -80,6 +113,7 @@ export const BookingCard = React.memo(function BookingCard({ booking, showStatus
               alt={booking.trips?.name || ""}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
+              onError={handleImageError}
             />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center min-h-[120px]">
@@ -88,7 +122,6 @@ export const BookingCard = React.memo(function BookingCard({ booking, showStatus
           )}
         </div>
 
-        {/* Content */}
         <CardContent className="p-5 flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
