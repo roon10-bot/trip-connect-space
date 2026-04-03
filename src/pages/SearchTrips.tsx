@@ -340,7 +340,7 @@ const SearchTrips = () => {
 
             {/* Map */}
             {showMap && (
-              <div className="w-[40%] hidden lg:block sticky top-24 h-[calc(100vh-8rem)] rounded-lg overflow-hidden">
+              <div className="w-[40%] hidden lg:block sticky top-24 self-start h-[calc(100vh-8rem)] rounded-lg overflow-hidden">
                 <Suspense fallback={<div className="w-full h-full bg-muted animate-pulse rounded-lg" />}>
                   <SearchMap
                     trips={mapTrips}
