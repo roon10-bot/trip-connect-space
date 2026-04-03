@@ -93,7 +93,7 @@ export const SearchFilterBar = ({
         onClick={onToggleMap}
         className="gap-2"
       >
-        {showMap ? <MapOff className="w-4 h-4" /> : <Map className="w-4 h-4" />}
+        {showMap ? <X className="w-4 h-4" /> : <Map className="w-4 h-4" />}
         {showMap ? "Dölj karta" : "Visa karta"}
       </Button>
 
