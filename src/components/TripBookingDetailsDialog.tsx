@@ -522,7 +522,7 @@ export const TripBookingDetailsDialog = ({
         </DialogHeader>
 
         <Tabs defaultValue={defaultTab} key={defaultTab} className="mt-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="passenger">
               <Users className="w-4 h-4 mr-2" />
               Resenär
@@ -530,6 +530,10 @@ export const TripBookingDetailsDialog = ({
             <TabsTrigger value="trip">
               <MapPin className="w-4 h-4 mr-2" />
               Resa
+            </TabsTrigger>
+            <TabsTrigger value="accommodation">
+              <Home className="w-4 h-4 mr-2" />
+              Boende
             </TabsTrigger>
             <TabsTrigger value="payment">
               <CreditCard className="w-4 h-4 mr-2" />
@@ -759,6 +763,114 @@ export const TripBookingDetailsDialog = ({
                     </CardContent>
                   </Card>
                 )}
+              </motion.div>
+            </TabsContent>
+
+            {/* Accommodation Tab */}
+            <TabsContent value="accommodation" className="mt-4">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-4"
+              >
+                {/* Image Gallery */}
+                {(tripImages && tripImages.length > 0) || booking.trips?.image_url ? (
+                  <div className="rounded-xl overflow-hidden">
+                    <TripImageCarousel
+                      images={tripImages || []}
+                      fallbackImage={booking.trips?.image_url}
+                      mainImageUrl={booking.trips?.image_url}
+                      tripName={booking.trips?.name}
+                      className="h-64 sm:h-80 rounded-xl"
+                    />
+                  </div>
+                ) : null}
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Home className="w-5 h-5 text-ocean" />
+                      Boendeinformation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {booking.trips?.accommodation_description && (
+                      <p className="text-sm text-muted-foreground">
+                        {booking.trips.accommodation_description}
+                      </p>
+                    )}
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {booking.trips?.accommodation_rooms && (
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <BedDouble className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Antal rum</p>
+                            <p className="font-medium">{booking.trips.accommodation_rooms} rum</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {booking.trips?.accommodation_size_sqm && (
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Maximize className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Storlek</p>
+                            <p className="font-medium">{booking.trips.accommodation_size_sqm} m²</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {booking.trips?.accommodation_facilities && booking.trips.accommodation_facilities.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <WifiIcon className="w-4 h-4 text-primary" />
+                          <p className="text-sm font-medium">Faciliteter</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {booking.trips.accommodation_facilities.map((facility, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">
+                              {facility}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {booking.trips?.accommodation_address && (
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <MapPin className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Adress</p>
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(booking.trips.accommodation_address)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary hover:underline font-medium"
+                          >
+                            {booking.trips.accommodation_address}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {!booking.trips?.accommodation_description &&
+                     !booking.trips?.accommodation_rooms &&
+                     !booking.trips?.accommodation_address && (
+                      <p className="text-sm text-muted-foreground italic">
+                        Boendeinformation har inte lagts till ännu.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
               </motion.div>
             </TabsContent>
 
