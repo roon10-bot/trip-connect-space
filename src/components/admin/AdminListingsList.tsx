@@ -49,6 +49,7 @@ export const AdminListingsList = () => {
   const pending = listings?.filter((l) => l.status === "pending") || [];
   const approved = listings?.filter((l) => l.status === "approved") || [];
   const rejected = listings?.filter((l) => l.status === "rejected") || [];
+  const suspended = listings?.filter((l) => l.status === "suspended") || [];
 
   const getOwnerName = (p: any) => {
     if (!p) return "—";
