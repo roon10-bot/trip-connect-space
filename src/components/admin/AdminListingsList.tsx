@@ -49,6 +49,7 @@ export const AdminListingsList = () => {
   const pending = listings?.filter((l) => l.status === "pending") || [];
   const approved = listings?.filter((l) => l.status === "approved") || [];
   const rejected = listings?.filter((l) => l.status === "rejected") || [];
+  const suspended = listings?.filter((l) => l.status === "suspended") || [];
 
   const getOwnerName = (p: any) => {
     if (!p) return "—";
@@ -59,12 +60,14 @@ export const AdminListingsList = () => {
     pending: "bg-amber-100 text-amber-800",
     approved: "bg-green-100 text-green-800",
     rejected: "bg-red-100 text-red-800",
+    suspended: "bg-gray-100 text-gray-800",
   };
 
   const statusLabels: Record<string, string> = {
     pending: "Väntar",
     approved: "Godkänd",
     rejected: "Nekad",
+    suspended: "Pausad",
   };
 
   const renderTable = (list: any[]) => (
@@ -76,6 +79,7 @@ export const AdminListingsList = () => {
             <TableHead>Värd</TableHead>
             <TableHead>Destination</TableHead>
             <TableHead>Kapacitet</TableHead>
+            <TableHead>Dagspris</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Åtgärder</TableHead>
           </TableRow>
@@ -98,6 +102,7 @@ export const AdminListingsList = () => {
               <TableCell>{getOwnerName(l.partner_profiles)}</TableCell>
               <TableCell>{l.destination}, {l.country}</TableCell>
               <TableCell>{l.capacity}</TableCell>
+              <TableCell>{l.daily_price ? `${l.daily_price} kr` : "—"}</TableCell>
               <TableCell><Badge className={statusColors[l.status] || ""}>{statusLabels[l.status] || l.status}</Badge></TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
@@ -120,7 +125,7 @@ export const AdminListingsList = () => {
           ))}
           {list.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">Inga boenden</TableCell>
+              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">Inga boenden</TableCell>
             </TableRow>
           )}
         </TableBody>
@@ -130,15 +135,19 @@ export const AdminListingsList = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="pending">
+      <Tabs defaultValue="all">
         <TabsList>
+          <TabsTrigger value="all">Alla ({listings?.length || 0})</TabsTrigger>
           <TabsTrigger value="pending">Väntande ({pending.length})</TabsTrigger>
           <TabsTrigger value="approved">Godkända ({approved.length})</TabsTrigger>
           <TabsTrigger value="rejected">Nekade ({rejected.length})</TabsTrigger>
+          <TabsTrigger value="suspended">Pausade ({suspended.length})</TabsTrigger>
         </TabsList>
+        <TabsContent value="all">{renderTable(listings || [])}</TabsContent>
         <TabsContent value="pending">{renderTable(pending)}</TabsContent>
         <TabsContent value="approved">{renderTable(approved)}</TabsContent>
         <TabsContent value="rejected">{renderTable(rejected)}</TabsContent>
+        <TabsContent value="suspended">{renderTable(suspended)}</TabsContent>
       </Tabs>
 
       {/* Detail Dialog */}
