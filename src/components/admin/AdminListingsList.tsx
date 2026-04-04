@@ -67,6 +67,7 @@ export const AdminListingsList = () => {
     pending: "Väntar",
     approved: "Godkänd",
     rejected: "Nekad",
+    suspended: "Pausad",
   };
 
   const renderTable = (list: any[]) => (
