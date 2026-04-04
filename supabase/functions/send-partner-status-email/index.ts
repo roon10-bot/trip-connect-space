@@ -44,8 +44,10 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const name = `${first_name || ""} ${last_name || ""}`.trim() || email;
-    const portalUrl = `${PORTAL_BASE.replace(/\/$/, "")}/partner`;
-    const loginUrl = `${PORTAL_BASE.replace(/\/$/, "")}/auth/login`;
+    const base = PORTAL_BASE.replace(/\/$/, "");
+    const portalUrl = `${base}/partner`;
+    const loginUrl = `${base}/auth/login`;
+    const magicLinkRedirectTo = `${base}/auth/callback?next=/partner&source=partner_approval`;
 
     const sendTransactional = async (payload: Record<string, unknown>) => {
       const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
@@ -67,7 +69,7 @@ Deno.serve(async (req) => {
       const { data: linkData } = await supabase.auth.admin.generateLink({
         type: "magiclink",
         email,
-        options: { redirectTo: portalUrl },
+        options: { redirectTo: magicLinkRedirectTo },
       });
 
       const magicLink = linkData?.properties?.action_link ?? loginUrl;
