@@ -76,6 +76,7 @@ export const AdminListingsList = () => {
             <TableHead>Värd</TableHead>
             <TableHead>Destination</TableHead>
             <TableHead>Kapacitet</TableHead>
+            <TableHead>Dagspris</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Åtgärder</TableHead>
           </TableRow>
