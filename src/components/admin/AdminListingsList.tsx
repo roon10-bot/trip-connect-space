@@ -135,15 +135,19 @@ export const AdminListingsList = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="pending">
+      <Tabs defaultValue="all">
         <TabsList>
+          <TabsTrigger value="all">Alla ({listings?.length || 0})</TabsTrigger>
           <TabsTrigger value="pending">Väntande ({pending.length})</TabsTrigger>
           <TabsTrigger value="approved">Godkända ({approved.length})</TabsTrigger>
           <TabsTrigger value="rejected">Nekade ({rejected.length})</TabsTrigger>
+          <TabsTrigger value="suspended">Pausade ({suspended.length})</TabsTrigger>
         </TabsList>
+        <TabsContent value="all">{renderTable(listings || [])}</TabsContent>
         <TabsContent value="pending">{renderTable(pending)}</TabsContent>
         <TabsContent value="approved">{renderTable(approved)}</TabsContent>
         <TabsContent value="rejected">{renderTable(rejected)}</TabsContent>
+        <TabsContent value="suspended">{renderTable(suspended)}</TabsContent>
       </Tabs>
 
       {/* Detail Dialog */}
