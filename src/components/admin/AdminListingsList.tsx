@@ -99,6 +99,7 @@ export const AdminListingsList = () => {
               <TableCell>{getOwnerName(l.partner_profiles)}</TableCell>
               <TableCell>{l.destination}, {l.country}</TableCell>
               <TableCell>{l.capacity}</TableCell>
+              <TableCell>{l.daily_price ? `${l.daily_price} kr` : "—"}</TableCell>
               <TableCell><Badge className={statusColors[l.status] || ""}>{statusLabels[l.status] || l.status}</Badge></TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
