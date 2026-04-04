@@ -110,6 +110,20 @@ serve(async (req: Request) => {
   try {
     const payload = await req.json();
 
+    const isSignup =
+      payload?.type === "signup" ||
+      payload?.event === "SIGNUP" ||
+      payload?.email_data?.email_action_type === "signup";
+    if (isSignup) {
+      const meta = payload?.user?.user_metadata || {};
+      if (meta?.suppress_confirmation_email === true) {
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+    }
+
     const postmarkToken = Deno.env.get("POSTMARK_SERVER_TOKEN");
     if (!postmarkToken) throw new Error("POSTMARK_SERVER_TOKEN is not set");
 
