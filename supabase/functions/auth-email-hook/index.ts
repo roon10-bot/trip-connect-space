@@ -44,6 +44,17 @@ serve(async (req) => {
 
     if (!next || next === "/") next = "/sv";
 
+    // Fix: If next points to /auth/confirm (circular), extract the inner next
+    if (next.includes("/auth/confirm")) {
+      try {
+        const innerUrl = new URL(next, PORTAL_BASE);
+        const innerNext = innerUrl.searchParams.get("next");
+        next = innerNext || "/sv/partner";
+      } catch {
+        next = "/sv/partner";
+      }
+    }
+
     // Build action URL using token_hash for SSR-compatible flow
     let actionUrl = `${PORTAL_BASE}/sv/auth/login`;
     if (tokenHash && type) {
