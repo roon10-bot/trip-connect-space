@@ -42,13 +42,15 @@ serve(async (req) => {
       next = u.pathname + u.search;
     }
 
+    if (!next || next === "/") next = "/sv";
+
     // Build action URL using token_hash for SSR-compatible flow
-    let actionUrl = "";
+    let actionUrl = `${PORTAL_BASE}/sv/auth/login`;
     if (tokenHash && type) {
       const confirmUrl = new URL(`${PORTAL_BASE}/auth/confirm`);
       confirmUrl.searchParams.set("token_hash", tokenHash);
       confirmUrl.searchParams.set("type", type === "signup" ? "email" : type);
-      if (next && next !== "/") confirmUrl.searchParams.set("next", next);
+      if (next) confirmUrl.searchParams.set("next", next);
       actionUrl = confirmUrl.toString();
     }
 
