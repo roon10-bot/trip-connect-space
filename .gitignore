@@ -21,4 +21,14 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
+
+# Security - certificates and keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Environment variables
+.env
+.env.*
 *.sw?
