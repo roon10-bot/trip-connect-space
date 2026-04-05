@@ -15,15 +15,17 @@ serve(async (req) => {
 
   try {
     const payload = await req.json();
-    console.log("auth-email-hook payload type:", payload.type, "email:", payload.email);
 
-    const tokenHash = payload.token_hash;
-    const type = payload.type;
-    const email = payload.email;
-    const redirectTo = payload.redirect_to || "";
+    const email = payload.user?.email;
+    const tokenHash = payload.email_data?.token_hash;
+    const type = payload.email_data?.email_action_type;
+    const redirectTo = payload.email_data?.redirect_to || "";
+    const suppressEmail = payload.user?.user_metadata?.suppress_confirmation_email;
+
+    console.log("auth-email-hook payload type:", type, "email:", email);
 
     // Suppress confirmation email for hosts
-    if (type === "signup" && payload.user?.user_metadata?.suppress_confirmation_email === true) {
+    if (type === "signup" && suppressEmail === true) {
       console.log("Suppressing confirmation email for host:", email);
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
