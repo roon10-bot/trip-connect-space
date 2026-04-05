@@ -19,10 +19,23 @@ interface EmailTemplate {
   logo_url: string | null;
 }
 
+/** Coerce JSON variables to strings so {{placeholders}} and URLs behave consistently. */
+function coerceVariables(raw: unknown): Record<string, string> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (v === null || v === undefined) out[k] = "";
+    else out[k] = String(v);
+  }
+  return out;
+}
+
 function replacePlaceholders(text: string, vars: Record<string, string>): string {
   let result = text;
   for (const [key, value] of Object.entries(vars)) {
-    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
+    // Escape regex metacharacters in key so keys like "foo.bar" don't break
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    result = result.replace(new RegExp(`\\{\\{${escapedKey}\\}\\}`, "g"), value);
   }
   return result;
 }
@@ -142,14 +155,20 @@ serve(async (req: Request) => {
     }
 
     const template = tplData as EmailTemplate;
-    const vars = variables || {};
+    const vars = coerceVariables(variables);
 
     // Allow admin overrides for subject and body
     if (subject_override) template.subject = subject_override;
     if (body_override) template.body_text = body_override;
 
     const subject = replacePlaceholders(template.subject, vars);
-    const html = buildEmailHtml(template, vars, action_url);
+    // Button link: top-level action_url wins; else variables.button_url (no button_url column on email_templates)
+    const resolvedActionUrl =
+      (typeof action_url === "string" && action_url.trim()) ||
+      (vars.button_url && vars.button_url.trim()) ||
+      undefined;
+
+    const html = buildEmailHtml(template, vars, resolvedActionUrl);
 
     const res = await fetch(POSTMARK_API, {
       method: "POST",
